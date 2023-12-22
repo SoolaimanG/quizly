@@ -7,7 +7,6 @@ import SearchQuiz from "../../components/App/SearchQuiz";
 import { useRef } from "react";
 import Fade from "../../Animations/Fade";
 import { useMethods } from "../../Hooks";
-import { useZStore } from "../../provider";
 
 const contents = Object.freeze({
   quilyDefination:
@@ -18,7 +17,6 @@ const contents = Object.freeze({
 
 const Services = () => {
   const { login_required } = useMethods();
-  const { user } = useZStore();
 
   const studentRef = useRef<HTMLDivElement | null>(null);
   const teacherRef = useRef<HTMLDivElement | null>(null);
@@ -35,8 +33,6 @@ const Services = () => {
 
     console.log("Auth");
   };
-
-  console.log(user);
 
   const studentComp = (
     <motion.div

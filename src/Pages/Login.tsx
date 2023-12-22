@@ -1,14 +1,26 @@
 import { Sparkles } from "lucide-react";
-import { IUser, loginProps } from "../Types/components.types";
+import { app_config, loginProps } from "../Types/components.types";
 import { Input } from "../components/Input";
 import { Button } from "../components/Button";
 import React, { useState } from "react";
 import { toast } from "../components/use-toaster";
 import axios, { AxiosError } from "axios";
-import { useZStore } from "../provider";
 import { Link, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import Oauth from "../components/Oauth";
+import CompleteSignUp from "../components/App/CompleteSignUp";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../components/AlertModal";
+
+import DoesNotExist from "../assets/imgTwo.png";
 
 const Login = ({
   title,
@@ -16,11 +28,12 @@ const Login = ({
   isPopup = false,
   fallback = "/",
 }: loginProps) => {
-  const { setUser } = useZStore();
   const router = useNavigate();
   const [state, setState] = useState({
     loading: false,
+    navigate_to_onboarding: false,
     error: "",
+    account_does_not_exist: false,
   });
   const [formData, setFormData] = useState({
     username: "",
@@ -33,7 +46,10 @@ const Login = ({
     setFormData({ ...formData, [name]: value });
   };
 
-  const loginWithPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+  const loginWithPassword = async (
+    e: React.FormEvent<HTMLFormElement | HTMLButtonElement>,
+    create_new_account?: boolean
+  ) => {
     e.preventDefault();
     const { username, password } = formData;
     try {
@@ -54,22 +70,32 @@ const Login = ({
       }
 
       setState({ ...state, loading: false }); //Start Loading
-      const params = `?username=${username}&password=${password}`;
-      const res = await axios.get(
-        `${import.meta.env.VITE_QUIZLY_API_HOST}/api/v1/auth/${params}`
+
+      const res = await axios.post(
+        `${import.meta.env.VITE_QUIZLY_API_HOST}/api/v1/auth/`,
+        {
+          ...formData,
+          create_new_account: create_new_account,
+          auth_provider: "L",
+        }
       );
 
-      const new_user: IUser = {
+      const _user = {
         ...res.data.data,
       };
 
-      setUser(new_user);
-      Cookies.set("access_token", res.data.access_token);
-      setState({ ...state, loading: false });
-
-      router(fallback);
+      Cookies.set("access_token", res.data.data.access_token); //Setting the user access token using the cookies
+      !_user.signup_complete
+        ? setState({
+            ...state,
+            loading: false,
+            navigate_to_onboarding: !_user.signup_complete, //If the user hasnt complete sign up show the navigate to onboarding page
+          })
+        : router(fallback); //Fallback referring as the place the user is coming from
+      isPopup && window.location.reload();
     } catch (error: AxiosError | any) {
       console.error(error);
+
       toast({
         title: "ERROR " + error.response.status,
         description:
@@ -85,15 +111,57 @@ const Login = ({
           error.response.data.detail ||
           "Something went wrong...",
         loading: false,
+        account_does_not_exist: Boolean(error.response.status === 404),
       });
     }
   };
 
+  const account_does_not_exist = (
+    <AlertDialog
+      onOpenChange={() =>
+        setState({
+          ...state,
+          account_does_not_exist: !state.account_does_not_exist,
+        })
+      }
+      open={state.account_does_not_exist}
+    >
+      <AlertDialogContent className="flex-col gap-3 flex items-center justify-center">
+        <img className="aspect-auto" src={DoesNotExist} alt="" />
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-red-400">
+            Oops😢, Account not found
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            We look our database and there was not an account related to the
+            name you provided. However you can create one now!
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="w-full flex md:flex-row flex-col items-end justify-end gap-2">
+          <AlertDialogCancel className="w-full md:w-fit">
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogTrigger
+            onClick={async (e) => {
+              await loginWithPassword(e, true);
+              setState({ ...state, account_does_not_exist: false });
+            }}
+            className="bg-green-400 h-[2.5rem] md:w-fit px-4 text-white rounded-md w-full hover:bg-green-500 dark:bg-green-500 hover:dark:bg-green-600 disabled:bg-green-700"
+          >
+            Create Account
+          </AlertDialogTrigger>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
   return (
     <div className="flex w-full flex-col gap-3">
+      {account_does_not_exist}
+      <CompleteSignUp fallback={fallback} open={state.navigate_to_onboarding} />
       <div className="flex flex-col">
         <Sparkles className="text-green-500" size={30} />
-        <h1 className="text-2xl md:text-3xl">{title}</h1>
+        <h1 className="text-2xl text-green-500 md:text-3xl">{title}</h1>
         <p className="text-gray-400 dark:text-gray-300">{description}</p>
       </div>
       <form
@@ -104,27 +172,27 @@ const Login = ({
         <Input
           name="username"
           onChange={handleChange}
-          className="w-full"
+          className="w-full h-[3rem]"
           placeholder="Username"
         />
         <Input
           name="password"
           type="password"
           onChange={handleChange}
-          className="w-full"
+          className="w-full h-[3rem]"
           placeholder="Password"
         />
         {state.error.toLowerCase() === "incorrect password" && (
           <Link
-            to={"/auth/forget-password"}
-            className="underline w-full flex items-end justify-end"
+            to={app_config.forgetPassword}
+            className="underline text-green-500 w-full flex items-end justify-end"
           >
             Forget password?
           </Link>
         )}
         <Button
           type="submit"
-          className="w-full bg-green-400 hover:bg-green-500 dark:bg-green-500 dark:hover:bg-green-600 disabled:bg-green-700 "
+          className="w-full text-white font-semibold h-[3rem] bg-green-400 hover:bg-green-500 dark:bg-green-500 dark:hover:bg-green-600 disabled:bg-green-700 "
         >
           Login
         </Button>
@@ -140,13 +208,6 @@ const Login = ({
         {!isPopup && <div className="w-[70%] h-[1.5px] bg-gray-400" />}
       </div>
       <Oauth />
-      <Link
-        to={"/auth/signup"}
-        className="flex items-center justify-center w-full mt-3"
-      >
-        Dont have an account?{" "}
-        <p className="underline text-green-500">Sign Up</p>
-      </Link>
     </div>
   );
 };

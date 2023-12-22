@@ -1,19 +1,14 @@
-import axios from "axios";
 import { useZStore } from "../provider";
-import Cookies from "js-cookie";
-import { IUser } from "../Types/components.types";
-import { useEffect } from "react";
 
 export const useMethods = () => {
-  const { user, setUser, setLoginAttempt } = useZStore();
-  const access_token = Cookies.get("access_token");
+  const { user, setLoginAttempt, setEmailVerificationRequired } = useZStore();
 
   const isAuthenticated = () => {
-    return user?.id ? true : false;
+    return user?.id;
   };
 
   const isTeacher = () => {
-    return user?.account_type === "T" ? true : false;
+    return user?.account_type === "T";
   };
 
   const login_required = () => {
@@ -27,31 +22,10 @@ export const useMethods = () => {
     });
   };
 
-  const get_user = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_QUIZLY_API_HOST}/api/v1/user/`,
-        {
-          headers: {
-            Authorization: "Bearer " + access_token,
-          },
-          withCredentials: true,
-        }
-      );
-
-      const _: IUser = {
-        ...res.data.data,
-      };
-      setUser(_);
-    } catch (error: any) {
-      setUser(null);
-      console.error(error);
-    }
-  };
-
   const email_verification_required = () => {
     new Promise((resolve, reject) => {
       if (!user?.email_verified) {
+        setEmailVerificationRequired(true);
         reject("Please verify your email before accessing this");
       }
 
@@ -59,15 +33,10 @@ export const useMethods = () => {
     });
   };
 
-  useEffect(() => {
-    get_user();
-  }, []);
-
   return {
     isAuthenticated,
     isTeacher,
     login_required,
-    get_user,
     email_verification_required,
   };
 };

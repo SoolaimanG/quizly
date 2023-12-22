@@ -1,34 +1,29 @@
 import { useDocumentTitle, useWindowSize } from "@uidotdev/usehooks";
-import { authLayout } from "../../Types/components.types";
+import { app_config, authLayout } from "../../Types/components.types";
 import Login from "../Login";
-import SignUp from "../SignUp";
 import ForgetPassword from "../ForgetPassword";
 import ConfirmEmail from "../ConfirmEmail";
 
 const AuthViews = {
   Login: {
     element: Login,
-    desc: "Login to Quizly for a world of knowledge in every question.",
+    desc: `Login to access your ${app_config.AppName} account, or rest assured, if you don't have one yet, we'll create it for you seamlessly!`,
   },
   ForgetPassword: {
     element: ForgetPassword,
-    desc: "",
-  },
-  SignUp: {
-    element: SignUp,
     desc: "",
   },
   ConfirmEmail: {
     element: ConfirmEmail,
     desc: "",
   },
-};
+}; //Type of view that can be rendered LoginView | ForgetPassword | ConfirmEmail
 
 const AuthLayout = ({ path }: authLayout) => {
   const CurrentView = AuthViews[path];
 
-  const { width } = useWindowSize();
-  useDocumentTitle("Auth | " + path);
+  const { width } = useWindowSize(); //Getting the size of the window size
+  useDocumentTitle("Auth | " + path); //This titles changes dynamically
 
   const style: React.CSSProperties = {
     clipPath: "ellipse(82% 40% at 94% 16%)",

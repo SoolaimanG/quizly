@@ -5,24 +5,41 @@ import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "../AlertModal";
-import { Sheet, SheetContent, SheetHeader } from "../Sheet";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "../Sheet";
 import Login from "../../Pages/Login";
 import { Button } from "../Button";
 import { X } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../Tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Hint from "../Hint";
+import VerifyEmail from "./VerifyEmail";
+
+const content = Object.freeze({
+  description:
+    "we have to make sure your email is valid and verify please giving you access to this action.",
+  header: "Email Verification Is Required",
+});
 
 const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const query_cleint = new QueryClient();
+  const { user } = useZStore();
 
-  const { setIsDarkMode, loginAttempt, setLoginAttempt } = useZStore();
+  const {
+    setIsDarkMode,
+    loginAttempt,
+    setLoginAttempt,
+    emailVerificationRequired,
+    setEmailVerificationRequired,
+  } = useZStore();
   const [localstorage_data, saveTheme] = useLocalStorage<
     "dark" | "light" | null
   >("theme", null);
@@ -45,10 +62,13 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return () => {};
   }, []); // Empty dependency array to run the effect only once after the initial render
 
+  //This is the popup to appear if the a user tries to login without authentication
   const authPopup =
-    loginAttempt &&
-    (Number(width) > 770 ? (
-      <AlertDialog open={loginAttempt.attempt}>
+    Number(width) > 770 ? (
+      <AlertDialog
+        onOpenChange={() => setLoginAttempt({ attempt: !loginAttempt.attempt })}
+        open={loginAttempt.attempt}
+      >
         <AlertDialogContent>
           <Login
             fallback={loginAttempt.fallback}
@@ -57,35 +77,31 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             isPopup
           />
           <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => setLoginAttempt({ attempt: false })}
-            >
-              Close
-            </AlertDialogCancel>
+            <AlertDialogCancel>Close</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     ) : (
-      <Sheet open={loginAttempt.attempt}>
+      <Sheet
+        onOpenChange={() => setLoginAttempt({ attempt: !loginAttempt.attempt })}
+        open={loginAttempt.attempt}
+      >
         <SheetContent className="py-6" side="bottom">
           <SheetHeader>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
+            <SheetClose>
+              <Hint
+                element={
                   <Button
-                    onClick={() => setLoginAttempt({ attempt: false })}
                     className=" absolute mt-3 mr-3 top-0 right-0"
                     variant={"ghost"}
                     size={"icon"}
                   >
                     <X />
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Close</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                }
+                content="Close"
+              />
+            </SheetClose>
           </SheetHeader>
           <Login
             fallback={loginAttempt.fallback}
@@ -95,13 +111,66 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           />
         </SheetContent>
       </Sheet>
-    ));
+    );
+
+  const verify_email_pop =
+    Number(width) > 770 ? (
+      <AlertDialog
+        onOpenChange={() =>
+          setEmailVerificationRequired(!emailVerificationRequired)
+        }
+        open={emailVerificationRequired}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{content.header}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {content.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <VerifyEmail show_input user_email={user?.email as string} />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ) : (
+      <Sheet
+        onOpenChange={() =>
+          setEmailVerificationRequired(!emailVerificationRequired)
+        }
+        open={emailVerificationRequired}
+      >
+        <SheetContent className="py-6" side="bottom">
+          <SheetHeader className="flex flex-col gap-2">
+            <SheetTitle>{content.header}</SheetTitle>
+            <SheetDescription>{content.description}</SheetDescription>
+            <SheetClose>
+              <Hint
+                element={
+                  <Button
+                    className=" absolute mt-3 mr-3 top-0 right-0"
+                    variant={"ghost"}
+                    size={"icon"}
+                  >
+                    <X />
+                  </Button>
+                }
+                content="Close"
+              />
+            </SheetClose>
+          </SheetHeader>
+          <VerifyEmail show_input user_email={user?.email as string} />
+        </SheetContent>
+      </Sheet>
+    );
 
   return (
-    <QueryClientProvider client={query_cleint}>
+    <React.Fragment>
       {authPopup}
+      {verify_email_pop}
       {children}
-    </QueryClientProvider>
+    </React.Fragment>
   );
 };
 

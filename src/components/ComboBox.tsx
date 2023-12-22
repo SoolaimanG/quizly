@@ -19,11 +19,13 @@ export function Combobox({
   value,
   setValue,
   title,
+  className,
 }: {
   title?: string;
   data: combo_box_type[];
   value: string;
   setValue: React.Dispatch<React.SetStateAction<string>>;
+  className?: string;
 }) {
   const [open, setOpen] = React.useState(false);
 
@@ -34,7 +36,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className={`${className ? className : "w-[200px]"} justify-between`}
         >
           {value
             ? data.find((d) => d.value.toLowerCase() === value.toLowerCase())
@@ -48,9 +50,9 @@ export function Combobox({
           <CommandInput placeholder="Search framework..." />
           <CommandEmpty>No framework found.</CommandEmpty>
           <CommandGroup>
-            {data.map((d) => (
+            {data.map((d, i) => (
               <CommandItem
-                key={d.value}
+                key={i}
                 value={d.value}
                 onSelect={(currentValue) => {
                   setValue(currentValue === value ? "" : currentValue);

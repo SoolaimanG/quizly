@@ -1,16 +1,12 @@
 import { Navigate } from "react-router-dom";
-import { protected_route_props } from "./Types/components.types";
-import React from "react";
-import { useMethods } from "./Hooks";
+import { app_config, protected_route_props } from "./Types/components.types";
 
 const ProtectedRoute = ({ element }: protected_route_props) => {
-  const { isAuthenticated } = useMethods();
-
-  if (!isAuthenticated()) {
-    return <Navigate to="/auth/login" />;
+  if (false) {
+    return <Navigate to={app_config.login_page} />;
   }
 
-  return <React.Fragment>{element}</React.Fragment>;
+  return <>{element}</>;
 };
 
 export default ProtectedRoute;

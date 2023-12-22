@@ -18,3 +18,16 @@ QUIZLY PATHS
 /admin/survey/workspace ----> Workspace Area for survey creation for the user _
 /admin/quiz/workspace ----> Workspace Area for quiz creation for the user \*
 /quizly/user/[id] ----> Quizly User page
+
+--->First Name and Last Name ---> If user email is not yet verify so this page [Email and Verify email] ----> Favorites Hobbys ----> Age and bio ---> Add profile image
+
+<!-- Explore Pages -->
+
+1. TopBar --> Avatar or Login, Logo, Quote and Word of the day, Darkmode
+2. SideBar
+3. Recommendation
+4. Create Survey
+5. Create Account
+6. First Time Login
+7. Filter Quizzes
+8. Word Of The Day

@@ -1,6 +1,6 @@
 import { AlignRight, X } from "lucide-react";
 import { Button } from "../Button";
-import ProfilePic from "../../assets/profile_one.png";
+import ProfilePic from "../../assets/profile_two.png";
 import Logo from "../Logo";
 import {
   Sheet,
@@ -15,7 +15,9 @@ import { motion } from "framer-motion";
 import Darkmode from "../Darkmode";
 import { Link } from "react-router-dom";
 import { useMethods } from "../../Hooks";
-//import { useQuery } from "@tanstack/react-query";
+import { useZStore } from "../../provider";
+import { app_config } from "../../Types/components.types";
+import { capitalize_first_letter } from "../../Functions";
 
 // Array of navigation links
 export const navbar_links = [
@@ -43,15 +45,7 @@ const Navbar = () => {
   const [nav_on_top, setNav_on_top] = useState(true);
   const { width } = useWindowSize();
   const { isAuthenticated } = useMethods();
-
-  //const { isLoading, data, error } = useQuery({
-  //  queryKey: ["post"],
-  //  queryFn: () => {
-  //    fetch("https://jsonplaceholder.typicode.com/posts").then((res) => {
-  //      res.json();
-  //    });
-  //  },
-  //});
+  const { user } = useZStore();
 
   //console.log({ isLoading, data, error });
 
@@ -100,7 +94,7 @@ const Navbar = () => {
       {navbar_link_render}
       <div className="flex items-center gap-2">
         <Darkmode />
-        <Link to={isAuthenticated() ? "quizly/profile" : "/auth/login"}>
+        <Link to={isAuthenticated() ? "quizly/profile" : app_config.login_page}>
           {!isAuthenticated() ? (
             <Button
               className="bg-green-500 text-base hover:bg-green-600 font-semibold dark:text-white"
@@ -111,7 +105,7 @@ const Navbar = () => {
           ) : (
             <img
               className="w-[3rem] h-[3rem] bg-green-100 rounded-full"
-              src={ProfilePic}
+              src={(user?.profile_image as string) || ProfilePic}
               alt="profile-picture"
             />
           )}
@@ -123,7 +117,7 @@ const Navbar = () => {
   // Navbar for mobile screens
   const navbar_on_mobile = (
     <div className="w-full md:hidden flex items-center justify-between">
-      <Link to={"/"}>
+      <Link to={app_config.landing_page}>
         {" "}
         <Logo show_word={false} />
       </Link>
@@ -158,23 +152,27 @@ const Navbar = () => {
               </SheetClose>
             ))}
             <div className="flex items-center gap-3">
-              <Link to={"/auth/login"}>
-                <Button
-                  className="bg-green-500 text-base hover:bg-green-600 font-semibold dark:text-white"
-                  size={"lg"}
-                >
-                  Login
-                </Button>
-              </Link>
-              <Link to={"/auth/signup"}>
-                <Button
-                  variant={"outline"}
-                  className="text-base font-semibold dark:text-white"
-                  size={"lg"}
-                >
-                  Sign Up
-                </Button>
-              </Link>
+              {isAuthenticated() ? (
+                <div className="flex items-center gap-2">
+                  <img
+                    className="w-[3rem] h-[3rem] bg-green-100 rounded-full"
+                    src={(user?.profile_image as string) || ProfilePic}
+                    alt="profilePicture"
+                  />
+                  <p className="text-green-400">
+                    {capitalize_first_letter(user?.username as string)}
+                  </p>
+                </div>
+              ) : (
+                <Link to={app_config.login_page}>
+                  <Button
+                    className="bg-green-500 text-base hover:bg-green-600 font-semibold dark:text-white"
+                    size={"lg"}
+                  >
+                    Login
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
           <div className="flex mt-5 items-center gap-2">

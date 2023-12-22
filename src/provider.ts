@@ -5,6 +5,7 @@ export const useZStore = create<Zstate & Zaction>()((set) => ({
   is_darkmode: false,
   loginAttempt: { attempt: false, fallback: "" },
   user: null,
+  emailVerificationRequired: false,
   setIsDarkMode: (prop) => set((state) => ({ ...state, is_darkmode: prop })),
   setLoginAttempt(prop) {
     set((state) => ({
@@ -23,6 +24,12 @@ export const useZStore = create<Zstate & Zaction>()((set) => ({
         ...(state.user as IUser),
         ...prop,
       },
+    }));
+  },
+  setEmailVerificationRequired(props) {
+    set((state) => ({
+      ...state,
+      emailVerificationRequired: props,
     }));
   },
 }));
