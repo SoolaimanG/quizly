@@ -1,4 +1,4 @@
-import { IUser } from "./components.types";
+import { IUser, subjects } from "./components.types";
 
 export interface IPost {
   posted_by: IUser;
@@ -29,4 +29,12 @@ export interface checkMemberShipProps {
 
 export interface createCommunityProps {
   button: React.ReactElement;
+}
+
+export interface createCommunityApiProps {
+  display_image: File;
+  name: string;
+  allow_categories: subjects[];
+  description?: string;
+  join_with_request: boolean;
 }

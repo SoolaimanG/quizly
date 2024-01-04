@@ -183,7 +183,11 @@ const ImageUploader = ({
             variant={"base"}
             className="w-full flex gap-1"
             onClick={() => {
-              setData({ ...data, previewUrl: [...data.previewUrl!, urlImage] });
+              urlImage &&
+                setData({
+                  ...data,
+                  previewUrl: [...data.previewUrl!, urlImage],
+                });
               setUrlImage("");
             }}
           >

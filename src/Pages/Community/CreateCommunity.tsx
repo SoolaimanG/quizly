@@ -18,6 +18,11 @@ import { Description } from "../ExplorePage/QuickQuiz";
 import { Switch } from "../../components/Switch";
 import { subjects, uploaderProps } from "../../Types/components.types";
 import { SelectCategory } from "../../components/App/SelectCategory";
+import { createCommunity } from "../../Functions/APIqueries";
+import { Img } from "react-image";
+import { useMethods } from "../../Hooks";
+import { toast } from "../../components/use-toaster";
+import { capitalize_first_letter } from "../../Functions";
 
 const content = Object.freeze({
   description:
@@ -30,15 +35,44 @@ export const CreateCommunity: React.FC<createCommunityProps> = ({ button }) => {
     files: [],
     previewUrl: [],
   });
-  const [allowedCategories, setAllowCategories] = useState<subjects[]>([]);
+  const [data, setData] = useState({
+    name: "",
+    description: "",
+    join_with_request: false,
+  });
+  const { login_required } = useMethods();
+  const [allow_categories, setAllowCategories] = useState<subjects[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
-  const goForward = () => {
+  const goForward = async () => {
     if (view === "start") return setView("details");
 
     if (view === "details") return setView("finish");
 
-    //Process the data
+    if (!login_required()) return;
+
+    const { name, description, join_with_request } = data;
+
+    const res = await createCommunity({
+      allow_categories,
+      name,
+      join_with_request,
+      display_image: imageData.files[0],
+      description,
+    });
+
+    if (res?.message == "OK") {
+      setImageData({ files: [], previewUrl: [] });
+      setAllowCategories([]);
+      toast({
+        title: "Success",
+        description: `You just created a community ${capitalize_first_letter(
+          name
+        )}`,
+      });
+      setView("start");
+      setIsOpen(false);
+    }
   };
 
   const goBackward = () => {
@@ -49,6 +83,14 @@ export const CreateCommunity: React.FC<createCommunityProps> = ({ button }) => {
     setIsOpen(false);
   };
 
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+
+    setData({ ...data, [name]: value });
+  };
+
   const start = (
     <AlertDialogDescription>{content.description}</AlertDialogDescription>
   );
@@ -57,17 +99,30 @@ export const CreateCommunity: React.FC<createCommunityProps> = ({ button }) => {
     <form className="w-full flex flex-col gap-2">
       <ImageUploader
         button={
-          <div className="w-[5rem] flex items-center justify-center h-[5rem] border border-green-400 hover:bg-green-200 transition-all delay-75 border-dashed rounded-full">
-            {/*<div>*/}
-            <UploadCloud />
+          <div className="w-[5rem] flex items-center justify-center h-[5rem] border border-green-400 hover:bg-green-200 transition-all delay-75   border-dashed rounded-full">
+            {imageData?.previewUrl![0] ? (
+              <Img
+                className="w-full h-full rounded-full"
+                src={imageData.previewUrl[0]}
+              />
+            ) : (
+              <UploadCloud />
+            )}
           </div>
         }
         setData={setImageData}
         filesToAccept={[".png", ".jpeg", ".jpg"]}
         data={imageData}
       />
-      <Input placeholder="Name your community" />
+      <Input
+        name="name"
+        onChange={handleChange}
+        placeholder="Name your community"
+        className="h-[3rem]"
+      />
       <Textarea
+        onChange={handleChange}
+        name="description"
         className="resize-none"
         placeholder="Write a description about your community"
       />
@@ -76,7 +131,12 @@ export const CreateCommunity: React.FC<createCommunityProps> = ({ button }) => {
           <h1>Request to join</h1>
           <Description text="When this is on request of users will be sent to you for processing" />
         </div>
-        <Switch />
+        <Switch
+          checked={data.join_with_request}
+          onCheckedChange={() =>
+            setData({ ...data, join_with_request: !data.join_with_request })
+          }
+        />
       </Label>
     </form>
   );
@@ -88,7 +148,7 @@ export const CreateCommunity: React.FC<createCommunityProps> = ({ button }) => {
       </AlertDialogDescription>
       <SelectCategory
         className="mt-4"
-        categories={allowedCategories}
+        categories={allow_categories}
         setCategories={setAllowCategories}
         maxSelect={3}
       />

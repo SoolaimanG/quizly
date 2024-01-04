@@ -9,6 +9,7 @@ import {
 } from "../Types/components.types";
 import { errorMessageForToast } from ".";
 import { toast } from "../components/use-toaster";
+import { createCommunityApiProps } from "../Types/community.types";
 
 const access_token = Cookies.get("access_token");
 const api = import.meta.env.VITE_QUIZLY_API_HOST;
@@ -415,6 +416,51 @@ export const checkForMembership = async (
   });
 
   return response.data;
+};
+
+export const createCommunity = async ({
+  allow_categories,
+  display_image,
+  description,
+  name,
+  join_with_request,
+}: createCommunityApiProps) => {
+  try {
+    const formData = new FormData();
+    formData.append("allow_categories", allow_categories.toString()); // Assuming allow_categories is an array
+    formData.append("display_image", display_image); // Assuming display_image is a file
+    formData.append("description", description!);
+    formData.append("name", name);
+    formData.append("join_with_request", String(join_with_request));
+
+    if (!name) throw new Error("Name is required.");
+
+    if (!display_image) throw new Error("No display image");
+
+    if (!allow_categories.length)
+      throw new Error("Select a subject that can be posted on this community.");
+
+    const response = await axios.post(
+      community_api + "manage-community/",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: "Bearer " + access_token,
+        },
+      }
+    );
+
+    const rs: { data: {}; message: string } = response.data;
+    return rs;
+  } catch (error) {
+    console.log(error);
+    toast({
+      title: "Error",
+      description: errorMessageForToast(error),
+      variant: "destructive",
+    });
+  }
 };
 
 //CLASS METHODS
