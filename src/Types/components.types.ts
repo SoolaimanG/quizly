@@ -1,6 +1,6 @@
 import { Editor } from "@tiptap/react";
 import { Variants } from "framer-motion";
-import { SetStateAction } from "react";
+import React, { SetStateAction } from "react";
 
 //Combo-Box Type
 export interface combo_box_type {
@@ -39,17 +39,19 @@ export interface editor_props {
   className?: string;
 }
 
+export interface uploaderProps {
+  files: File[];
+  previewUrl?: string[];
+}
+
 //Image Uploader Props
 export interface image_uploader_props {
   button: React.ReactElement;
-  images: string[];
-  url?: string;
-  setUrl: React.Dispatch<SetStateAction<string>>;
-  setImages: React.Dispatch<SetStateAction<string[]>>;
-}
-export enum imageProperties {
-  supportedFiles = "JPEG,PNG",
-  maxFileSize = "10MB",
+  setData: React.Dispatch<SetStateAction<uploaderProps>>;
+  maxSize?: number;
+  filesToAccept: string[];
+  multiples?: number;
+  data: uploaderProps;
 }
 
 //Calculator Props
@@ -69,8 +71,9 @@ export interface Zstate {
   is_darkmode: boolean;
   loginAttempt: { fallback: string; attempt: boolean };
   emailVerificationRequired: boolean;
-  user: IUser | null;
+  user: IUser | null | undefined;
 }
+
 export interface Zaction {
   setIsDarkMode: (isDarkMode: boolean) => void;
   setLoginAttempt: ({
@@ -129,9 +132,11 @@ export interface chipProps {
   text: string;
 }
 
+export type account_type = "T" | "S";
+
 //this is properties of user the server will return
 export interface IUser {
-  account_type: "T" | "S";
+  account_type: account_type;
   age?: number;
   auth_provider: "T" | "G" | "L";
   date_joined: Date;
@@ -142,7 +147,7 @@ export interface IUser {
   first_name: string;
   last_name: string;
   points: number;
-  profile_image: string | React.ReactElement;
+  profile_image: string;
   updated_at: Date;
   username: string;
   email_verified: boolean;
@@ -159,7 +164,8 @@ export interface IQuiz {
   descriptions: string;
   difficulty: "easy" | "medium" | "hard";
   duration: number;
-  host: Pick<IUser, "profile_image" | "username" | "id">;
+  host: Pick<IUser, "profile_image" | "username" | "id" | "bio"> &
+    Pick<ITeacher, "phone_num">;
   id: string;
   participants: Pick<IUser, "profile_image" | "username" | "id">[];
   requirements: string;
@@ -175,13 +181,17 @@ export interface IQuiz {
   allow_robot_read?: boolean;
   instructions?: string;
   result_display_type?: resultDisplayProps;
+  comments_count: number;
+  has_user_started_quiz: boolean;
+  finish_message?: string;
+  allow_retake?: boolean;
 }
 
 export type question_type =
   | "true_or_false"
   | "objective"
   | "german"
-  | "multiple_choice";
+  | "multiple_choices";
 
 export type resultDisplayProps =
   | "on_submit"
@@ -221,6 +231,7 @@ export interface IQuestion {
   is_strict?: boolean;
   mistakesToIgnore?: number;
   id: string;
+  correct_answer_length?: number;
 }
 
 export type subjects =
@@ -256,7 +267,7 @@ export interface ITeacher {
   rating: number;
   student: IStudent[];
   quizzes: IQuiz[];
-  specializations: subjects[];
+  specializations: ICategory[];
   educational_level: "masters" | "doctorate" | "bachelor";
   phone_num: string;
   whatsapp_link: URL;
@@ -283,6 +294,8 @@ export enum app_config {
   quiz = "/quizly/quiz/",
   user = "/quizly/user/",
   challenge_friend = "/quizly/challenge-friend",
+  communities = "/quizly/communities/",
+  image_path = "/media/images",
 }
 
 export type onboardingProps =
@@ -295,16 +308,108 @@ export type onboardingProps =
 export interface errorPageProps {
   errorMessage?: string;
   retry_function: () => void;
+  className?: string;
 }
 
 export type hintProps = {
   element: React.ReactElement;
   content: string;
   delay?: number;
+  side?: "top" | "right" | "bottom" | "left";
+};
+
+export type answered_question = {
+  question_id: string;
+  quiz_id: string;
+  user_answer: string | string[];
 };
 
 //Quiz Hooks
 export interface localStorageQuestions {
-  score: number;
-  answered_question: string[];
+  answered_question: answered_question[];
+}
+
+export interface TabsProps {
+  header: string[];
+  elements: React.ReactElement[];
+}
+
+export interface commentsCompProps {
+  quiz_id: string;
+}
+
+export interface IComment {
+  username: string;
+  profile_image: string;
+  body: string;
+  created_at: Date;
+  id: number;
+}
+
+export interface IRate {
+  rate: "quiz" | "tutor";
+}
+
+export interface startQuizFunctionProps {
+  quiz_id: string;
+  isAuthenticated?: boolean;
+  anonymous_id: string;
+  access_key?: string;
+}
+
+export interface startQuizButtonProps {
+  id?: string;
+  isAuthenticated: boolean;
+  button_text?: string;
+}
+
+export interface markQuestionProps {
+  isAuthenticated: boolean;
+  is_completed?: boolean;
+  anonymous_id: string;
+  question_id: string;
+  user_answer: string | string[];
+}
+
+export enum localStorageKeys {
+  anonymous_id = "anonymousID",
+  questions_answered = "questionsAnswered",
+  questionUUIDs = "questionuuids",
+}
+
+export interface questionAnsweredProps {
+  quiz_id: string;
+  details: {
+    question_id: string;
+    user_answer: string | string[];
+  }[];
+}
+
+export type resultCorrectionProps = {
+  question: string;
+  correct_answer: string;
+};
+
+export interface quizResultProps {
+  feedback?: string;
+  xp_earn?: number;
+  attempted_questions?: number;
+  start_time?: Date;
+  end_time?: Date;
+  wrong_answers?: number;
+  corrections?: resultCorrectionProps[];
+  total_questions?: number;
+  expected_xp?: number;
+}
+
+export interface retakeQuizBtnProps {
+  quiz_id: string;
+  to_go?: string;
+}
+
+export interface selectionToolsProps {
+  categories: subjects[];
+  setCategories: React.Dispatch<SetStateAction<subjects[]>>;
+  className?: string;
+  maxSelect?: number;
 }

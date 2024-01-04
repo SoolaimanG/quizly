@@ -2,7 +2,7 @@ import { Sparkles } from "lucide-react";
 import { app_config, loginProps } from "../Types/components.types";
 import { Input } from "../components/Input";
 import { Button } from "../components/Button";
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import { toast } from "../components/use-toaster";
 import axios, { AxiosError } from "axios";
 import { Link, useNavigate } from "react-router-dom";
@@ -21,6 +21,7 @@ import {
 } from "../components/AlertModal";
 
 import DoesNotExist from "../assets/imgTwo.png";
+import { useZStore } from "../provider";
 
 const Login = ({
   title,
@@ -28,9 +29,9 @@ const Login = ({
   isPopup = false,
   fallback = "/",
 }: loginProps) => {
+  const [isPending, startTransition] = useTransition();
   const router = useNavigate();
   const [state, setState] = useState({
-    loading: false,
     navigate_to_onboarding: false,
     error: "",
     account_does_not_exist: false,
@@ -39,6 +40,7 @@ const Login = ({
     username: "",
     password: "",
   });
+  const { setLoginAttempt, setUser } = useZStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -69,8 +71,6 @@ const Login = ({
         });
       }
 
-      setState({ ...state, loading: false }); //Start Loading
-
       const res = await axios.post(
         `${import.meta.env.VITE_QUIZLY_API_HOST}/api/v1/auth/`,
         {
@@ -84,15 +84,19 @@ const Login = ({
         ...res.data.data,
       };
 
+      setUser(_user);
       Cookies.set("access_token", res.data.data.access_token); //Setting the user access token using the cookies
-      !_user.signup_complete
-        ? setState({
-            ...state,
-            loading: false,
-            navigate_to_onboarding: !_user.signup_complete, //If the user hasnt complete sign up show the navigate to onboarding page
-          })
-        : router(fallback); //Fallback referring as the place the user is coming from
-      isPopup && window.location.reload();
+
+      isPopup && setLoginAttempt({ attempt: false });
+
+      if (!_user.signup_complete) {
+        setState({
+          ...state,
+          navigate_to_onboarding: true, //If the user hasnt complete sign up show the navigate to onboarding page
+        });
+      } else {
+        router(fallback);
+      }
     } catch (error: AxiosError | any) {
       console.error(error);
 
@@ -110,7 +114,6 @@ const Login = ({
           error.response.data.message ||
           error.response.data.detail ||
           "Something went wrong...",
-        loading: false,
         account_does_not_exist: Boolean(error.response.status === 404),
       });
     }
@@ -165,7 +168,11 @@ const Login = ({
         <p className="text-gray-400 dark:text-gray-300">{description}</p>
       </div>
       <form
-        onSubmit={loginWithPassword}
+        onSubmit={(e) =>
+          startTransition(() => {
+            loginWithPassword(e);
+          })
+        }
         className="flex w-full flex-col gap-2"
         action=""
       >
@@ -191,21 +198,22 @@ const Login = ({
           </Link>
         )}
         <Button
+          disabled={isPending}
           type="submit"
-          className="w-full text-white font-semibold h-[3rem] bg-green-400 hover:bg-green-500 dark:bg-green-500 dark:hover:bg-green-600 disabled:bg-green-700 "
+          className="w-full text-white font-semibold h-[3rem] bg-green-400 hover:bg-green-500 dark:bg-green-500 dark:hover:bg-green-600 disabled:bg-green-900"
         >
           Login
         </Button>
       </form>
       <div className="w-full flex gap-1 items-center">
         <p
-          className={`text-gray-400 w-[30%] dark:text-gray-300 ${
+          className={`text-gray-400 md:w-[33%] w-full dark:text-gray-300 ${
             isPopup && "text-center"
           }`}
         >
           Or Continue with
         </p>{" "}
-        {!isPopup && <div className="w-[70%] h-[1.5px] bg-gray-400" />}
+        {!isPopup && <div className="w-[67%] h-[1.5px] bg-gray-400" />}
       </div>
       <Oauth />
     </div>

@@ -10,6 +10,7 @@ import Explore from "./Pages/ExplorePage/Explore";
 
 function App() {
   const client = new QueryClient();
+
   return (
     <QueryClientProvider client={client}>
       <AppProvider>

@@ -6,16 +6,19 @@ import Illustration from "../../assets/explore_page_svg.svg";
 import { useZStore } from "../../provider";
 import { capitalize_first_letter } from "../../Functions";
 import { Globe } from "lucide-react";
-import WordOfTheDay from "./WordOfTheDay";
+import { CommunityCard } from "../Community/CommunityCard";
 import { QuickQuiz } from "./QuickQuiz";
 import { Link } from "react-router-dom";
 import { ICategory, IQuiz, app_config } from "../../Types/components.types";
 import { FilterByCategory } from "../../components/App/FilterByCategory";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { QuizListUI } from "./QuizListUI";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCategory, getQuizzesForUser } from "../../Functions/APIqueries";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuthentication } from "../../Hooks";
+import { Card, CardContent } from "../../components/Card";
+import Footer from "../Comps/Footer";
 
 const content = Object.freeze({
   subHeader: "Prepared to tackle exciting challenges?",
@@ -43,17 +46,36 @@ const Explore = () => {
   });
 
   const [quizzes, setQuizzes] = useState<IQuiz[]>([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const ref = useRef<HTMLInputElement | null>(null);
+
+  const isAuthenticated = useAuthentication();
 
   useEffect(() => {
     quizList.data && setQuizzes(quizList.data?.data);
   }, [quizList.data]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const windowClient = ref.current?.getBoundingClientRect();
+      window.scrollY > (windowClient?.y as number)
+        ? setShowSearch(true)
+        : setShowSearch(false);
+    };
+
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const Header = user?.username ? "Recommended Quizzes" : "Trending Quizzes";
 
   return (
     <React.Fragment>
-      <NavBar />
-      <div className="w-full md:max-w-6xl p-3 m-auto flex flex-col overflow-hidden gap-3 h-full">
+      <NavBar isAuthenticated={isAuthenticated} show_search_bar={showSearch} />
+      <div className="w-full md:max-w-6xl p-2 m-auto flex flex-col overflow-hidden gap-3 h-full">
         <div
           style={exploreBG}
           className="w-full flex md:flex-row flex-col items-center gap-2 justify-center px-5 py-7 md:py-0 mt-16"
@@ -70,6 +92,7 @@ const Explore = () => {
             </p>
             <form className="flex items-center">
               <Input
+                ref={ref}
                 placeholder="Find Quiz, Teachers and Surverys"
                 className="h-[3rem] rounded-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 "
               />
@@ -133,11 +156,16 @@ const Explore = () => {
             </AnimatePresence>
           </div>
         </div>
-        <div className="h-fit flex md:flex-row flex-col gap-3 w-full p-3 md:p-0">
-          <QuickQuiz user={user} />
-          <WordOfTheDay />
+        <div className="flex md:flex-row flex-col gap-3 w-full p-3 md:p-0">
+          <QuickQuiz />
+          <Card className="w-full md:h-[35rem] h-[38rem] md:w-[40%]">
+            <CardContent className="p-1 h-full">
+              <CommunityCard />
+            </CardContent>
+          </Card>
         </div>
       </div>
+      <Footer />
     </React.Fragment>
   );
 };

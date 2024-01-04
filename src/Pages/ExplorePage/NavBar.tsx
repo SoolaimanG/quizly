@@ -12,7 +12,6 @@ import {
 } from "../../components/Sheet";
 import { app_config } from "../../Types/components.types";
 import { useZStore } from "../../provider";
-import { useMethods } from "../../Hooks";
 import ManageAccount from "../../components/App/ManageAccount";
 import { Link } from "react-router-dom";
 import { PenLine } from "lucide-react";
@@ -24,6 +23,7 @@ import VerifyEmail from "../../components/App/VerifyEmail";
 import Logo from "../../components/Logo";
 import Hint from "../../components/Hint";
 import { Swords } from "lucide-react";
+import { Input } from "../../components/Input";
 //import { WordOfTheDay } from "../../components/App/WordOfTheDay";
 
 const navbarLinks = [
@@ -49,14 +49,27 @@ const navbarLinks = [
   },
 ];
 
-const NavBar = () => {
+const NavBar = ({
+  show_search_bar = true,
+  isAuthenticated,
+}: {
+  show_search_bar?: boolean;
+  isAuthenticated: boolean;
+}) => {
   const { user, setLoginAttempt } = useZStore();
-  const { isAuthenticated } = useMethods();
+
   return (
     <div className="w-full px-2 shadow-md bg-white dark:bg-slate-800 z-30 py-2 fixed">
-      <div className="md:max-w-6xl flex items-center justify-between m-auto">
+      <div className="md:max-w-6xl w-full flex items-center justify-between m-auto">
         <h1 className="text-xl text-green-500">Explore</h1>
-        {/*<WordOfTheDay word="Soolaiman" />*/}
+        {show_search_bar && (
+          <form className="w-full flex items-center justify-center" action="">
+            <Input
+              className="focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 w-3/4"
+              placeholder="Find Quiz, Teachers and Surveys"
+            />
+          </form>
+        )}
         <div className="flex items-center gap-2">
           <Sheet>
             {/*<SheetTrigger>*/}
@@ -101,14 +114,14 @@ const NavBar = () => {
                 </div>
               </div>
               <div className="absolute w-full p-3 flex flex-col gap-1 bottom-0 left-0">
-                {!user?.email_verified ? (
+                {user?.email_verified ? (
                   <div className="flex items-center justify-center flex-col gap-1">
                     <Logo show_word style="italic" color size="default" />
                     <p>All Right Reserved.</p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-1">
-                    <Alert variant="destructive">
+                    <Alert className="dark:text-red-500" variant="destructive">
                       <AlertCircle className="h-4 w-4" />
                       <AlertTitle>Verify Email</AlertTitle>
                       <AlertDescription>
@@ -124,12 +137,8 @@ const NavBar = () => {
               </div>
             </SheetContent>
           </Sheet>
-          {isAuthenticated() ? (
-            <ManageAccount
-              username={user?.username as string}
-              account_type={user?.account_type as "S"}
-              profile_image={user?.profile_image as string}
-            />
+          {isAuthenticated ? (
+            <ManageAccount />
           ) : (
             <Button
               onClick={() =>

@@ -5,42 +5,25 @@ import { Button } from "./Button";
 // Importing the useLocalStorage hook from the "@uidotdev/usehooks" library
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useZStore } from "../provider";
+import { toggle_modes } from "../Functions";
 
 // Darkmode component
 const Darkmode = () => {
   // Using the useLocalStorage hook to manage theme in local storage
-  const [localstorage_data, saveTheme] = useLocalStorage<
-    "dark" | "light" | null
-  >("theme", null);
+  const [theme, saveTheme] = useLocalStorage<"dark" | "light" | null>(
+    "theme",
+    null
+  );
   const { setIsDarkMode } = useZStore();
-
-  // Function to toggle between dark and light modes
-  const toggle_modes = () => {
-    // Toggle to light mode if the current theme is dark
-    if (localstorage_data === "dark") {
-      saveTheme("light");
-      document.documentElement.classList.remove("dark");
-      setIsDarkMode(false);
-    }
-
-    // Toggle to dark mode if the current theme is light
-    if (localstorage_data === "light") {
-      saveTheme("dark");
-      document.documentElement.classList.add("dark");
-      setIsDarkMode(true);
-    }
-  };
-
-  // Render the Darkmode component with a Button that toggles modes
   return (
     <Button
       className="bg-green-50 dark:hover:bg-green-100 dark:text-green-500"
-      onClick={toggle_modes}
+      onClick={() => toggle_modes({ theme, saveTheme, setIsDarkMode })}
       variant={"outline"}
       size={"icon"}
     >
       {/* Display a sun icon if the current theme is dark, otherwise display a moon icon */}
-      {localstorage_data === "dark" ? <Sun /> : <Moon />}
+      {theme === "dark" ? <Sun /> : <Moon />}
     </Button>
   );
 };

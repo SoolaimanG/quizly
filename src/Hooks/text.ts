@@ -3,7 +3,7 @@ import { subjects } from "../Types/components.types";
 export const useText = () => {
   const getFirstLetterAndCapitalize = (text: string): string => {
     if (!text) return "";
-    return text.charAt(0).toUpperCase() + text.slice(1);
+    return text.charAt(0).toUpperCase();
   };
 
   const truncateWord = (word: string, maxLength: number): string => {
@@ -26,6 +26,9 @@ export const useText = () => {
       Computer: "secondary",
       Science: "destructive",
       Agriculture: "friendly",
+      Electronics: "destructive",
+      Economics: "warning",
+      History: "success",
     };
 
     return tagColor[subject];

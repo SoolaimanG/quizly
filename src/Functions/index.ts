@@ -7,6 +7,7 @@ import {
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "../components/use-toaster";
+import { v4 as uuidV4 } from "uuid";
 
 export const sendEmailToDeveloper = async ({
   firstName,
@@ -83,7 +84,6 @@ export const edit_profile = async (
 
     return "success";
   } catch (error: any) {
-    console.error(error);
     throw error.response.data.message || error.message;
   }
 };
@@ -234,4 +234,41 @@ export const mistakes_from_text = (
 
 export const isObjectEmpty = (obj: object) => {
   return Object.keys(obj).length === 0;
+};
+// Function to toggle between dark and light modes
+export const toggle_modes = ({
+  theme,
+  saveTheme,
+  setIsDarkMode,
+}: {
+  theme: "dark" | "light" | null;
+  saveTheme: React.Dispatch<React.SetStateAction<"dark" | "light" | null>>;
+  setIsDarkMode: (props: boolean) => void;
+}) => {
+  // Toggle to light mode if the current theme is dark
+  if (theme === "dark") {
+    saveTheme("light");
+    document.documentElement.classList.remove("dark");
+    setIsDarkMode(false);
+  }
+
+  // Toggle to dark mode if the current theme is light
+  if (theme === "light") {
+    saveTheme("dark");
+    document.documentElement.classList.add("dark");
+    setIsDarkMode(true);
+  }
+};
+
+export const generateUUID = () => {
+  const uuid = uuidV4();
+  return uuid;
+};
+
+export const errorMessageForToast = (error: any) => {
+  const message: string =
+    error?.response?.data?.message ||
+    error?.message ||
+    "Something went wrong...";
+  return message;
 };

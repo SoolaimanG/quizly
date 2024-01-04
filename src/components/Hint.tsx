@@ -8,12 +8,17 @@ import {
   TooltipTrigger,
 } from "./Tooltip";
 
-const Hint: React.FC<hintProps> = ({ content, element, delay = 300 }) => {
+const Hint: React.FC<hintProps> = ({
+  content,
+  element,
+  delay = 300,
+  side = "top",
+}) => {
   return (
     <TooltipProvider>
       <Tooltip delayDuration={delay}>
         <TooltipTrigger asChild>{element}</TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent side={side}>
           <p>{content}</p>
         </TooltipContent>
       </Tooltip>

@@ -23,6 +23,10 @@ import { Button } from "../Button";
 import { X } from "lucide-react";
 import Hint from "../Hint";
 import VerifyEmail from "./VerifyEmail";
+import { useAuthentication } from "../../Hooks";
+import { useQuery } from "@tanstack/react-query";
+import { getUser } from "../../Functions/APIqueries";
+import { IUser } from "../../Types/components.types";
 
 const content = Object.freeze({
   description:
@@ -44,6 +48,12 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     "dark" | "light" | null
   >("theme", null);
   const { width } = useWindowSize();
+  const isAuthenticated = useAuthentication();
+  const { setUser } = useZStore();
+  const { data, error } = useQuery<any, any, { data: IUser }>({
+    queryKey: ["current_user"],
+    queryFn: () => getUser(),
+  });
 
   useEffect(() => {
     if (
@@ -58,9 +68,11 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       document.documentElement.classList.remove("dark");
       setIsDarkMode(false);
     }
+
+    isAuthenticated && !error && data?.data && setUser(data?.data);
     // Cleanup event listener on component unmount
     return () => {};
-  }, []); // Empty dependency array to run the effect only once after the initial render
+  }, [data?.data, isAuthenticated]); // Empty dependency array to run the effect only once after the initial render
 
   //This is the popup to appear if the a user tries to login without authentication
   const authPopup =
@@ -135,12 +147,7 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </AlertDialogContent>
       </AlertDialog>
     ) : (
-      <Sheet
-        onOpenChange={() =>
-          setEmailVerificationRequired(!emailVerificationRequired)
-        }
-        open={emailVerificationRequired}
-      >
+      <Sheet>
         <SheetContent className="py-6" side="bottom">
           <SheetHeader className="flex flex-col gap-2">
             <SheetTitle>{content.header}</SheetTitle>

@@ -16,6 +16,7 @@ import { Lock } from "lucide-react";
 import { Skeleton } from "../../components/Loaders/Skeleton";
 import ProfilePicture from "../../assets/profile_four.png";
 import { motion } from "framer-motion";
+import { Rate } from "../../components/App/Rate";
 
 export const difficultyRanking = {
   easy: {
@@ -63,15 +64,18 @@ export const QuizListUI = ({
   const { truncateWord, tagColor } = useText();
 
   const large = (
-    <div className="w-[20rem] flex flex-col gap-2">
+    <div className="md:w-[20rem] w-[20.5rem] flex flex-col gap-2">
       <div className="relative">
+        <div className="absolute top-2 right-2">
+          <Rate rate="quiz" />
+        </div>
         <img
           className="rounded-md h-[25rem]"
           src={banner || _IMAGE}
           alt={title}
         />
         <Badge
-          variant={tagColor(category)}
+          variant={tagColor(category) as "default"}
           styles={"right_round"}
           className=" absolute left-0 mt-5 py-2 top-0"
         >

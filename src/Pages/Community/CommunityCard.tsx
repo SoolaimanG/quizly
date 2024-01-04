@@ -1,0 +1,206 @@
+//import React from 'react'
+
+import { Link } from "react-router-dom";
+import { useText } from "../../Hooks/text";
+import { ICommunity } from "../../Types/community.types";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/Avatar";
+import { Button, buttonVariants } from "../../components/Button";
+import { Description } from "../ExplorePage/QuickQuiz";
+import { ShadowCard } from "../ExplorePage/QuizEndView";
+import React, { useEffect, useTransition } from "react";
+import { useNumbers } from "../../Hooks/numbers";
+import { useQuery } from "@tanstack/react-query";
+import {
+  checkForMembership,
+  get_trending_communities,
+  join_or_leave_community,
+} from "../../Functions/APIqueries";
+import { ButtonSkeleton } from "../../components/App/FilterByCategory";
+import { app_config } from "../../Types/components.types";
+import { toast } from "../../components/use-toaster";
+import { Loader2, PlusSquare } from "lucide-react";
+import { errorMessageForToast } from "../../Functions";
+import { useAuthentication, useMethods } from "../../Hooks";
+import { VariantProps } from "class-variance-authority";
+import { cn } from "../../lib/utils";
+import { CardDescription } from "../../components/Card";
+import Hint from "../../components/Hint";
+import { ToastAction } from "../../components/Toast";
+import Error from "../Comps/Error";
+import { CreateCommunity } from "./CreateCommunity";
+import EmptyState from "../../components/App/EmptyState";
+
+export const CommunityCard = () => {
+  const isAuthenticated = useAuthentication();
+  const { isLoading, data, error, refetch } = useQuery<{ data: ICommunity[] }>({
+    queryKey: ["trending_communities"],
+    queryFn: () =>
+      get_trending_communities({ size: 5, get_popular: true, isAuthenticated }),
+  });
+
+  const { getFirstLetterAndCapitalize } = useText();
+  const { formatNumber } = useNumbers();
+
+  useEffect(() => {
+    isAuthenticated && refetch();
+  }, [isAuthenticated]);
+
+  if (isLoading)
+    return (
+      <ButtonSkeleton
+        size={7}
+        className="flex-col gap-5 w-full"
+        width="w-full"
+        height="h-[4rem]"
+      />
+    );
+
+  if (error)
+    return (
+      <Error
+        errorMessage="Could not get trending communities"
+        retry_function={() => refetch()}
+      />
+    );
+
+  return (
+    <div className="mt-2 h-full w-full flex relative flex-col gap-5">
+      <div className="flex px-2 items-center justify-between w-full">
+        <CardDescription className="text-xl">
+          Trending Communities
+        </CardDescription>
+
+        <CreateCommunity
+          button={
+            <Hint
+              content="Start Community"
+              element={
+                <Button
+                  className="flex items-center hover:text-green-500 text-lg gap-2"
+                  variant={"ghost"}
+                >
+                  <PlusSquare size={15} /> Create
+                </Button>
+              }
+            />
+          }
+        />
+      </div>
+      {!data?.data.length ? (
+        <EmptyState state="empty" message="No Community Available Right Now" />
+      ) : (
+        data?.data?.map((d) => (
+          <ShadowCard
+            className="shadow-none p-2 hover:shadow-md flex items-center justify-between transition-all delay-75 ease-linear"
+            key={d.id}
+          >
+            <div className="flex items-center gap-3">
+              <Avatar>
+                <AvatarImage src={d.display_picture} />
+                <AvatarFallback className=" rounded-md">
+                  {getFirstLetterAndCapitalize(d.name)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-green-500">{d.name}</h1>
+                <Description
+                  text={formatNumber(d.participants_count) + " Participants"}
+                />
+              </div>
+            </div>
+            <JoinCommunity
+              buttonVarient={{ variant: "ghost" }}
+              community_id={d.id}
+            />
+          </ShadowCard>
+        ))
+      )}
+      <Button
+        asChild
+        variant={"base"}
+        className="w-full h-[3rem] absolute bottom-2"
+      >
+        <Link to={app_config.communities}>See All</Link>
+      </Button>
+    </div>
+  );
+};
+
+export const JoinCommunity: React.FC<{
+  community_id: string;
+  buttonVarient: VariantProps<typeof buttonVariants>;
+  className?: string;
+}> = ({ community_id, buttonVarient, className }) => {
+  const { login_required } = useMethods();
+  const isAuthenticated = useAuthentication();
+  const [isPending, startTransition] = useTransition();
+
+  const { isLoading, data, error, refetch } = useQuery<{
+    data: { is_member: boolean; is_requested: boolean };
+  }>({
+    queryKey: [`check_membership_${community_id}`],
+    queryFn: () => checkForMembership(community_id, isAuthenticated),
+    enabled: isAuthenticated,
+  });
+
+  const joinCommunity = async () => {
+    try {
+      if (!login_required()) return;
+      await join_or_leave_community(community_id, isAuthenticated);
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: errorMessageForToast(error),
+        variant: "destructive",
+        action: (
+          <ToastAction onClick={() => refetch()} altText="Retry">
+            Retry
+          </ToastAction>
+        ),
+      });
+    }
+  };
+
+  const _BUTTON_TEXT = data?.data.is_member
+    ? "Leave"
+    : data?.data.is_requested
+    ? "Requested"
+    : "Join";
+
+  if (isLoading)
+    return (
+      <ButtonSkeleton
+        size={5}
+        className=""
+        width="w-full"
+        height="h-[4.5rem]"
+      />
+    );
+
+  if (error) {
+    toast({
+      title: "Error",
+      description: errorMessageForToast(error),
+      variant: "destructive",
+    });
+  }
+
+  return (
+    <Button
+      disabled={isPending && isLoading}
+      onClick={() =>
+        startTransition(() => {
+          joinCommunity();
+        })
+      }
+      className={cn(
+        `px-3 text-green-700 py-[1px] ${isPending && "animate-spin"}`,
+        className
+      )}
+      variant={buttonVarient.variant}
+    >
+      {isPending ? <Loader2 size={20} /> : _BUTTON_TEXT}
+    </Button>
+  );
+};

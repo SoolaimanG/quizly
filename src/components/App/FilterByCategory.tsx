@@ -48,7 +48,7 @@ export const FilterByCategory: React.FC<{
   };
 
   return (
-    <div className="w-full p-3 md:p-0 overflow-auto flex items-center gap-5">
+    <div className="w-full p-3 md:p-0 overflow-auto flex items-center gap-2">
       <Button
         onClick={() => {
           navigate(app_config.explore_page);
@@ -84,17 +84,19 @@ export const ButtonSkeleton = ({
   size,
   className,
   width = "w-[150px]",
+  height,
 }: {
   size: number;
   className?: string;
   width?: "w-full" | "w-[150px]";
+  height?: string;
 }) => {
   return (
     <div className={cn("flex items-center gap-5", className)}>
       {[...Array(size)].map((_, i) => (
         <Skeleton
           key={i}
-          className={cn("w-[150px] h-[40px] rounded-md", width)}
+          className={cn("w-[150px] h-[40px] rounded-md", width, height)}
         />
       ))}
     </div>

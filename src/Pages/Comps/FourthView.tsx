@@ -5,7 +5,7 @@ import OnboardingNav from "../../components/App/OnboardingNav";
 import { Button } from "../../components/Button";
 import { content } from "../Onboarding";
 import { toast } from "../../components/use-toaster";
-import { ICategory, IStudent, subjects } from "../../Types/components.types";
+import { ICategory, subjects } from "../../Types/components.types";
 import { edit_profile } from "../../Functions";
 import {
   Dialog,
@@ -21,8 +21,9 @@ import { useZStore } from "../../provider";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import Cookies from "js-cookie";
-import Error from "./Error";
 import PageLoader from "../../components/Loaders/PageLoader";
+import { useAuthentication } from "../../Hooks";
+import { SelectCategory } from "../../components/App/SelectCategory";
 
 const teacherProfileReasons = [
   "It makes students reach out to you easily.",
@@ -32,19 +33,6 @@ const teacherProfileReasons = [
   "Connect with other educators for collaboration.",
   "Offer your specialized knowledge to a broader audience.",
 ];
-
-const subject_categories = async (access_token: string) => {
-  const res = await axios.get(
-    import.meta.env.VITE_QUIZLY_API_HOST + "/api/v1/subject-categories/",
-    {
-      headers: {
-        Authorization: "Bearer " + access_token,
-      },
-    }
-  );
-
-  return res.data;
-};
 
 const user_categories = async (access_token: string) => {
   const res = await axios.get(
@@ -61,65 +49,30 @@ const user_categories = async (access_token: string) => {
 
 const FourthView = () => {
   const access_token = Cookies.get("access_token");
+  const isAuthenticated = useAuthentication();
 
-  const { isLoading, data, error } = useQuery<"", any, { data: ICategory[] }>({
-    queryKey: ["category"],
-    queryFn: () => subject_categories(access_token as string),
-    retry: 2,
-  });
-  const user_category = useQuery<
-    "",
-    any,
-    { data: ICategory[]; message: string }
-  >({
+  const { isLoading, data } = useQuery<{ data: ICategory[]; message: string }>({
     queryKey: ["user_categories"],
     queryFn: () => user_categories(access_token as string),
+    enabled: isAuthenticated,
   });
 
-  const [formData, setFormData] = useState<Partial<IStudent>>({
-    favourites: [],
-  });
+  const [favourites, setFavorites] = useState<subjects[]>([]);
 
   useEffect(() => {
-    setFormData({
-      favourites:
-        user_category.data?.data.flatMap((category) => category.body) || [],
-    });
-  }, [user_category.data]);
+    setFavorites(data?.data.flatMap((category) => category.body) || []);
+  }, [data]);
 
   const { user } = useZStore();
   const [states, setState] = useState({
     start_teacher_onboarding: false,
   });
 
-  if (isLoading && user_category.isLoading) return <PageLoader />;
-
-  if (error) return <Error retry_function={() => user_category.refetch()} />;
-
-  const selection = (subject: subjects) => {
-    const find_selected = formData?.favourites?.find((s) => s === subject);
-
-    if (find_selected) {
-      return setFormData({
-        ...formData,
-        favourites: formData?.favourites?.filter((s) => s !== subject),
-      });
-    }
-
-    if ((formData?.favourites?.length as number) >= 5) {
-      return toast({
-        title: "Error",
-        description: "Maximum selection is five",
-        variant: "destructive",
-      });
-    }
-
-    setFormData({ favourites: [...(formData?.favourites as []), subject] });
-  };
+  if (isLoading) return <PageLoader text="Loading Categories" size={80} />;
 
   const submit_form = async () => {
     try {
-      await edit_profile(formData);
+      await edit_profile({ favourites });
       user?.account_type === "T" &&
         setState({ start_teacher_onboarding: true });
     } catch (error: any) {
@@ -171,21 +124,7 @@ const FourthView = () => {
         <h1 className="text-3xl text-green-500">{content.fourthView}</h1>
         <p>{content.fourthDesc}</p>
       </div>
-      <div className="mt-3 w-full gap-2 gap-y-4 grid grid-cols-2">
-        {data?.data?.map((subject, i) => (
-          <Button
-            onClick={() => selection(subject?.body)}
-            size={"lg"}
-            className={`w-full ${
-              formData?.favourites?.includes(subject?.body) &&
-              "bg-green-700 text-white"
-            }`}
-            key={i}
-          >
-            {subject.body}
-          </Button>
-        ))}
-      </div>
+      <SelectCategory categories={favourites} setCategories={setFavorites} />
       <div className="mt-3">
         <OnboardingNav
           func={submit_form}
@@ -193,6 +132,7 @@ const FourthView = () => {
           havePrev
           prevNav="ThirdView"
         />
+        S
       </div>
     </div>
   );

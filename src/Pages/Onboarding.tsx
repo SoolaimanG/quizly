@@ -30,9 +30,9 @@ const Onboarding = () => {
 
   const AllViews = {
     DefaultView: <DefaultView />,
-    FirstView: <FirstView user={user} />,
-    SecondView: <SecondView user={user} />,
-    ThirdView: <ThirdView user={user} />,
+    FirstView: <FirstView user={user!} />,
+    SecondView: <SecondView user={user!} />,
+    ThirdView: <ThirdView user={user!} />,
     FourthView: <FourthView />,
   };
 

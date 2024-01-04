@@ -18,20 +18,30 @@ export const QuizNavigation: React.FC<quizNavigationProps> = ({
       {havePrev && (
         <Hint
           element={
-            <Button variant={"base"} onClick={prevFunction} size={"icon"}>
+            <Button
+              className="flex items-center gap-2"
+              variant={"secondary"}
+              onClick={prevFunction}
+            >
               <ChevronLeft />
+              Prev
             </Button>
           }
-          content="Go Back"
+          content="Previous Question"
         />
       )}
       <Hint
         element={
-          <Button variant={"base"} onClick={nextFunction} size={"icon"}>
+          <Button
+            className="flex items-center gap-2"
+            variant={"secondary"}
+            onClick={nextFunction}
+          >
+            Next
             <ChevronRight />
           </Button>
         }
-        content="Start/Next"
+        content="Next Question"
       />
     </div>
   );

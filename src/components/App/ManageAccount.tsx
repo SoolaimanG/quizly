@@ -1,5 +1,3 @@
-import React from "react";
-import { IUser } from "../../Types/components.types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,13 +12,14 @@ import { LogOut, PenLine, Settings, User, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../Avatar";
 import Hint from "../Hint";
 import Cookies from "js-cookie";
+import { useZStore } from "../../provider";
 
-const ManageAccount: React.FC<
-  Pick<IUser, "account_type" | "profile_image" | "username">
-> = ({ account_type, profile_image, username }) => {
+const ManageAccount = () => {
   const logout = () => {
     Cookies.remove("access_token");
   };
+
+  const { user } = useZStore();
 
   return (
     <DropdownMenu>
@@ -28,11 +27,11 @@ const ManageAccount: React.FC<
         <Avatar className="cursor-pointer">
           <Hint
             element={
-              <AvatarImage src={profile_image as string} alt="@shadcn" />
+              <AvatarImage src={user?.profile_image as string} alt="@shadcn" />
             }
             content="Manage Account"
           />
-          <AvatarFallback>{username[0]?.toUpperCase()}</AvatarFallback>
+          <AvatarFallback>{user?.username[0]?.toUpperCase()}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
@@ -47,7 +46,7 @@ const ManageAccount: React.FC<
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
           </DropdownMenuItem>
-          {account_type === "T" && (
+          {user?.account_type === "T" && (
             <DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
