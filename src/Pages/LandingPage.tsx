@@ -15,7 +15,7 @@ import { IUser } from "../Types/components.types";
 const LandingPage = () => {
   useDocumentTitle("Quizly | Landing Page");
   const { setUser } = useZStore();
-  const { data, error } = useQuery<string, any, { data: IUser }>({
+  const { data, error } = useQuery<{ data: IUser }>({
     queryKey: ["user"],
     queryFn: () => getUser(),
     retry: 1,

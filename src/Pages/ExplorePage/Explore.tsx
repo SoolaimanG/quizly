@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuthentication } from "../../Hooks";
 import { Card, CardContent } from "../../components/Card";
 import Footer from "../Comps/Footer";
+import { AxiosError } from "axios";
 
 const content = Object.freeze({
   subHeader: "Prepared to tackle exciting challenges?",
@@ -36,11 +37,12 @@ const num_of_quizly_users = (num: number) => {
 const Explore = () => {
   const { user } = useZStore();
 
-  const { isLoading, data, error } = useQuery<"", any, { data: ICategory[] }>({
+  // TODO: Do somethingg....
+  const { isLoading, data, error } = useQuery<{ data: ICategory[] }>({
     queryKey: ["subject_category"],
     queryFn: fetchCategory,
   });
-  const quizList = useQuery<string, any, { data: IQuiz[] }>({
+  const quizList = useQuery<{ data: IQuiz[] }>({
     queryKey: ["quiz_lists"],
     queryFn: getQuizzesForUser,
   });
@@ -49,7 +51,7 @@ const Explore = () => {
   const [showSearch, setShowSearch] = useState(false);
   const ref = useRef<HTMLInputElement | null>(null);
 
-  const isAuthenticated = useAuthentication();
+  const { isAuthenticated } = useAuthentication();
 
   useEffect(() => {
     quizList.data && setQuizzes(quizList.data?.data);
@@ -74,7 +76,11 @@ const Explore = () => {
 
   return (
     <React.Fragment>
-      <NavBar isAuthenticated={isAuthenticated} show_search_bar={showSearch} />
+      <NavBar
+        navbarText="Explore"
+        isAuthenticated={isAuthenticated}
+        show_search_bar={showSearch}
+      />
       <div className="w-full md:max-w-6xl p-2 m-auto flex flex-col overflow-hidden gap-3 h-full">
         <div
           style={exploreBG}
@@ -122,7 +128,7 @@ const Explore = () => {
         {/* This is a component that user can use to filter through the subject/category */}
         <FilterByCategory
           isLoading={isLoading}
-          error={error}
+          error={error as AxiosError<{ message: string }>}
           list={quizList.data?.data || []}
           category={data?.data}
           setData={setQuizzes}

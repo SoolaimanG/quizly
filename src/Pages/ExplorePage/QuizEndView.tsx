@@ -26,6 +26,7 @@ import { formatDistance } from "date-fns";
 import { useAuthentication } from "../../Hooks";
 import Cookies from "js-cookie";
 import { Link } from "react-router-dom";
+import { AxiosError } from "axios";
 
 const content = Object.freeze({
   completionText:
@@ -39,13 +40,11 @@ export const QuizEndView: React.FC<Partial<IQuiz>> = ({
   finish_message,
 }) => {
   const [anonymous_id] = useLocalStorage<string>(localStorageKeys.anonymous_id);
-  const isAuthenticated = useAuthentication();
+  const { isAuthenticated } = useAuthentication();
   const access_token = Cookies.get("access_token") || "";
-  const { isLoading, data, error, refetch } = useQuery<
-    any,
-    any,
-    { data: quizResultProps }
-  >({
+  const { isLoading, data, error, refetch } = useQuery<{
+    data: quizResultProps;
+  }>({
     queryKey: ["quiz_result"],
     queryFn: () =>
       getQuizResult({
@@ -68,7 +67,9 @@ export const QuizEndView: React.FC<Partial<IQuiz>> = ({
   if (error)
     return (
       <Error
-        errorMessage={errorMessageForToast(error)}
+        errorMessage={errorMessageForToast(
+          error as AxiosError<{ message: string }>
+        )}
         retry_function={refetch}
       />
     );
@@ -80,12 +81,12 @@ export const QuizEndView: React.FC<Partial<IQuiz>> = ({
       ) : (
         <QuizResultsSolo
           {...data?.data}
-          title={title!}
+          title={title as string}
           finish_message={finish_message}
         />
       )}
       <div className="flex absolute bottom-4 w-full gap-3">
-        <RetakeQuizButton to_go={"#start"} quiz_id={id!} />
+        <RetakeQuizButton to_go={"#start"} quiz_id={id as string} />
         <Button asChild variant="base" className="w-full h-[3rem]">
           <Link to={app_config.quizzes}>Another Quiz</Link>
         </Button>
@@ -107,12 +108,12 @@ export const QuizResultsSolo: React.FC<
   finish_message,
   expected_xp,
 }) => {
-  const color = useCheckPerformance(xp_earn, 25);
+  const color = useCheckPerformance(xp_earn, expected_xp);
   const startTime = new Date(start_time || Date.now()).getTime();
   const endTime = new Date(end_time || Date.now()).getTime();
   const formattedTime = formatDistance(
     new Date(startTime).getTime(),
-    new Date(endTime!)
+    new Date(endTime as number)
   );
 
   const { truncateWord } = useText();
@@ -126,7 +127,7 @@ export const QuizResultsSolo: React.FC<
           <p className="text-slate-700">Wrong Questions</p>
           <Description
             className="dark:text-gray-500"
-            text={`${wrong_answers!} Wrong Answers`}
+            text={`${wrong_answers as number} Wrong Answers`}
           />
         </div>
       </ShadowCard>
@@ -183,7 +184,7 @@ export const QuizResultsSolo: React.FC<
             </p>
           </div>
           <CircularProgressbarWithChildren
-            value={xp_earn!}
+            value={xp_earn as number}
             maxValue={expected_xp}
             className="w-[5rem] h-[5rem] text-slate-600"
             styles={{

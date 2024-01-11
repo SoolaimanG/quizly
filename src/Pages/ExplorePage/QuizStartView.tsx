@@ -18,23 +18,27 @@ import { useState } from "react";
 export const QuizStartView = ({ data }: { data: IQuiz }) => {
   const { truncateWord, getFirstLetterAndCapitalize } = useText();
   const [textToShow, setTextToShow] = useState(150);
-  const isAuthenticated = useAuthentication();
+  const { isAuthenticated } = useAuthentication();
 
   const accountDetails = (
     <div className="flex flex-col md:h-[15rem] h-[18rem] gap-5">
       <h3 className="text-lg">About Quiz</h3>
-      <Description text={truncateWord(data?.descriptions!, textToShow)} />
-      <Button
-        className="p-0 w-fit h-fit"
-        onClick={() =>
-          setTextToShow((prev) =>
-            prev === data.descriptions.length ? 150 : data?.descriptions?.length
-          )
-        }
-        variant={"link"}
-      >
-        {textToShow === data.descriptions.length ? "Show Less" : "Show More"}
-      </Button>
+      <Description text={truncateWord(data.descriptions, textToShow)} />
+      {data.descriptions.length > textToShow && (
+        <Button
+          className="p-0 w-fit h-fit"
+          onClick={() =>
+            setTextToShow((prev) =>
+              prev === data.descriptions.length
+                ? 150
+                : data?.descriptions?.length
+            )
+          }
+          variant={"link"}
+        >
+          {textToShow === data.descriptions.length ? "Show Less" : "Show More"}
+        </Button>
+      )}
       <div className="flex mt-4 flex-col gap-2">
         <h3 className="">Tutor</h3>
         <div className="flex items-center justify-between gap-2">
@@ -92,7 +96,7 @@ export const QuizStartView = ({ data }: { data: IQuiz }) => {
           </div>
         </div>
         <h1>{data?.title}</h1>
-        <Description text={truncateWord(data?.instructions!, 150)} />
+        <Description text={truncateWord(data?.instructions, 150)} />
         <Tabs
           header={["account", `comments (${data?.comments_count})`]}
           elements={[accountDetails, <Comments quiz_id={data?.id} />]}

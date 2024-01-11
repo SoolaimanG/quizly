@@ -14,7 +14,7 @@ import Hint from "../Hint";
 import Cookies from "js-cookie";
 import { useZStore } from "../../provider";
 
-const ManageAccount = () => {
+export const ManageAccount = () => {
   const logout = () => {
     Cookies.remove("access_token");
   };
@@ -72,5 +72,3 @@ const ManageAccount = () => {
     </DropdownMenu>
   );
 };
-
-export default ManageAccount;

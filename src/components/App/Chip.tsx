@@ -22,7 +22,7 @@ const Chip = ({ className, varient, text, type = "default" }: chipProps) => {
       variants={varient}
       className={cn(chipVariants({ type, className }), className)}
     >
-      <p>{text}</p>
+      {text}
     </motion.div>
   );
 };

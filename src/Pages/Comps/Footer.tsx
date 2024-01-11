@@ -1,4 +1,4 @@
-import { navbar_links } from "../../components/App/navbar";
+import { navbar_links } from "../../lib/utils";
 import Logo from "../../components/Logo";
 import { myAddress } from "./ContactUs";
 

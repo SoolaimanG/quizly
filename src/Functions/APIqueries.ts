@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { Axios, AxiosError, AxiosResponse } from "axios";
 import Cookies from "js-cookie";
 import {
   IStudent,
@@ -40,9 +40,21 @@ export const getUser = async (param?: string) => {
   return res.data;
 };
 
-export const getTrendingQuiz = async (anonymous_id?: string) => {
+export const getTrendingQuiz = async (
+  isAuthenticated: boolean,
+  anonymous_id?: string
+) => {
+  const headers =
+    isAuthenticated && access_token
+      ? {
+          Authorization: "Bearer " + access_token,
+        }
+      : {};
+
   const params = `?anonymous_id=${anonymous_id}`;
-  const response = await axios.get(api + "/api/v1/trending-quiz/" + params);
+  const response = await axios.get(api + "/api/v1/trending-quiz/" + params, {
+    headers,
+  });
 
   return response.data;
 };
@@ -128,9 +140,9 @@ export const create_student_or_teacher_account = async ({
     ...data,
   };
 
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
-      const response = await axios.post(
+      axios.post(
         api + "/api/v1/auth/create-student-or-teacher/",
         { ...payload },
         {
@@ -140,7 +152,7 @@ export const create_student_or_teacher_account = async ({
         }
       );
 
-      resolve(response);
+      resolve("OK");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -217,7 +229,9 @@ export const nextQuestion = async ({
   } catch (error) {
     toast({
       title: "Error",
-      description: errorMessageForToast(error),
+      description: errorMessageForToast(
+        error as AxiosError<{ message: string }>
+      ),
       variant: "destructive",
     });
     throw error;
@@ -327,7 +341,9 @@ export const retakeAQuiz = async ({
     console.log(error);
     toast({
       title: "Error",
-      description: errorMessageForToast(error),
+      description: errorMessageForToast(
+        error as AxiosError<{ message: string }>
+      ),
       variant: "destructive",
     });
   }
@@ -429,7 +445,7 @@ export const createCommunity = async ({
     const formData = new FormData();
     formData.append("allow_categories", allow_categories.toString()); // Assuming allow_categories is an array
     formData.append("display_image", display_image); // Assuming display_image is a file
-    formData.append("description", description!);
+    formData.append("description", description as string);
     formData.append("name", name);
     formData.append("join_with_request", String(join_with_request));
 
@@ -451,16 +467,43 @@ export const createCommunity = async ({
       }
     );
 
-    const rs: { data: {}; message: string } = response.data;
+    const rs: { data: null; message: string } = response.data;
     return rs;
   } catch (error) {
     console.log(error);
     toast({
       title: "Error",
-      description: errorMessageForToast(error),
+      description: errorMessageForToast(
+        error as AxiosError<{ message: string }>
+      ),
       variant: "destructive",
     });
   }
+};
+
+export const checkTimer = async ({
+  quiz_id,
+  anonymous_id,
+  isAuthenticated,
+}: {
+  quiz_id: string;
+  isAuthenticated: boolean;
+  anonymous_id?: string;
+}) => {
+  const headers =
+    isAuthenticated && access_token
+      ? {
+          Authorization: "Bearer " + access_token,
+        }
+      : {};
+
+  const params = anonymous_id ? `?anonymous_id=${anonymous_id}` : "";
+
+  const response = await axios.get(
+    api + `/api/v1/check-timer/${quiz_id}/` + params,
+    { headers }
+  );
+  return response.data;
 };
 
 //CLASS METHODS

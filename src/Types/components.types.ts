@@ -129,7 +129,7 @@ export interface chipProps {
   className?: string;
   varient?: Variants;
   type: "default" | "danger" | "warning";
-  text: string;
+  text: string | React.ReactElement;
 }
 
 export type account_type = "T" | "S";
@@ -163,7 +163,7 @@ export interface IQuiz {
   created_at: Date;
   descriptions: string;
   difficulty: "easy" | "medium" | "hard";
-  duration: number;
+  time_limit: number;
   host: Pick<IUser, "profile_image" | "username" | "id" | "bio"> &
     Pick<ITeacher, "phone_num">;
   id: string;
@@ -412,4 +412,11 @@ export interface selectionToolsProps {
   setCategories: React.Dispatch<SetStateAction<subjects[]>>;
   className?: string;
   maxSelect?: number;
+}
+
+export interface timerProps {
+  quiz_id: string;
+  className?: string;
+  initialTime: number;
+  onTimeFinish: () => void;
 }

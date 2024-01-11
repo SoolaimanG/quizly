@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { checkAuthentication } from "../Functions/APIqueries";
 import { useEffect, useState } from "react";
 import { IUser } from "../Types/components.types";
+import { isObjectEmpty } from "../Functions";
 
 export const useMethods = () => {
   const { user, setLoginAttempt, setEmailVerificationRequired } = useZStore();
@@ -37,19 +38,26 @@ export const useMethods = () => {
 };
 
 export const useAuthentication = () => {
-  const [is_authenticated, setIsAuthenticated] = useState(false);
-  const { user } = useZStore();
-  const { refetch, isSuccess } = useQuery<{ data: IUser }>({
+  const [state, setState] = useState({
+    isAuthenticated: false,
+    loading: false,
+    error: false,
+  });
+  const { user } = useZStore(); //This is a state that have the user properties
+  const { refetch, isSuccess, isError, isLoading } = useQuery<{ data: IUser }>({
     queryKey: ["is_authenticated"],
     queryFn: () => checkAuthentication(),
-    enabled: Boolean(user),
+    enabled: !isObjectEmpty(user as IUser),
   });
 
   useEffect(() => {
     refetch(); //Refresh when user changes i.e if logout or login
-    //data?.data && setUser(data.data);
-    isSuccess && setIsAuthenticated(true);
-  }, [user, isSuccess]);
+    setState({
+      isAuthenticated: isSuccess,
+      loading: isLoading,
+      error: isError,
+    });
+  }, [user]);
 
-  return is_authenticated;
+  return state;
 };

@@ -29,9 +29,10 @@ import { ToastAction } from "../../components/Toast";
 import Error from "../Comps/Error";
 import { CreateCommunity } from "./CreateCommunity";
 import EmptyState from "../../components/App/EmptyState";
+import { AxiosError } from "axios";
 
 export const CommunityCard = () => {
-  const isAuthenticated = useAuthentication();
+  const { isAuthenticated } = useAuthentication();
   const { isLoading, data, error, refetch } = useQuery<{ data: ICommunity[] }>({
     queryKey: ["trending_communities"],
     queryFn: () =>
@@ -132,7 +133,7 @@ export const JoinCommunity: React.FC<{
   className?: string;
 }> = ({ community_id, buttonVarient, className }) => {
   const { login_required } = useMethods();
-  const isAuthenticated = useAuthentication();
+  const { isAuthenticated } = useAuthentication();
   const [isPending, startTransition] = useTransition();
 
   const { isLoading, data, error, refetch } = useQuery<{
@@ -151,7 +152,9 @@ export const JoinCommunity: React.FC<{
     } catch (error) {
       toast({
         title: "Error",
-        description: errorMessageForToast(error),
+        description: errorMessageForToast(
+          error as AxiosError<{ message: string }>
+        ),
         variant: "destructive",
         action: (
           <ToastAction onClick={() => refetch()} altText="Retry">
@@ -181,7 +184,9 @@ export const JoinCommunity: React.FC<{
   if (error) {
     toast({
       title: "Error",
-      description: errorMessageForToast(error),
+      description: errorMessageForToast(
+        error as AxiosError<{ message: string }>
+      ),
       variant: "destructive",
     });
   }

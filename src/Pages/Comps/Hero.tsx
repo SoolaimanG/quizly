@@ -24,6 +24,7 @@ import React from "react";
 import Fade from "../../Animations/Fade";
 import Slide from "../../Animations/Slide";
 import Stagger from "../../Animations/Stagger";
+import { app_config } from "../../Types/components.types";
 
 const item: Variants = {
   hidden: { scale: 0, opacity: 0 },
@@ -129,7 +130,7 @@ const Hero = () => {
         className="w-full flex gap-2 items-start justify-start"
       >
         <motion.div variants={item}>
-          <Link className="" to={"/quizly/home"}>
+          <Link className="" to={app_config.explore_page}>
             <Button
               className="bg-green-500 hover:bg-green-600 dark:bg-primary dark:hover:bg-primary/90"
               size={"lg"}
@@ -170,7 +171,7 @@ const Hero = () => {
         {info.map((info, i) => (
           <Glassmorphism
             varient={item}
-            blur={9}
+            blur={"9px"}
             className={
               info.style +
               " " +

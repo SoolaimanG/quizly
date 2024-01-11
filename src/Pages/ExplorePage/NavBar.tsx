@@ -12,7 +12,7 @@ import {
 } from "../../components/Sheet";
 import { app_config } from "../../Types/components.types";
 import { useZStore } from "../../provider";
-import ManageAccount from "../../components/App/ManageAccount";
+import { ManageAccount } from "../../components/App/ManageAccount";
 import { Link } from "react-router-dom";
 import { PenLine } from "lucide-react";
 import { Lightbulb } from "lucide-react";
@@ -24,9 +24,9 @@ import Logo from "../../components/Logo";
 import Hint from "../../components/Hint";
 import { Swords } from "lucide-react";
 import { Input } from "../../components/Input";
-//import { WordOfTheDay } from "../../components/App/WordOfTheDay";
 
-const navbarLinks = [
+//!This is not changeable !!
+const _navbarLinks = [
   {
     name: "Quizzes",
     path: app_config.quizzes,
@@ -52,16 +52,18 @@ const navbarLinks = [
 const NavBar = ({
   show_search_bar = true,
   isAuthenticated,
+  navbarText,
 }: {
   show_search_bar?: boolean;
   isAuthenticated: boolean;
+  navbarText: string;
 }) => {
   const { user, setLoginAttempt } = useZStore();
 
   return (
     <div className="w-full px-2 shadow-md bg-white dark:bg-slate-800 z-30 py-2 fixed">
       <div className="md:max-w-6xl w-full flex items-center justify-between m-auto">
-        <h1 className="text-xl text-green-500">Explore</h1>
+        <h1 className="text-xl text-green-500">{navbarText}</h1>
         {show_search_bar && (
           <form className="w-full flex items-center justify-center" action="">
             <Input
@@ -92,7 +94,7 @@ const NavBar = ({
                 </SheetDescription>
               </SheetHeader>
               <div className="mt-5 flex w-full flex-col gap-3">
-                {navbarLinks.map((link, i) => (
+                {_navbarLinks.map((link, i) => (
                   <Button
                     className="w-full flex gap-2 items-center justify-start"
                     size={"lg"}

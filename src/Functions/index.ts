@@ -4,7 +4,7 @@ import {
   IUser,
   emailJSParams,
 } from "../Types/components.types";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import { toast } from "../components/use-toaster";
 import { v4 as uuidV4 } from "uuid";
@@ -34,13 +34,11 @@ export const sendEmailToDeveloper = async ({
     },
   };
 
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
-      const res = await axios.post(
-        "https://api.emailjs.com/api/v1.0/email/send",
-        data
-      );
-      return resolve(res.data);
+      // Synchronous
+      axios.post("https://api.emailjs.com/api/v1.0/email/send", data);
+      return resolve("Message sent successfully.");
     } catch (error: any) {
       reject(error.message);
     }
@@ -107,9 +105,11 @@ export const readAloud = async ({
   text,
   pitch = 0.5,
 }: {
-  text: string;
+  text: string | undefined;
   pitch?: number;
 }) => {
+  if (!text) return;
+
   const ROBOT = window.speechSynthesis;
   const default_voice = ROBOT.getVoices()[80];
 
@@ -130,109 +130,110 @@ export const readAloud = async ({
   ROBOT.speak(utterance);
 };
 
-export const mistakes_from_text = (
-  user_text: string,
-  original_text: string
-): number => {
-  if (user_text === original_text) {
-    return 0;
-  }
-  var n = user_text.length,
-    m = original_text.length;
-  if (n === 0 || m === 0) {
-    return n + m;
-  }
-  var x = 0,
-    y,
-    a,
-    b,
-    c,
-    d,
-    g,
-    h;
-  var p = new Uint16Array(n);
-  var u = new Uint32Array(n);
-  for (y = 0; y < n; ) {
-    u[y] = user_text.charCodeAt(y);
-    p[y] = ++y;
-  }
+// export const mistakes_from_text = (
+//   user_text: string,
+//   original_text: string
+// ): number => {
+//   if (user_text === original_text) {
+//     return 0;
+//   }
+//   let n = user_text.length,
+//     m = original_text.length;
+//   if (n === 0 || m === 0) {
+//     return n + m;
+//   }
+//   let x = 0,
+//     y,
+//     a,
+//     b,
+//     c,
+//     d,
+//     g,
+//     h;
+//   let p = new Uint16Array(n);
+//   let u = new Uint32Array(n);
+//   for (y = 0; y < n; ) {
+//     u[y] = user_text.charCodeAt(y);
+//     p[y] = ++y;
+//   }
 
-  for (; x + 3 < m; x += 4) {
-    var e1 = original_text.charCodeAt(x);
-    var e2 = original_text.charCodeAt(x + 1);
-    var e3 = original_text.charCodeAt(x + 2);
-    var e4 = original_text.charCodeAt(x + 3);
-    c = x;
-    b = x + 1;
-    d = x + 2;
-    g = x + 3;
-    h = x + 4;
-    for (y = 0; y < n; y++) {
-      a = p[y];
-      if (a < c || b < c) {
-        c = a > b ? b + 1 : a + 1;
-      } else {
-        if (e1 !== u[y]) {
-          c++;
-        }
-      }
+//   for (; x + 3 < m; x += 4) {
+//     var e1 = original_text.charCodeAt(x);
+//     var e2 = original_text.charCodeAt(x + 1);
+//     var e3 = original_text.charCodeAt(x + 2);
+//     var e4 = original_text.charCodeAt(x + 3);
+//     c = x;
+//     b = x + 1;
+//     d = x + 2;
+//     g = x + 3;
+//     h = x + 4;
+//     for (y = 0; y < n; y++) {
+//       a = p[y];
+//       if (a < c || b < c) {
+//         c = a > b ? b + 1 : a + 1;
+//       } else {
+//         if (e1 !== u[y]) {
+//           c++;
+//         }
+//       }
 
-      if (c < b || d < b) {
-        b = c > d ? d + 1 : c + 1;
-      } else {
-        if (e2 !== u[y]) {
-          b++;
-        }
-      }
+//       if (c < b || d < b) {
+//         b = c > d ? d + 1 : c + 1;
+//       } else {
+//         if (e2 !== u[y]) {
+//           b++;
+//         }
+//       }
 
-      if (b < d || g < d) {
-        d = b > g ? g + 1 : b + 1;
-      } else {
-        if (e3 !== u[y]) {
-          d++;
-        }
-      }
+//       if (b < d || g < d) {
+//         d = b > g ? g + 1 : b + 1;
+//       } else {
+//         if (e3 !== u[y]) {
+//           d++;
+//         }
+//       }
 
-      if (d < g || h < g) {
-        g = d > h ? h + 1 : d + 1;
-      } else {
-        if (e4 !== u[y]) {
-          g++;
-        }
-      }
-      p[y] = h = g;
-      g = d;
-      d = b;
-      b = c;
-      c = a;
-    }
-  }
+//       if (d < g || h < g) {
+//         g = d > h ? h + 1 : d + 1;
+//       } else {
+//         if (e4 !== u[y]) {
+//           g++;
+//         }
+//       }
+//       p[y] = h = g;
+//       g = d;
+//       d = b;
+//       b = c;
+//       c = a;
+//     }
+//   }
 
-  for (; x < m; ) {
-    var e = original_text.charCodeAt(x);
-    c = x;
-    d = ++x;
-    for (y = 0; y < n; y++) {
-      a = p[y];
-      if (a < c || d < c) {
-        d = a > d ? d + 1 : a + 1;
-      } else {
-        if (e !== u[y]) {
-          d = c + 1;
-        } else {
-          d = c;
-        }
-      }
-      p[y] = d;
-      c = a;
-    }
-    h = d;
-  }
+//   for (; x < m; ) {
+//     var e = original_text.charCodeAt(x);
+//     c = x;
+//     d = ++x;
+//     for (y = 0; y < n; y++) {
+//       a = p[y];
+//       if (a < c || d < c) {
+//         d = a > d ? d + 1 : a + 1;
+//       } else {
+//         if (e !== u[y]) {
+//           d = c + 1;
+//         } else {
+//           d = c;
+//         }
+//       }
+//       p[y] = d;
+//       c = a;
+//     }
+//     h = d;
+//   }
 
-  return h as number;
-};
+//   return h as number;
+// };
 
-export const isObjectEmpty = (obj: object) => {
+export const isObjectEmpty = (obj?: object) => {
+  if (!obj) return false;
   return Object.keys(obj).length === 0;
 };
 // Function to toggle between dark and light modes
@@ -265,7 +266,9 @@ export const generateUUID = () => {
   return uuid;
 };
 
-export const errorMessageForToast = (error: any) => {
+export const errorMessageForToast = (
+  error: AxiosError<{ message: string }>
+) => {
   const message: string =
     error?.response?.data?.message ||
     error?.message ||

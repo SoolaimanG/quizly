@@ -38,6 +38,8 @@ import { useLocalStorage, useSessionStorage } from "@uidotdev/usehooks";
 import { toast } from "../../../components/use-toaster";
 import { useLocation, useNavigate } from "react-router-dom";
 import queryString from "query-string";
+import { AxiosError } from "axios";
+import { Timer } from "../../../components/App/Timer";
 
 //Skeleton loading Component
 const QuestionLoader = () => {
@@ -57,15 +59,11 @@ export const Question: React.FC<{
   question_id: string;
   isLastQuestion: boolean;
 }> = ({ quiz_info, question_id }) => {
-  const isAuthenticated = useAuthentication();
-  const { isLoading, data, error, refetch } = useQuery<
-    any,
-    any,
-    { data: IQuestion }
-  >({
+  const { isAuthenticated } = useAuthentication();
+  const { isLoading, data, error, refetch } = useQuery<{ data: IQuestion }>({
     queryKey: [`question_id_${question_id}`],
     queryFn: () => get_question(question_id || ""),
-    retry: 1,
+    retry: 2,
   });
 
   //--------->States<--------
@@ -97,7 +95,9 @@ export const Question: React.FC<{
   const navigate = useNavigate();
   const location = useLocation();
 
-  const access_token = queryString.parse(location.search).access_key;
+  const access_token = queryString.parse(location.search).access_key as
+    | string
+    | undefined;
   const questionID = queryString.parse(location.search).questionid;
 
   //--------->Functions<------------
@@ -114,7 +114,9 @@ export const Question: React.FC<{
     } catch (error) {
       toast({
         title: "Error",
-        description: errorMessageForToast(error),
+        description: errorMessageForToast(
+          error as AxiosError<{ message: string }>
+        ),
         variant: "destructive",
       });
     }
@@ -130,7 +132,7 @@ export const Question: React.FC<{
     console.log(access_token);
     navigate(
       `?questionid=${question_id}${
-        !!access_token ? `&access_key=${access_token}` : ""
+        access_token ? `&access_key=${access_token}` : ""
       }#question`
     );
   };
@@ -160,7 +162,7 @@ export const Question: React.FC<{
     navigatorHelper(questionIDs[currentIndex - 1]);
   };
 
-  //------->Effeects<---------
+  //------->Use Effects to tracking the change in data.data.id this is to clear previous states<---------
   useEffect(() => {
     setState({
       //Clear State
@@ -179,7 +181,9 @@ export const Question: React.FC<{
     return (
       <Error
         className="mt-3 gap-5"
-        errorMessage={errorMessageForToast(error)}
+        errorMessage={errorMessageForToast(
+          error as AxiosError<{ message: string }>
+        )}
         retry_function={() => refetch()}
       />
     );
@@ -298,16 +302,21 @@ export const Question: React.FC<{
           />
         )}
         <div className="flex items-center justify-between w-full">
-          <pre className="underline">
-            Question {data?.data?.question_number}
-          </pre>
+          <div className="flex items-center gap-2 justify-between w-full">
+            <pre className="underline">
+              Question {data?.data?.question_number}
+            </pre>
+            <Timer
+              quiz_id={quiz_info?.id as string}
+              onTimeFinish={() => navigate("#result")}
+              initialTime={quiz_info?.time_limit || 0}
+            />
+          </div>
           {quiz_info?.allow_robot_read && (
             <Hint
               element={
                 <Button
-                  onClick={() =>
-                    readAloud({ text: data?.data?.question_body! })
-                  }
+                  onClick={() => readAloud({ text: data?.data?.question_body })}
                   size={"icon"}
                   variant={"secondary"}
                   className="p-1 rounded-full bg-transparent"

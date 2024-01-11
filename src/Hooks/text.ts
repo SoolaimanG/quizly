@@ -6,8 +6,8 @@ export const useText = () => {
     return text.charAt(0).toUpperCase();
   };
 
-  const truncateWord = (word: string, maxLength: number): string => {
-    if (!word) return "";
+  const truncateWord = (word?: string, maxLength?: number): string => {
+    if (!word || !maxLength) return "";
     return word.length > maxLength ? word.slice(0, maxLength) + "..." : word;
   };
 

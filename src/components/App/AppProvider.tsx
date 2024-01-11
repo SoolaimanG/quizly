@@ -48,9 +48,9 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     "dark" | "light" | null
   >("theme", null);
   const { width } = useWindowSize();
-  const isAuthenticated = useAuthentication();
+  const { isAuthenticated } = useAuthentication();
   const { setUser } = useZStore();
-  const { data, error } = useQuery<any, any, { data: IUser }>({
+  const { data, error } = useQuery<{ data: IUser }>({
     queryKey: ["current_user"],
     queryFn: () => getUser(),
   });
@@ -70,8 +70,6 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
 
     isAuthenticated && !error && data?.data && setUser(data?.data);
-    // Cleanup event listener on component unmount
-    return () => {};
   }, [data?.data, isAuthenticated]); // Empty dependency array to run the effect only once after the initial render
 
   //This is the popup to appear if the a user tries to login without authentication

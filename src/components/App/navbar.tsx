@@ -14,37 +14,20 @@ import { useWindowSize } from "@uidotdev/usehooks";
 import { motion } from "framer-motion";
 import Darkmode from "../Darkmode";
 import { Link } from "react-router-dom";
-import { useMethods } from "../../Hooks";
+import { useAuthentication } from "../../Hooks";
 import { useZStore } from "../../provider";
 import { app_config } from "../../Types/components.types";
 import { capitalize_first_letter } from "../../Functions";
-
-// Array of navigation links
-export const navbar_links = [
-  {
-    name: "Home",
-    path: "#home",
-  },
-  {
-    name: "Service",
-    path: "#service",
-  },
-  {
-    name: "Reviews",
-    path: "#reviews",
-  },
-  {
-    name: "Contact Us",
-    path: "#contact-us",
-  },
-];
+import { Avatar, AvatarFallback, AvatarImage } from "../Avatar";
+import { navbar_links } from "../../lib/utils";
 
 // Navbar component
 const Navbar = () => {
   const [current_nav, setCurrent_nav] = useState("#home");
   const [nav_on_top, setNav_on_top] = useState(true);
   const { width } = useWindowSize();
-  const { isAuthenticated } = useMethods();
+  // const { isAuthenticated } = useMethods();
+  const { isAuthenticated } = useAuthentication();
   const { user } = useZStore();
 
   //console.log({ isLoading, data, error });
@@ -94,8 +77,8 @@ const Navbar = () => {
       {navbar_link_render}
       <div className="flex items-center gap-2">
         <Darkmode />
-        <Link to={isAuthenticated() ? "quizly/profile" : app_config.login_page}>
-          {!isAuthenticated() ? (
+        <Link to={isAuthenticated ? "quizly/profile" : app_config.login_page}>
+          {!isAuthenticated ? (
             <Button
               className="bg-green-500 text-base hover:bg-green-600 font-semibold dark:text-white"
               size={"lg"}
@@ -103,11 +86,12 @@ const Navbar = () => {
               Login
             </Button>
           ) : (
-            <img
-              className="w-[3rem] h-[3rem] bg-green-100 rounded-full"
-              src={(user?.profile_image as string) || ProfilePic}
-              alt="profile-picture"
-            />
+            <Avatar>
+              <AvatarImage src={user?.profile_image} />
+              <AvatarFallback>
+                {capitalize_first_letter(user?.username as string)}
+              </AvatarFallback>
+            </Avatar>
           )}
         </Link>
       </div>
@@ -152,7 +136,7 @@ const Navbar = () => {
               </SheetClose>
             ))}
             <div className="flex items-center gap-3">
-              {isAuthenticated() ? (
+              {isAuthenticated ? (
                 <div className="flex items-center gap-2">
                   <img
                     className="w-[3rem] h-[3rem] bg-green-100 rounded-full"

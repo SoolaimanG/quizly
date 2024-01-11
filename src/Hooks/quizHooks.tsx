@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { subjects } from "../Types/components.types";
 import { CircuitBoard } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const useQuizHook = () => {
   const assignIconToCategory = (subject: subjects) => {
@@ -79,4 +80,26 @@ export const useCheckPerformance = (
         circular_color: "#22c55e",
       };
   }
+};
+
+export const useTimerColor = (initialTime?: number, time?: number) => {
+  const [variant, setVariant] = useState<"success" | "warning" | "destructive">(
+    "success"
+  );
+
+  useEffect(() => {
+    if (!initialTime || !time) return setVariant("destructive");
+
+    const AVERAGE = (initialTime * 60) / 2;
+
+    if (time > AVERAGE) {
+      setVariant("success");
+    } else if (time <= AVERAGE && time > 90) {
+      setVariant("warning");
+    } else {
+      setVariant("destructive");
+    }
+  }, [time, initialTime]);
+
+  return variant;
 };

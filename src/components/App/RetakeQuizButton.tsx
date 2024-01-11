@@ -24,7 +24,7 @@ export const RetakeQuizButton: React.FC<retakeQuizBtnProps> = ({
   to_go,
 }) => {
   const [isPending, startTransition] = useTransition();
-  const isAuthenticated = useAuthentication();
+  const { isAuthenticated } = useAuthentication();
   const [anonymous_id] = useLocalStorage<string>(localStorageKeys.anonymous_id);
   const navigate = useNavigate();
 
