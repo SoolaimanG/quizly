@@ -15,21 +15,60 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "../../components/DialogModal";
+import { useQuizStore } from "../../provider";
+import { Sheet, SheetContent, SheetTrigger } from "../../components/Sheet";
 
 export const QuickActions: React.FC<QuickActionProps> = ({ className }) => {
   const { width } = useWindowSize();
+  const { currentQuizData, openComment, setOpenComment } = useQuizStore();
+
   return (
-    <div className={cn(className, "flex gap-3")}>
+    <div className={cn(className, "gap-3")}>
       <Rate rate="quiz" />
-      <Hint
-        element={
-          <Button variant={"secondary"} className="rounded-full" size={"icon"}>
-            <MessageCircle />
-          </Button>
-        }
-        content="Feedbacks"
-        side={Number(width) > 800 ? "left" : "top"}
-      />
+      {Number(width) > 767 ? (
+        <Hint
+          element={
+            <Button
+              onClick={() => setOpenComment(!openComment)}
+              variant={"secondary"}
+              className="rounded-full relative"
+              size={"icon"}
+            >
+              <span className=" absolute top-0 left-0 -ml-2 bg-green-400 rounded-full w-5 h-5">
+                {currentQuizData?.comments_count}
+              </span>
+              <MessageCircle />
+            </Button>
+          }
+          content="Feedbacks"
+          side={Number(width) > 800 ? "left" : "top"}
+        />
+      ) : (
+        <Sheet
+          open={openComment}
+          onOpenChange={() => setOpenComment(!openComment)}
+        >
+          <SheetTrigger>
+            <Hint
+              element={
+                <Button
+                  variant={"secondary"}
+                  className="rounded-full relative"
+                  size={"icon"}
+                >
+                  <span className=" absolute top-0 left-0 -ml-2 bg-green-400 rounded-full w-5 h-5">
+                    {currentQuizData?.comments_count}
+                  </span>
+                  <MessageCircle />
+                </Button>
+              }
+              content="Feedbacks"
+              side={Number(width) > 800 ? "left" : "top"}
+            />
+          </SheetTrigger>
+          <SheetContent>Comments</SheetContent>
+        </Sheet>
+      )}
 
       <Dialog>
         <DialogTrigger>

@@ -22,7 +22,6 @@ import { cn } from "../../lib/utils";
 import { useAuthentication } from "../../Hooks";
 
 export const QuickQuiz = () => {
-  // TODO: Do something...
   const { isAuthenticated } = useAuthentication();
   const [anonymous_id] = useLocalStorage<string>(localStorageKeys.anonymous_id);
   const { isLoading, data, error, refetch } = useQuery<{ data: IQuiz[] }>({

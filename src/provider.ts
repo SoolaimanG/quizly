@@ -47,6 +47,7 @@ export const useQuizStore = create<QuizState & QuizAction>()((set) => ({
   openCalculator: false,
   questionIDs: [],
   currentQuizData: null,
+  openComment: false,
   setOpenDictionary() {
     set((state) => ({
       ...state,
@@ -69,6 +70,12 @@ export const useQuizStore = create<QuizState & QuizAction>()((set) => ({
     set((state) => ({
       ...state,
       currentQuizData: props,
+    }));
+  },
+  setOpenComment(props) {
+    set((state) => ({
+      ...state,
+      openComment: props,
     }));
   },
 }));

@@ -14,7 +14,7 @@ import { AxiosError } from "axios";
 import { IQuiz } from "../../Types/components.types";
 import { toast } from "../../components/use-toaster";
 import { StartPage } from "./StartPage";
-import { useEffect, useState } from "react";
+import { useEffect} from "react";
 
 const ERROR_MESSAGE = "This tool is not allowed in this quiz.";
 
@@ -72,6 +72,7 @@ const Quiz = () => {
   if (error)
     return (
       <Error
+        className="w-full h-screen"
         retry_function={refetch}
         errorMessage={errorMessageForToast(
           error as AxiosError<{ message: string }>

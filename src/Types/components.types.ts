@@ -185,6 +185,7 @@ export interface IQuiz {
   has_user_started_quiz: boolean;
   finish_message?: string;
   allow_retake?: boolean;
+  allowed_users: string
 }
 
 export type question_type =
@@ -470,6 +471,7 @@ export interface QuizState {
   openCalculator: boolean;
   questionIDs: string[];
   currentQuizData: IQuiz | null;
+  openComment: boolean;
 }
 
 export interface QuizAction {
@@ -477,6 +479,7 @@ export interface QuizAction {
   setOpenCalculator: () => void;
   setQuestionIDs: (props: string[]) => void;
   setCurrentQuizData: (props: IQuiz | null) => void;
+  setOpenComment: (props: boolean) => void;
 }
 
 export interface SideBarProps {
