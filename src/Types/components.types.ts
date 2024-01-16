@@ -361,6 +361,9 @@ export interface startQuizButtonProps {
   id?: string;
   isAuthenticated: boolean;
   button_text?: string;
+  haveExternalFunction?: boolean;
+  onQuizStart: () => void;
+  setQuestionIds?: React.Dispatch<SetStateAction<string[]>>;
 }
 
 export interface markQuestionProps {
@@ -418,5 +421,81 @@ export interface timerProps {
   quiz_id: string;
   className?: string;
   initialTime: number;
+  isAuthenticated: boolean;
   onTimeFinish: () => void;
+}
+
+export interface dictionaryProps {
+  children: React.ReactElement;
+}
+
+export type phoneticsTypes = {
+  text: [];
+  audio: string;
+  sourceUrl?: string;
+  license?: {
+    name: string;
+    url: string;
+  };
+};
+
+export type definitionsTypes = {
+  definition: string;
+  synonyms: string[];
+  antonyms: string[];
+  example?: string;
+};
+
+export type meaningType = {
+  partOfSpeech: string;
+  definitions: definitionsTypes[];
+  synonyms: string[];
+  antonyms: string[];
+};
+
+export interface dictionaryResultProps {
+  word: string;
+  phonetic: [];
+  phonetics: phoneticsTypes[];
+  meanings: meaningType[];
+  license: {
+    name: string;
+    url: string;
+  };
+  sourceUrls: string[];
+}
+
+export interface QuizState {
+  openDictionary: boolean;
+  openCalculator: boolean;
+  questionIDs: string[];
+  currentQuizData: IQuiz | null;
+}
+
+export interface QuizAction {
+  setOpenDictionary: () => void;
+  setOpenCalculator: () => void;
+  setQuestionIDs: (props: string[]) => void;
+  setCurrentQuizData: (props: IQuiz | null) => void;
+}
+
+export interface SideBarProps {
+  children: React.ReactNode;
+  can_collapse?: boolean;
+  className?: string;
+  openAndCloseButton: React.ReactNode;
+}
+
+export interface SideBarState {
+  isNavOpen: boolean;
+  isCollapsed: boolean;
+}
+
+export interface SideBarAction {
+  toggleSideBar: (props: boolean) => void;
+  setCollapseSidebar: (props: boolean) => void;
+}
+
+export interface QuickActionProps {
+  className?: string;
 }

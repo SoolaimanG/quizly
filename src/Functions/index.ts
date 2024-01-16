@@ -53,7 +53,7 @@ export const seriliazeParams = (
   return `${name}=${value}`;
 };
 
-export const capitalize_first_letter = (word: string) => {
+export const capitalize_first_letter = (word?: string) => {
   if (!word) return;
   return word[0]?.toUpperCase() + word?.substring(1);
 };

@@ -13,16 +13,20 @@ import { Button } from "../Button";
 import { toast } from "../use-toaster";
 import { Restricted } from "./Restricted";
 import { Input } from "../Input";
+import { useQuizStore } from "../../provider";
 
 export const StartQuizButton: React.FC<startQuizButtonProps> = ({
   id,
   isAuthenticated,
   button_text = "Start Quiz",
+  haveExternalFunction,
+  onQuizStart,
 }) => {
   //---------->HOOKS<--------
   const [anonymousID, setAnoymousID] = useLocalStorage<string>("anonymousID");
   const navigate = useNavigate();
   const [isPending, startTransition] = useTransition();
+  const { setQuestionIDs } = useQuizStore();
   const [_, setQuestionUUIDs] = useSessionStorage<string[]>(
     localStorageKeys.questionUUIDs,
     []
@@ -60,17 +64,22 @@ export const StartQuizButton: React.FC<startQuizButtonProps> = ({
       const firstQuestion = res?.data?.uuids[0];
       //Add question to storage
       setQuestionUUIDs(res.data.uuids);
-      navigate(
-        `?questionid=${firstQuestion}${
-          access_token ? `&access_key=${access_token}` : ""
-        }#question`
-      );
+
+      !haveExternalFunction
+        ? navigate(
+            `?questionid=${firstQuestion}${
+              access_token ? `&access_key=${access_token}` : ""
+            }#question`
+          )
+        : onQuizStart();
+      haveExternalFunction && setQuestionIDs(res.data.uuids);
     } catch (error: any) {
       const status = String(error) as "000";
+      console.log(status);
       setStates({ ...states, status });
     } finally {
       setAccessToken("");
-      states.status !== "000" && setStates({ status: "000" });
+      // states.status !== "000" && setStates({ status: "000" });
     }
   };
 

@@ -31,23 +31,19 @@ export const Rate = ({ rate }: IRate) => {
   const content = alreadyRated() ? "Unrate Quiz" : "Rate Quiz";
 
   return (
-    <Glassmorphism className="p-0 rounded-full" blur="8px">
-      <Hint
-        element={
-          <Button
-            onClick={action[rate]}
-            className={cn(
-              "bg-transparent hover:text-green-500 rounded-full",
-              alreadyRated() && "text-green-500"
-            )}
-            size={"icon"}
-          >
-            <Star />
-          </Button>
-        }
-        content={content}
-        side="left"
-      />
-    </Glassmorphism>
+    <Hint
+      element={
+        <Button
+          onClick={action[rate]}
+          className={cn("rounded-full", alreadyRated() && "text-green-500")}
+          size={"icon"}
+          variant="secondary"
+        >
+          <Star />
+        </Button>
+      }
+      content={content}
+      side="left"
+    />
   );
 };

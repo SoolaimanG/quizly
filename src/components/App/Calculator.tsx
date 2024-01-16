@@ -22,6 +22,7 @@ import {
 } from "../Sheet";
 import { useState } from "react";
 import { evaluate } from "mathjs";
+import { useQuizStore } from "../../provider";
 
 const calculator_btns = [
   {
@@ -160,15 +161,15 @@ const calculator_btns = [
 ];
 
 const Calculator = ({ button, answer, setAnswer }: CalculatorProps) => {
+  const { openCalculator, setOpenCalculator } = useQuizStore();
   const [math, setMath] = useState("");
-
   const calculator_operations = (
     type: "clear" | "clean" | "equalTo" | null | string
   ) => {
     switch (type) {
       case "clean":
         setMath((prev) => {
-          const arr = prev.split("").pop();
+          const arr = prev.split("").shift();
 
           return arr as string;
         });
@@ -193,11 +194,11 @@ const Calculator = ({ button, answer, setAnswer }: CalculatorProps) => {
   };
 
   return (
-    <Sheet>
-      <SheetTrigger>{button}</SheetTrigger>
+    <Sheet open={openCalculator} onOpenChange={setOpenCalculator}>
+      <SheetTrigger className="w-full">{button}</SheetTrigger>
       <SheetContent className="flex flex-col gap-4">
-        <SheetHeader className="w-full flex">
-          <SheetClose className=" absolute top-3 left-3">
+        <SheetHeader className="w-full flex items-center justify-center">
+          <SheetClose className="absolute top-3 left-3">
             <Button variant={"secondary"}>Close</Button>
           </SheetClose>
           <SheetTitle className="text-center">Calculator</SheetTitle>
@@ -209,7 +210,8 @@ const Calculator = ({ button, answer, setAnswer }: CalculatorProps) => {
             This is not a scientific calculator
           </AlertDescription>
         </Alert>
-        <div className="w-full h-[6rem] rounded-sm bg-green-50">
+        {/* Calculator Screen */}
+        <div className="w-full h-[6rem] rounded-sm dark:bg-slate-800 bg-green-50">
           <p className="text-lg p-2">{math}</p>
           {answer && (
             <p className="text-3xl text-green-400 w-full mt-3 flex items-end p-1 justify-end">

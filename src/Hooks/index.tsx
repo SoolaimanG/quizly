@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { checkAuthentication } from "../Functions/APIqueries";
 import { useEffect, useState } from "react";
 import { IUser } from "../Types/components.types";
-import { isObjectEmpty } from "../Functions";
 
 export const useMethods = () => {
   const { user, setLoginAttempt, setEmailVerificationRequired } = useZStore();
@@ -47,7 +46,6 @@ export const useAuthentication = () => {
   const { refetch, isSuccess, isError, isLoading } = useQuery<{ data: IUser }>({
     queryKey: ["is_authenticated"],
     queryFn: () => checkAuthentication(),
-    enabled: !isObjectEmpty(user as IUser),
   });
 
   useEffect(() => {
@@ -57,7 +55,7 @@ export const useAuthentication = () => {
       loading: isLoading,
       error: isError,
     });
-  }, [user]);
+  }, [user, isSuccess]);
 
   return state;
 };

@@ -1,4 +1,4 @@
-import axios, { Axios, AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import Cookies from "js-cookie";
 import {
   IStudent,
@@ -74,7 +74,6 @@ export const checkAuthentication = async () => {
       Authorization: "Bearer " + access_token,
     },
   });
-
   return res.data;
 };
 
@@ -444,7 +443,7 @@ export const createCommunity = async ({
   try {
     const formData = new FormData();
     formData.append("allow_categories", allow_categories.toString()); // Assuming allow_categories is an array
-    formData.append("display_image", display_image); // Assuming display_image is a file
+    formData.append("display_image", display_image);
     formData.append("description", description as string);
     formData.append("name", name);
     formData.append("join_with_request", String(join_with_request));
@@ -457,7 +456,7 @@ export const createCommunity = async ({
       throw new Error("Select a subject that can be posted on this community.");
 
     const response = await axios.post(
-      community_api + "manage-community/",
+      community_api + "create-community/",
       formData,
       {
         headers: {
@@ -490,18 +489,24 @@ export const checkTimer = async ({
   isAuthenticated: boolean;
   anonymous_id?: string;
 }) => {
-  const headers =
-    isAuthenticated && access_token
-      ? {
-          Authorization: "Bearer " + access_token,
-        }
-      : {};
+  const headers = isAuthenticated
+    ? {
+        Authorization: "Bearer " + access_token,
+      }
+    : {};
 
   const params = anonymous_id ? `?anonymous_id=${anonymous_id}` : "";
 
   const response = await axios.get(
     api + `/api/v1/check-timer/${quiz_id}/` + params,
     { headers }
+  );
+  return response.data;
+};
+
+export const getQuizDetails = async (id: string) => {
+  const response = await axios.get(
+    api + "/api/v1/get-quiz-details/" + id + "/"
   );
   return response.data;
 };

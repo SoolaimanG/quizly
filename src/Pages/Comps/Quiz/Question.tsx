@@ -104,7 +104,7 @@ export const Question: React.FC<{
   const confirmUserAnswer = async (user_answer: string | string[]) => {
     try {
       const res = await markQuestion({
-        isAuthenticated: isAuthenticated,
+        isAuthenticated,
         anonymous_id,
         user_answer,
         question_id: data?.data.id || "",
@@ -129,7 +129,6 @@ export const Question: React.FC<{
 
   //---------->Navigation Function<---------
   const navigatorHelper = (question_id: string) => {
-    console.log(access_token);
     navigate(
       `?questionid=${question_id}${
         access_token ? `&access_key=${access_token}` : ""
@@ -173,6 +172,7 @@ export const Question: React.FC<{
     });
     setButtonClicked(false);
     setMultipleAnswers([]);
+    setGermanAswer("");
   }, [data?.data?.id]);
 
   if (isLoading) return <QuestionLoader />;
@@ -310,6 +310,7 @@ export const Question: React.FC<{
               quiz_id={quiz_info?.id as string}
               onTimeFinish={() => navigate("#result")}
               initialTime={quiz_info?.time_limit || 0}
+              isAuthenticated={isAuthenticated}
             />
           </div>
           {quiz_info?.allow_robot_read && (

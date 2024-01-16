@@ -90,13 +90,19 @@ export const QuizStartView = ({ data }: { data: IQuiz }) => {
     <div className="w-full h-full relative pb-8">
       <div className="mt-3 flex flex-col gap-2">
         <div className="w-full flex items-center justify-between">
-          <Badge variant={"friendly"}>{data?.category}</Badge>
+          <div className="flex gap-2 items-center">
+            <Badge variant={"friendly"}>{data?.category}</Badge>
+            {data.time_limit && (
+              <Description text={`Time limit ${data.time_limit}Mins`} />
+            )}
+          </div>
           <div>
             <Rating rating={data?.rating} />
           </div>
         </div>
         <h1>{data?.title}</h1>
         <Description text={truncateWord(data?.instructions, 150)} />
+
         <Tabs
           header={["account", `comments (${data?.comments_count})`]}
           elements={[accountDetails, <Comments quiz_id={data?.id} />]}

@@ -115,8 +115,8 @@ export const QuizListUI = ({
           {participants_count}
         </span>
       </div>
-      <Button variant={"base"} className="w-full">
-        Take Quiz
+      <Button asChild variant={"base"} className="w-full">
+        <Link to={app_config.quiz + id + "#get-ready"}>Take Quiz</Link>
       </Button>
     </div>
   );

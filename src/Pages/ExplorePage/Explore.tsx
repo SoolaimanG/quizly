@@ -163,7 +163,11 @@ const Explore = () => {
           </div>
         </div>
         <div className="flex md:flex-row flex-col gap-3 w-full p-3 md:p-0">
-          <QuickQuiz />
+          <Card className="md:h-[35rem] h-[38rem] transition-all delay-75 ease-linear pt-0 pb-6 flex flex-col gap-3 relative rounded-md md:w-[60%] w-full">
+            <CardContent className="h-full">
+              <QuickQuiz />
+            </CardContent>
+          </Card>
           <Card className="w-full md:h-[35rem] h-[38rem] md:w-[40%]">
             <CardContent className="p-1 h-full">
               <CommunityCard />

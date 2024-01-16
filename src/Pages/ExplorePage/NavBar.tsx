@@ -12,7 +12,6 @@ import {
 } from "../../components/Sheet";
 import { app_config } from "../../Types/components.types";
 import { useZStore } from "../../provider";
-import { ManageAccount } from "../../components/App/ManageAccount";
 import { Link } from "react-router-dom";
 import { PenLine } from "lucide-react";
 import { Lightbulb } from "lucide-react";
@@ -24,6 +23,7 @@ import Logo from "../../components/Logo";
 import Hint from "../../components/Hint";
 import { Swords } from "lucide-react";
 import { Input } from "../../components/Input";
+import { UserAvatar } from "../../components/App/userAvatar";
 
 //!This is not changeable !!
 const _navbarLinks = [
@@ -51,14 +51,14 @@ const _navbarLinks = [
 
 const NavBar = ({
   show_search_bar = true,
-  isAuthenticated,
   navbarText,
+  isAuthenticated,
 }: {
   show_search_bar?: boolean;
-  isAuthenticated: boolean;
   navbarText: string;
+  isAuthenticated: boolean;
 }) => {
-  const { user, setLoginAttempt } = useZStore();
+  const { user } = useZStore();
 
   return (
     <div className="w-full px-2 shadow-md bg-white dark:bg-slate-800 z-30 py-2 fixed">
@@ -139,22 +139,7 @@ const NavBar = ({
               </div>
             </SheetContent>
           </Sheet>
-          {isAuthenticated ? (
-            <ManageAccount />
-          ) : (
-            <Button
-              onClick={() =>
-                setLoginAttempt({
-                  attempt: true,
-                  fallback: app_config.explore_page,
-                })
-              }
-              className="bg-green-400"
-              variant={"base"}
-            >
-              Login
-            </Button>
-          )}
+          <UserAvatar isAuthenticated={isAuthenticated} />
         </div>
       </div>
     </div>

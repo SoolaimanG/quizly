@@ -5,7 +5,6 @@ import { useCounter, useLocalStorage } from "@uidotdev/usehooks";
 import { useQuery } from "@tanstack/react-query";
 import { checkTimer } from "../../Functions/APIqueries";
 import { localStorageKeys, timerProps } from "../../Types/components.types";
-import { useAuthentication } from "../../Hooks";
 import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { Badge } from "../Badge";
 import { useTimerColor } from "../../Hooks/quizHooks";
@@ -17,18 +16,19 @@ export const Timer: React.FC<timerProps> = ({
   quiz_id,
   className,
   initialTime,
+  isAuthenticated,
   onTimeFinish,
 }) => {
   const [anonymous_id] = useLocalStorage<string | undefined>(
     localStorageKeys.anonymous_id
   );
-  const { isAuthenticated } = useAuthentication();
   // As component mount send reqyest to server to make sure user is till using the assign time by tutor if not and user is still taking quiz ---> SUBMIT QUIZ
-  const { isLoading, data, error } = useQuery<{
+  const { isLoading, data, error, refetch, isSuccess } = useQuery<{
     data: { time_remaining: number };
   }>({
     queryKey: ["timer", quiz_id],
     queryFn: () => checkTimer({ quiz_id, anonymous_id, isAuthenticated }),
+    enabled: isAuthenticated,
   });
 
   // Using this to set and decrement the time
@@ -37,6 +37,13 @@ export const Timer: React.FC<timerProps> = ({
   });
 
   useEffect(() => {
+    // This is to prevent the component to settle
+    if (!isSuccess) {
+      setTimeout(() => {
+        refetch();
+      }, 1000);
+    }
+
     if (error) {
       console.log(error);
       toast({
@@ -59,14 +66,7 @@ export const Timer: React.FC<timerProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [data?.data.time_remaining, error]);
-
-  // When the time is up submit the quiz....
-  // useEffect(() => {
-  //   if (time === 0) {
-  //     onTimeFinish();
-  //   }
-  // }, [time]);
+  }, [data?.data.time_remaining, error, isAuthenticated]);
 
   const varient = useTimerColor(initialTime, time); // ---> This will return either success, destructive or warning to assign to Badge
 

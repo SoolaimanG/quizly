@@ -10,7 +10,6 @@ import {
   //startQuiz,
 } from "../../Functions/APIqueries";
 import { useLocation } from "react-router-dom";
-import { Card, CardContent } from "../../components/Card";
 import { QuizStartView } from "./QuizStartView";
 import { QuizEndView } from "./QuizEndView";
 import Error from "../Comps/Error";
@@ -76,27 +75,19 @@ export const QuickQuiz = () => {
   };
 
   return (
-    <Card className="md:h-[35rem] h-[38rem] transition-all delay-75 ease-linear pt-0 pb-6 flex flex-col gap-3 relative rounded-md md:w-[60%] w-full">
-      <CardContent className="h-full">
-        {/*{isPending && (
-          <Loader2
-            size={15}
-            className="absolute top-2 right-2 animate-spin text-green-500 "
-          />
-        )}*/}
-        {/*</div>*/}
-        <div className="w-full flex items-center justify-center">
-          <Button
-            variant={"base"}
-            size={"lg"}
-            className="text-xl rounded-none rounded-b-md"
-          >
-            Quick Quiz
-          </Button>
-        </div>
-        {views[view]}
-      </CardContent>
-    </Card>
+    <>
+      {/*</div>*/}
+      <div className="w-full flex items-center justify-center">
+        <Button
+          variant={"base"}
+          size={"lg"}
+          className="text-xl rounded-none rounded-b-md"
+        >
+          Quick Quiz
+        </Button>
+      </div>
+      {views[view]}
+    </>
   );
 };
 
