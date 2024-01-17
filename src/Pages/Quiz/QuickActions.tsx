@@ -17,6 +17,7 @@ import {
 } from "../../components/DialogModal";
 import { useQuizStore } from "../../provider";
 import { Sheet, SheetContent, SheetTrigger } from "../../components/Sheet";
+import { Comments } from "../../components/App/Comments";
 
 export const QuickActions: React.FC<QuickActionProps> = ({ className }) => {
   const { width } = useWindowSize();
@@ -24,7 +25,7 @@ export const QuickActions: React.FC<QuickActionProps> = ({ className }) => {
 
   return (
     <div className={cn(className, "gap-3")}>
-      <Rate rate="quiz" />
+      <Rate id={currentQuizData?.id!} rate="quiz" />
       {Number(width) > 767 ? (
         <Hint
           element={
@@ -66,7 +67,9 @@ export const QuickActions: React.FC<QuickActionProps> = ({ className }) => {
               side={Number(width) > 800 ? "left" : "top"}
             />
           </SheetTrigger>
-          <SheetContent>Comments</SheetContent>
+          <SheetContent>
+            <Comments quiz_id={currentQuizData?.id!} type="textarea" />
+          </SheetContent>
         </Sheet>
       )}
 
@@ -95,7 +98,7 @@ export const QuickActions: React.FC<QuickActionProps> = ({ className }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <SaveQuiz />
+      <SaveQuiz quiz_id={currentQuizData?.id!} />
     </div>
   );
 };

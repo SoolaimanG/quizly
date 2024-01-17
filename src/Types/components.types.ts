@@ -337,6 +337,8 @@ export interface TabsProps {
 
 export interface commentsCompProps {
   quiz_id: string;
+  type?: "input" | "textarea"
+
 }
 
 export interface IComment {
@@ -348,7 +350,8 @@ export interface IComment {
 }
 
 export interface IRate {
-  rate: "quiz" | "tutor";
+  id: string;
+  rate: "quiz" | "teacher";
 }
 
 export interface startQuizFunctionProps {

@@ -1,45 +1,111 @@
-import { Star } from "lucide-react";
+import { Loader2, Star } from "lucide-react";
 import { IRate } from "../../Types/components.types";
 import { Button } from "../Button";
-import Glassmorphism from "./Glassmorphism";
 import Hint from "../Hint";
-import { useTransition } from "react";
+import { useEffect } from "react";
 import { cn } from "../../lib/utils";
-import { useMethods } from "../../Hooks";
+import { useAuthentication, useMethods } from "../../Hooks";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { hasRated, rateAndUnRate } from "../../Functions/APIqueries";
+import { toast } from "../use-toaster";
+import { errorMessageForToast } from "../../Functions";
+import { AxiosError } from "axios";
 
-export const Rate = ({ rate }: IRate) => {
-  const [_, startTransition] = useTransition();
+export const Rate = ({ rate, id }: IRate) => {
   const { login_required } = useMethods();
+  const { isAuthenticated } = useAuthentication();
+  const queryClient = useQueryClient();
+  const { isLoading, data, error } = useQuery<{ data: boolean }>({
+    queryKey: ["rating", id],
+    queryFn: () => hasRated(id, rate),
+    enabled: isAuthenticated,
+  });
 
-  const action = {
-    quiz: async () => {
-      startTransition(() => {
-        if (!login_required()) return;
+  // Perform uptimistic update on rating
+  const { mutate } = useMutation({
+    mutationKey: [`rateAndUnrate`, id],
+    mutationFn: () => rateAndUnRate(id, rate),
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: [`rating`, id],
+      });
+
+      // Snapshot the previous value
+      const previousStatus = queryClient.getQueryData([`rating`, id]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData([`rating`, id], (prev: boolean) => !prev);
+
+      // Return a context object with the snapshotted value
+      return { previousStatus };
+    },
+
+    onSuccess(data) {
+      toast({
+        title: "Success",
+        description: data.message,
       });
     },
-    tutor: async () => {
-      startTransition(() => {
-        if (!login_required()) return;
+
+    onError: (error, __, context) => {
+      toast({
+        title: "Error",
+        description: errorMessageForToast(
+          error as AxiosError<{ message: string }>
+        ),
+        variant: "destructive",
       });
+      queryClient.setQueryData([`rating`, id], context?.previousStatus);
     },
+    // Always refetch after error or success:
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [`rating`, id] });
+    },
+  });
+
+  useEffect(() => {
+    error &&
+      toast({
+        title: "Error",
+        description: errorMessageForToast(
+          error as AxiosError<{ message: string }>
+        ),
+        variant: "destructive",
+      });
+  }, [error]);
+
+  const handleClick = () => {
+    login_required();
+
+    if (!login_required()) return;
+
+    if (isLoading)
+      return toast({
+        title: "Error",
+        description: "Please wait till loading is done.",
+        variant: "destructive",
+      });
+
+    mutate();
   };
 
-  const alreadyRated = () => {
-    return true;
-  };
-
-  const content = alreadyRated() ? "Unrate Quiz" : "Rate Quiz";
+  const content = data?.data ? "Unrate Quiz" : "Rate Quiz";
 
   return (
     <Hint
       element={
         <Button
-          onClick={action[rate]}
-          className={cn("rounded-full", alreadyRated() && "text-green-500")}
+          onClick={handleClick}
+          className={cn("rounded-full", data?.data && "text-green-500")}
           size={"icon"}
           variant="secondary"
         >
-          <Star />
+          {isLoading ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <Star className={cn("")} />
+          )}
         </Button>
       }
       content={content}

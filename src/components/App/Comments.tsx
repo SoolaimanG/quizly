@@ -9,11 +9,17 @@ import { Button } from "../Button";
 import { useMethods } from "../../Hooks";
 import { ButtonSkeleton } from "./FilterByCategory";
 import { useZStore } from "../../provider";
+import { cn } from "../../lib/utils";
+import { Textarea } from "../TextArea";
+import Error from "../../Pages/Comps/Error";
 
-export const Comments: React.FC<commentsCompProps> = ({ quiz_id }) => {
+export const Comments: React.FC<commentsCompProps> = ({
+  quiz_id,
+  type = "input",
+}) => {
   const queryClient = useQueryClient();
   const [comment, setComment] = useState("");
-  const { isLoading, data, error } = useQuery<
+  const { isLoading, data, error, refetch } = useQuery<
     string,
     any,
     { data: IComment[] }
@@ -50,7 +56,6 @@ export const Comments: React.FC<commentsCompProps> = ({ quiz_id }) => {
     },
 
     onError: (_, __, context) => {
-      console.log({ _, __, context });
       queryClient.setQueryData(
         [`quiz_comments_${quiz_id}`],
         context?.previousComments
@@ -83,7 +88,15 @@ export const Comments: React.FC<commentsCompProps> = ({ quiz_id }) => {
     mutate(newComment);
   };
 
-  if (error) return <p>Error</p>;
+  if (error)
+    return (
+      <Error
+        retry_function={refetch}
+        errorMessage={`Could not get ${
+          type === "input" ? "Comments" : "Feedbacks"
+        } `}
+      />
+    );
 
   if (isLoading)
     return (
@@ -94,35 +107,8 @@ export const Comments: React.FC<commentsCompProps> = ({ quiz_id }) => {
       />
     );
 
-  if (!data?.data.length)
-    return (
-      <div className="md:h-[18.5rem] h-[20rem] flex flex-col py-2 gap-2">
-        <EmptyState state="empty" message="No Comments Add one" />
-        <form
-          onSubmit={addComment}
-          className="w-full flex items-center gap-2"
-          action=""
-        >
-          <Input
-            required
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Say Something About This Quiz"
-            className="h-[3rem]"
-          />
-          <Button variant={"secondary"} className="h-[2.9rem]">
-            Comment
-          </Button>
-        </form>
-      </div>
-    );
-
-  return (
-    <div className="w-full h-[20rem] md:h-[18.5rem] mb-3 relative">
-      <div className="flex h-full pt-3 pb-16 overflow-auto flex-col gap-2">
-        {data?.data.map((comment) => (
-          <CommentUI {...comment} key={comment.id} />
-        ))}
-      </div>
+  const UI = {
+    input: (
       <form
         onSubmit={addComment}
         className="w-full flex items-center justify-center gap-2 absolute bottom-2"
@@ -137,6 +123,49 @@ export const Comments: React.FC<commentsCompProps> = ({ quiz_id }) => {
           Comment
         </Button>
       </form>
+    ),
+    textarea: (
+      <form
+        onSubmit={addComment}
+        className="flex flex-col gap-2 w-full"
+        action=""
+      >
+        <h1 className="text-xl">Feedback</h1>
+        <Textarea
+          onChange={(e) => setComment(e.target.value)}
+          required
+          placeholder="Share your feedback"
+          className="ring-offset-green-500"
+        />
+        <div className="w-full flex items-end justify-end">
+          <Button variant="base" className="">
+            Post
+          </Button>
+        </div>
+      </form>
+    ),
+  };
+
+  return (
+    <div
+      className={cn(
+        "w-full h-[20rem] md:h-[18.5rem] mb-3 relative",
+        type === "input" ? "flex-col-reverse" : "flex-col"
+      )}
+    >
+      {UI[type]}
+      <div className="flex h-full pt-3 pb-16 overflow-auto flex-col gap-2">
+        {!data?.data.length ? (
+          <EmptyState
+            state="empty"
+            message={type === "input" ? "No Comments yet!" : "No Feedback yet!"}
+          />
+        ) : (
+          data.data.map((comment) => (
+            <CommentUI key={comment.id} {...comment} />
+          ))
+        )}
+      </div>
     </div>
   );
 };

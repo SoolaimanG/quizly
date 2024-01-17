@@ -511,4 +511,49 @@ export const getQuizDetails = async (id: string) => {
   return response.data;
 };
 
+export const isQuizSaved = async (quiz_id: string) => {
+  const params = `?quiz_id=${quiz_id}`;
+  const response = await axios.get(api + "/api/v1/saved-quiz/" + params, {
+    headers: {
+      Authorization: "Bearer " + access_token,
+    },
+  });
+
+  return response.data;
+};
+
+export const savedAndRemoveQuiz = async (quiz_id: string) => {
+  const response = await axios.post(
+    api + "/api/v1/saved-quiz/",
+    {
+      quiz_id,
+    },
+    { headers: { Authorization: "Bearer " + access_token } }
+  );
+
+  return response.data;
+};
+
+export const hasRated = async (id: string, action: "quiz" | "teacher") => {
+  const params = `?id=${id}&action=${action}`;
+  const response = await axios.get(api + "/api/v1/ratings/" + params, {
+    headers: { Authorization: "Bearer " + access_token },
+  });
+
+  return response.data;
+};
+
+export const rateAndUnRate = async (id: string, action: "quiz" | "teacher") => {
+  const response = await axios.post(
+    api + "/api/v1/ratings/",
+    {
+      id,
+      action,
+    },
+    { headers: { Authorization: "Bearer " + access_token } }
+  );
+
+  return response.data;
+};
+
 //CLASS METHODS

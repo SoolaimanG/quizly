@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useQuizStore } from "../../provider";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { cn } from "../../lib/utils";
+import { Comments } from "../../components/App/Comments";
 
 export const StartPage: React.FC<{ data: IQuiz }> = ({
   data: { instructions, id },
@@ -17,7 +18,7 @@ export const StartPage: React.FC<{ data: IQuiz }> = ({
   const { width } = useWindowSize();
   return (
     <AnimatePresence mode="wait">
-      <motion.div className="w-full flex gap-3">
+      <motion.div className="w-full overflow-hidden flex gap-3">
         <motion.div
           animate={{
             width: openComment && Number(width) > 767 ? "70%" : "100%",
@@ -47,11 +48,21 @@ export const StartPage: React.FC<{ data: IQuiz }> = ({
             )}
           />
         </motion.div>
-        {openComment && Number(width) > 767 && (
-          <motion.div animate={{ width: "30%" }} className="pt-14">
-            <QuickActions className="w-full flex items-center justify-center" />
-          </motion.div>
-        )}
+        <AnimatePresence>
+          {openComment && Number(width) > 767 && (
+            <motion.div
+              animate={{
+                opacity: 1,
+                transition: { delay: 0.25 },
+              }}
+              initial={{ opacity: 0 }}
+              className="pt-14 w-[30%] overflow-auto p-2"
+            >
+              <QuickActions className="w-full flex items-center justify-center" />
+              <Comments quiz_id={id} type="textarea" />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>
   );
