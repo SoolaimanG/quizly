@@ -15,7 +15,7 @@ export const Rate = ({ rate, id }: IRate) => {
   const { login_required } = useMethods();
   const { isAuthenticated } = useAuthentication();
   const queryClient = useQueryClient();
-  const { isLoading, data, error } = useQuery<{ data: boolean }>({
+  const { isLoading, data, error, refetch } = useQuery<{ data: boolean }>({
     queryKey: ["rating", id],
     queryFn: () => hasRated(id, rate),
     enabled: isAuthenticated,
@@ -35,12 +35,15 @@ export const Rate = ({ rate, id }: IRate) => {
       const previousStatus = queryClient.getQueryData([`rating`, id]);
 
       // Optimistically update to the new value
-      queryClient.setQueryData([`rating`, id], (prev: boolean) => !prev);
+      queryClient.setQueryData([`rating`, id], (prev: boolean) => {
+        return !prev;
+      });
 
       // Return a context object with the snapshotted value
       return { previousStatus };
     },
 
+    // When the request is successfull
     onSuccess(data) {
       toast({
         title: "Success",
@@ -48,6 +51,7 @@ export const Rate = ({ rate, id }: IRate) => {
       });
     },
 
+    // When there is an error
     onError: (error, __, context) => {
       toast({
         title: "Error",
@@ -58,9 +62,10 @@ export const Rate = ({ rate, id }: IRate) => {
       });
       queryClient.setQueryData([`rating`, id], context?.previousStatus);
     },
+
     // Always refetch after error or success:
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: [`rating`, id] });
+      refetch();
     },
   });
 

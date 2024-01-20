@@ -6,17 +6,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isQuizSaved, savedAndRemoveQuiz } from "../../Functions/APIqueries";
 import { useAuthentication, useMethods } from "../../Hooks";
 import { cn } from "../../lib/utils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "../../components/use-toaster";
 import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
 
 export const SaveQuiz: React.FC<{ quiz_id: string }> = ({ quiz_id }) => {
+  const [optimistic, setOptimistic] = useState<boolean | null>(null);
+
   const { width } = useWindowSize();
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuthentication();
   const { login_required } = useMethods();
-  const { isLoading, data, error } = useQuery<{ data: { is_saved: boolean } }>({
+  const { isLoading, data, error, refetch } = useQuery<{
+    data: { is_saved: boolean };
+  }>({
     queryKey: ["saved_quiz", quiz_id],
     queryFn: () => isQuizSaved(quiz_id),
     enabled: isAuthenticated,
@@ -46,12 +50,6 @@ export const SaveQuiz: React.FC<{ quiz_id: string }> = ({ quiz_id }) => {
       // Snapshot the previous value
       const previousStatus = queryClient.getQueryData(["saved_quiz", quiz_id]);
 
-      // Optimistically update to the new value
-      queryClient.setQueryData(
-        ["saved_quiz", quiz_id],
-        (prev: { data: { is_saved: boolean } }) => !prev.data.is_saved
-      );
-
       // Return a context object with the snapshotted value
       return { previousStatus };
     },
@@ -71,15 +69,19 @@ export const SaveQuiz: React.FC<{ quiz_id: string }> = ({ quiz_id }) => {
         ),
         variant: "destructive",
       });
+
       queryClient.setQueryData(
         ["saved_quiz", quiz_id],
         context?.previousStatus
       );
+      // Revert back to original data
+      setOptimistic(context?.previousStatus as boolean);
     },
     // Always refetch after error or success:
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["saved_quiz", quiz_id] });
+      refetch();
+      // queryClient.invalidateQueries({ queryKey: ["saved_quiz", quiz_id] });
     },
   });
 
@@ -95,6 +97,7 @@ export const SaveQuiz: React.FC<{ quiz_id: string }> = ({ quiz_id }) => {
         variant: "destructive",
       });
 
+    setOptimistic(!data?.data);
     mutate();
   };
 
@@ -113,7 +116,8 @@ export const SaveQuiz: React.FC<{ quiz_id: string }> = ({ quiz_id }) => {
             ) : (
               <Bookmark
                 className={cn(
-                  isAuthenticated && data?.data.is_saved && "text-green-500"
+                  isAuthenticated &&
+                    (optimistic || (data?.data.is_saved && "text-green-500"))
                 )}
               />
             )}

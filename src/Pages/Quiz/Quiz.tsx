@@ -4,7 +4,7 @@ import { QuizNavBar } from "../Comps/Quiz/QuizNavBar";
 import { useQuizStore } from "../../provider";
 import { Dictionary } from "../../components/App/Dictionary";
 import Calculator from "../../components/App/Calculator";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getQuizDetails } from "../../Functions/APIqueries";
 import PageLoader from "../../components/Loaders/PageLoader";
@@ -14,7 +14,8 @@ import { AxiosError } from "axios";
 import { IQuiz } from "../../Types/components.types";
 import { toast } from "../../components/use-toaster";
 import { StartPage } from "./StartPage";
-import { useEffect} from "react";
+import { useEffect, useState } from "react";
+import { RenderQuestions } from "./RenderQuestions";
 
 const ERROR_MESSAGE = "This tool is not allowed in this quiz.";
 
@@ -22,6 +23,8 @@ const Quiz = () => {
   const { id } = useParams();
   const { setOpenDictionary, setOpenCalculator, setCurrentQuizData } =
     useQuizStore();
+  const location = useLocation();
+  const [view, setView] = useState<"start" | "questions">("start");
 
   const { isLoading, data, error, refetch } = useQuery<{ data: IQuiz }>({
     queryKey: ["quiz", id],
@@ -66,6 +69,16 @@ const Quiz = () => {
     data?.data && setCurrentQuizData(data.data);
   }, [data?.data]);
 
+  useEffect(() => {
+    const hash = location.hash.substring(1) as typeof view;
+
+    const notMatching = hash === "start" || hash === "questions";
+
+    (!hash || !notMatching) && setView("start");
+    hash === "questions" && setView("questions");
+    hash === "start" && setView("start");
+  }, [location.hash]);
+
   if (isLoading)
     return <PageLoader className="h-screen" size={100} text="Please wait..." />;
 
@@ -88,9 +101,9 @@ const Quiz = () => {
       <Calculator answer="" button={<></>} setAnswer={() => {}} />
     </div>
   );
-
   const views = {
     start: <StartPage data={data?.data!} />,
+    questions: <RenderQuestions quiz_id={data?.data.id!} />,
   };
 
   return (
@@ -102,11 +115,12 @@ const Quiz = () => {
           allow_word_search: data?.data.allow_word_search,
           allow_calculator: data?.data.allow_calculator,
           title: data?.data.title,
+          id: data?.data.id,
+          time_limit: data?.data.time_limit,
+          total_questions: data?.data.total_questions,
         }}
-        headerText="Quiz"
-        show_timer={false}
       />
-      {views["start"]}
+      {views[view]}
     </div>
   );
 };

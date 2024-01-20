@@ -185,7 +185,7 @@ export interface IQuiz {
   has_user_started_quiz: boolean;
   finish_message?: string;
   allow_retake?: boolean;
-  allowed_users: string
+  allowed_users: string;
 }
 
 export type question_type =
@@ -297,6 +297,8 @@ export enum app_config {
   challenge_friend = "/quizly/challenge-friend",
   communities = "/quizly/communities/",
   image_path = "/media/images",
+  my_profile = "/quizly/profile/",
+  my_communities = "/quizly/my-communities/",
 }
 
 export type onboardingProps =
@@ -337,8 +339,7 @@ export interface TabsProps {
 
 export interface commentsCompProps {
   quiz_id: string;
-  type?: "input" | "textarea"
-
+  type?: "input" | "textarea";
 }
 
 export interface IComment {
@@ -475,6 +476,7 @@ export interface QuizState {
   questionIDs: string[];
   currentQuizData: IQuiz | null;
   openComment: boolean;
+  questionsAnswered: number
 }
 
 export interface QuizAction {
@@ -483,6 +485,7 @@ export interface QuizAction {
   setQuestionIDs: (props: string[]) => void;
   setCurrentQuizData: (props: IQuiz | null) => void;
   setOpenComment: (props: boolean) => void;
+  setQuestionsAnswered: (props: 'increment' | 'decrement') => void
 }
 
 export interface SideBarProps {
@@ -505,3 +508,10 @@ export interface SideBarAction {
 export interface QuickActionProps {
   className?: string;
 }
+
+export type questionUIStateProps = {
+  show_answer?: boolean;
+  is_correct?: boolean;
+  question_type: string;
+  correct_answer: string;
+};

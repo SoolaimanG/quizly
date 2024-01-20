@@ -2,7 +2,6 @@ import { IQuiz, localStorageKeys } from "../../Types/components.types";
 import { Button } from "../../components/Button";
 //import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Question } from "../Comps/Quiz/Question";
 import { useQuery } from "@tanstack/react-query";
 import {
   getTrendingQuiz,
@@ -20,6 +19,7 @@ import queryString from "query-string";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { cn } from "../../lib/utils";
 import { useAuthentication } from "../../Hooks";
+import { QuizQuestion } from "../Quiz/QuizQuestion";
 
 export const QuickQuiz = () => {
   const { isAuthenticated } = useAuthentication();
@@ -63,13 +63,7 @@ export const QuickQuiz = () => {
   //All the views to be render for the quick quiz Starting Page, The Questions Page and Score/Final Page
   const views = {
     start: <QuizStartView data={data?.data[0] as IQuiz} />,
-    question: (
-      <Question
-        isLastQuestion
-        question_id={question_id}
-        quiz_info={data?.data[0]}
-      />
-    ),
+    question: <QuizQuestion quiz={data?.data[0]!} question_id={question_id} />,
     result: <QuizEndView {...data?.data[0]} />,
   };
 

@@ -48,6 +48,7 @@ export const useQuizStore = create<QuizState & QuizAction>()((set) => ({
   questionIDs: [],
   currentQuizData: null,
   openComment: false,
+  questionsAnswered: 0,
   setOpenDictionary() {
     set((state) => ({
       ...state,
@@ -76,6 +77,15 @@ export const useQuizStore = create<QuizState & QuizAction>()((set) => ({
     set((state) => ({
       ...state,
       openComment: props,
+    }));
+  },
+  setQuestionsAnswered(props) {
+    set((state) => ({
+      ...state,
+      questionsAnswered:
+        props === "increment"
+          ? state.questionsAnswered + 1
+          : state.questionsAnswered - 1,
     }));
   },
 }));

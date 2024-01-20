@@ -23,7 +23,7 @@ const Error: React.FC<errorPageProps> = ({
       )}
     >
       <XCircle size={75} className="text-red-500" />
-      <p className="text-red-400 text-base">{errorMessage}</p>
+      <p className="text-red-400 text-base text-center">{errorMessage}</p>
       <Button
         onClick={() => {
           startTransition(() => {

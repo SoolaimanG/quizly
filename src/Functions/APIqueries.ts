@@ -556,4 +556,46 @@ export const rateAndUnRate = async (id: string, action: "quiz" | "teacher") => {
   return response.data;
 };
 
+export const getQuizQuestions = async ({
+  quiz_id,
+  isAuthenticated,
+  anonymous_id,
+}: {
+  quiz_id: string;
+  isAuthenticated: boolean;
+  anonymous_id: string;
+}) => {
+  const headers =
+    isAuthenticated && access_token
+      ? {
+          Authorization: "Bearer " + access_token,
+        }
+      : {};
+
+  const params = `/?anonymous_id=${anonymous_id}`;
+  const response = await axios.get(
+    api + "/api/v1/get-all-question/" + quiz_id + params,
+    { headers }
+  );
+
+  return response.data;
+};
+
+export const reportQuestion = async ({
+  question_id,
+  quiz_id,
+  issue,
+}: {
+  question_id: string;
+  quiz_id: string;
+  issue: string;
+}) => {
+  const response = await axios.post(
+    api + "/api/v1/report-question/",
+    { quiz_id, question_id, issue },
+    { headers: { Authorization: "Bearer " + access_token } }
+  );
+  return response.data;
+};
+
 //CLASS METHODS

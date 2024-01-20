@@ -10,12 +10,14 @@ import { useQuizStore } from "../../provider";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { cn } from "../../lib/utils";
 import { Comments } from "../../components/App/Comments";
+import { useNavigate } from "react-router-dom";
 
 export const StartPage: React.FC<{ data: IQuiz }> = ({
   data: { instructions, id },
 }) => {
   const { openComment } = useQuizStore();
   const { width } = useWindowSize();
+  const navigate = useNavigate();
   return (
     <AnimatePresence mode="wait">
       <motion.div className="w-full overflow-hidden flex gap-3">
@@ -36,9 +38,10 @@ export const StartPage: React.FC<{ data: IQuiz }> = ({
             <Description className="text-center w-full" text={instructions} />
             <StartQuizButton
               id={id}
-              onQuizStart={() => {}}
+              onQuizStart={() => navigate("#questions")}
               button_text="Let's Go"
               isAuthenticated
+              haveExternalFunction
             />
           </div>
           <QuickActions

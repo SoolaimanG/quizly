@@ -266,6 +266,11 @@ export const generateUUID = () => {
   return uuid;
 };
 
+export const handleScrollInView = (ref:React.RefObject<HTMLDivElement>)=>{
+  // This function handle scroll to next question
+  // ref.current.
+}
+
 export const errorMessageForToast = (
   error: AxiosError<{ message: string }>
 ) => {

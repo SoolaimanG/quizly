@@ -87,8 +87,6 @@ const Login = ({
       setUser(_user);
       Cookies.set("access_token", res.data.data.access_token); //Setting the user access token using the cookies
 
-      isPopup && setLoginAttempt({ attempt: false });
-
       if (!_user.signup_complete) {
         setState({
           ...state,
@@ -97,6 +95,8 @@ const Login = ({
       } else {
         router(fallback);
       }
+      isPopup && setLoginAttempt({ attempt: false });
+      window.location.reload();
     } catch (error: AxiosError | any) {
       console.error(error);
 

@@ -6,6 +6,7 @@ import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { capitalize_first_letter } from "../../Functions";
+import { Heart } from "lucide-react";
 
 export const CommentUI: React.FC<IComment> = ({
   created_at,
@@ -17,7 +18,7 @@ export const CommentUI: React.FC<IComment> = ({
 
   const date = formatDistanceToNow(new Date(created_at));
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full">
+    <div className="flex md:flex-row md:items-center md:justify-between w-full">
       <div className="flex items-center gap-2">
         <Avatar>
           <AvatarImage src={profile_image} />
@@ -30,11 +31,10 @@ export const CommentUI: React.FC<IComment> = ({
             <Description text={capitalize_first_letter(username)} />
           </Link>
           <p>{body}</p>
+          <Description text={date} />
         </div>
       </div>
-      <div className="ml-12 md:ml-0">
-        <Description text={date} />
-      </div>
+      <Heart className="cursor-pointer text-green-700" fill="green" size={15} />
     </div>
   );
 };
