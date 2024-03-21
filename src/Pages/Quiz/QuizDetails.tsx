@@ -13,7 +13,6 @@ import { capitalize_first_letter } from "../../Functions";
 import { useQuizStore } from "../../provider";
 import { Description } from "../ExplorePage/QuickQuiz";
 import { cn } from "../../lib/utils";
-import { IQuiz } from "../../Types/components.types";
 import { Card, CardContent, CardDescription } from "../../components/Card";
 import { Button } from "../../components/Button";
 import Hint from "../../components/Hint";
@@ -133,17 +132,19 @@ export const QuizDetails = () => {
           {!toolsAllowed ? (
             <Description text="No tools allowed in this Quiz." />
           ) : (
-            tools.map((t, i) => (
-              <Hint
-                key={i}
-                element={
-                  <Button variant="outline" size="icon">
-                    {t.icon}
-                  </Button>
-                }
-                content={t.content}
-              />
-            ))
+            <div className="flex gap-2 items-center">
+              {tools.map((t, i) => (
+                <Hint
+                  key={i}
+                  element={
+                    <Button variant="outline" size="icon">
+                      {t.icon}
+                    </Button>
+                  }
+                  content={t.content}
+                />
+              ))}
+            </div>
           )}
         </div>
       </div>

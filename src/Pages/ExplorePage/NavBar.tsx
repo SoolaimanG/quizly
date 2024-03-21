@@ -24,8 +24,8 @@ import Hint from "../../components/Hint";
 import { Swords } from "lucide-react";
 import { Input } from "../../components/Input";
 import { UserAvatar } from "../../components/App/userAvatar";
+import { useState } from "react";
 
-//!This is not changeable !!
 const _navbarLinks = [
   {
     name: "Quizzes",
@@ -53,20 +53,34 @@ const NavBar = ({
   show_search_bar = true,
   navbarText,
   isAuthenticated,
+  onSubmit,
 }: {
   show_search_bar?: boolean;
   navbarText: string;
   isAuthenticated: boolean;
+  onSubmit: (search: string) => void;
 }) => {
   const { user } = useZStore();
+  const [value, setValue] = useState("");
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSubmit(value);
+  };
 
   return (
     <div className="w-full px-2 shadow-md bg-white dark:bg-slate-800 z-30 py-2 fixed">
       <div className="md:max-w-6xl w-full flex items-center justify-between m-auto">
         <h1 className="text-xl text-green-500">{navbarText}</h1>
         {show_search_bar && (
-          <form className="w-full flex items-center justify-center" action="">
+          <form
+            onSubmit={handleSubmit}
+            className="w-full flex items-center justify-center"
+            action=""
+          >
             <Input
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
               className="focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 w-3/4"
               placeholder="Find Quiz, Teachers and Surveys"
             />

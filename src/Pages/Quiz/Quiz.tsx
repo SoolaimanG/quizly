@@ -1,21 +1,28 @@
 import useKeyboardShortcut from "use-keyboard-shortcut";
-import { useDocumentTitle } from "@uidotdev/usehooks";
+import { useDocumentTitle, useLocalStorage } from "@uidotdev/usehooks";
 import { QuizNavBar } from "../Comps/Quiz/QuizNavBar";
 import { useQuizStore } from "../../provider";
 import { Dictionary } from "../../components/App/Dictionary";
 import Calculator from "../../components/App/Calculator";
-import { useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getQuizDetails } from "../../Functions/APIqueries";
 import PageLoader from "../../components/Loaders/PageLoader";
 import Error from "../Comps/Error";
 import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
-import { IQuiz } from "../../Types/components.types";
+import {
+  IQuiz,
+  app_config,
+  localStorageKeys,
+} from "../../Types/components.types";
 import { toast } from "../../components/use-toaster";
 import { StartPage } from "./StartPage";
 import { useEffect, useState } from "react";
 import { RenderQuestions } from "./RenderQuestions";
+import { useAuthentication } from "../../Hooks";
+import { QuizResult } from "./QuizResult";
+import { Button } from "../../components/Button";
 
 const ERROR_MESSAGE = "This tool is not allowed in this quiz.";
 
@@ -24,14 +31,20 @@ const Quiz = () => {
   const { setOpenDictionary, setOpenCalculator, setCurrentQuizData } =
     useQuizStore();
   const location = useLocation();
-  const [view, setView] = useState<"start" | "questions">("start");
+  const [view, setView] = useState<"start" | "questions" | "result">("start");
+  const { isAuthenticated } = useAuthentication();
+  const [anonymous_id] = useLocalStorage<string | undefined>(
+    localStorageKeys.anonymous_id
+  );
 
   const { isLoading, data, error, refetch } = useQuery<{ data: IQuiz }>({
-    queryKey: ["quiz", id],
-    queryFn: () => getQuizDetails(id as string),
+    queryKey: ["quiz", id, isAuthenticated],
+    queryFn: () => getQuizDetails(id!, anonymous_id!, isAuthenticated),
   });
 
-  useDocumentTitle(data?.data.title || "Take Quiz");
+  console.log(data?.data.id);
+
+  useDocumentTitle(data?.data.title ?? "Take Quiz");
   // Open Dictionary
   useKeyboardShortcut(
     ["Control", "d"],
@@ -72,11 +85,13 @@ const Quiz = () => {
   useEffect(() => {
     const hash = location.hash.substring(1) as typeof view;
 
-    const notMatching = hash === "start" || hash === "questions";
+    const notMatching =
+      hash === "start" || hash === "questions" || hash === "result";
 
     (!hash || !notMatching) && setView("start");
     hash === "questions" && setView("questions");
     hash === "start" && setView("start");
+    hash === "result" && setView("result");
   }, [location.hash]);
 
   if (isLoading)
@@ -104,6 +119,26 @@ const Quiz = () => {
   const views = {
     start: <StartPage data={data?.data!} />,
     questions: <RenderQuestions quiz_id={data?.data.id!} />,
+    result: (
+      <div className="flex flex-col">
+        <QuizResult
+          className={" pt-20 md:max-w-4xl px-5 m-auto flex flex-col gap-3"}
+          title={data?.data.title}
+          id={data?.data?.id}
+          result_display_type={data?.data?.result_display_type}
+          finish_message={data?.data?.finish_message}
+        >
+          <Button
+            asChild
+            variant={"destructive"}
+            className="w-full h-[3rem] mt-3"
+          >
+            <Link to={app_config.my_profile}>Go Home</Link>
+          </Button>
+        </QuizResult>
+        <RenderQuestions disableSubmit quiz_id={data?.data.id!} />
+      </div>
+    ),
   };
 
   return (

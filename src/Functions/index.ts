@@ -8,6 +8,9 @@ import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import { toast } from "../components/use-toaster";
 import { v4 as uuidV4 } from "uuid";
+import { SurveyWorkSpace } from "./surveyApis";
+import { AutoSaveUi, BlockToolProps } from "../Types/survey.types";
+import { CSSProperties } from "react";
 
 export const sendEmailToDeveloper = async ({
   firstName,
@@ -266,10 +269,16 @@ export const generateUUID = () => {
   return uuid;
 };
 
-export const handleScrollInView = (ref:React.RefObject<HTMLDivElement>)=>{
-  // This function handle scroll to next question
-  // ref.current.
-}
+export const shuffleArray = <T>(array: T[]) => {
+  return array.sort(() => Math.random() - 0.9);
+};
+
+export const handleScrollInView = (ref: React.RefObject<HTMLDivElement>) => {
+  ref.current?.scrollIntoView({
+    behavior: "smooth",
+    inline: "center",
+  });
+};
 
 export const errorMessageForToast = (
   error: AxiosError<{ message: string }>
@@ -279,4 +288,93 @@ export const errorMessageForToast = (
     error?.message ||
     "Something went wrong...";
   return message;
+};
+
+export const handleAddBlock = async ({
+  survey_id,
+  block_type,
+  setAutoSaveUiProps,
+}: {
+  survey_id: string;
+  block_type: BlockToolProps;
+  setAutoSaveUiProps: (props: AutoSaveUi) => void;
+}) => {
+  const survey = new SurveyWorkSpace();
+
+  return new Promise(async (resolve, reject) => {
+    try {
+      const res = await survey.blockAction({
+        survey_id,
+        block_type,
+        action: "ADD",
+      });
+      setAutoSaveUiProps({
+        status: "success",
+        message: block_type + " added to the existing blocks.",
+        is_visible: true,
+      });
+      resolve(res);
+    } catch (error) {
+      setAutoSaveUiProps({
+        status: "failed",
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        is_visible: true,
+      });
+      reject(error);
+    }
+  });
+};
+
+export const reorderList = (
+  list: any[],
+  startIndex: number,
+  endIndex: number
+) => {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+  console.log({ result, removed });
+
+  return result;
+};
+
+export const imageEdittingStyles = ({
+  brightness,
+  contrast,
+  saturation,
+  blur,
+  rotationIndex,
+  x,
+  y,
+  hue,
+  invert,
+  pixelate,
+  rotationDeg,
+  grayscale,
+}: {
+  brightness: number;
+  contrast: number;
+  saturation: number;
+  blur: number;
+  rotationIndex: number;
+  x: number;
+  y: number;
+  hue: number;
+  grayscale: number;
+  pixelate: number;
+  rotationDeg: number[];
+  invert: number;
+}) => {
+  const style: CSSProperties = {
+    filter: `
+    brightness(${brightness}%)
+    contrast(${contrast}%)
+    saturate(${saturation}%)
+    blur(${blur}px)
+    grayscale(${grayscale}%)
+    `,
+    transform: `rotate(${rotationDeg[rotationIndex]}deg) scaleX(${x}) scaleY(${y})`,
+  };
+
+  return style;
 };

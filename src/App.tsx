@@ -3,7 +3,7 @@ import LandingPage from "./Pages/LandingPage";
 import ProtectedRoute from "./ProtectedRoute";
 import AppProvider from "./components/App/AppProvider";
 import { Route, Routes } from "react-router-dom";
-import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+// import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import Onboarding from "./Pages/Onboarding";
 import { app_config } from "./Types/components.types";
 import Explore from "./Pages/ExplorePage/Explore";
@@ -12,10 +12,12 @@ import useKeyboardShortcut from "use-keyboard-shortcut";
 import { toggle_modes } from "./Functions";
 import { useZStore } from "./provider";
 import { useLocalStorage } from "@uidotdev/usehooks";
+import CommunityLayout from "./Pages/Community/CommunityPages/CommunityLayout";
+import Quizzes from "./Pages/Quizzes/Quizzes";
+import Create from "./Pages/CreateSurvey/Create";
+import WorkSpace from "./Pages/CreateSurvey/WorkSpace";
 
 function App() {
-  const client = new QueryClient();
-
   const { setIsDarkMode } = useZStore();
   const [theme, saveTheme] = useLocalStorage<"dark" | "light" | null>(
     "theme",
@@ -32,35 +34,71 @@ function App() {
   );
 
   return (
-    <QueryClientProvider client={client}>
-      <AppProvider>
-        <Routes>
-          <Route path={app_config.landing_page} element={<LandingPage />} />
-          <Route
-            path={app_config.login_page}
-            element={<AuthLayout path="Login" />}
-          />
-          <Route
-            path={app_config.confrimEmail + ":token"}
-            element={<AuthLayout path="ConfirmEmail" />}
-          />
-          <Route
-            path={app_config.forgetPassword}
-            element={<AuthLayout path="ForgetPassword" />}
-          />
-          <Route
-            element={<ProtectedRoute element={<>Home</>} />}
-            path="/home"
-          />
-          <Route
-            element={<ProtectedRoute element={<Onboarding />} />}
-            path={app_config.onboarding_page}
-          />
-          <Route path={app_config.explore_page} element={<Explore />} />
-          <Route path={app_config.quiz + ":id"} element={<Quiz />} />
-        </Routes>
-      </AppProvider>
-    </QueryClientProvider>
+    <AppProvider>
+      <Routes>
+        <Route path={app_config.landing_page} element={<LandingPage />} />
+
+        {/* COMMMUNITIES */}
+        <Route
+          path={app_config.community + ":id"}
+          element={<CommunityLayout path="Home" />}
+        />
+        <Route
+          path={app_config.community + "post/" + ":id"}
+          element={<CommunityLayout path="Post" />}
+        />
+        <Route
+          path={app_config.community + "edit-post/" + ":id"}
+          element={<CommunityLayout path="Edit" />}
+        />
+        <Route
+          path={app_config.community + "members/" + ":id"}
+          element={<CommunityLayout path="Members" />}
+        />
+        <Route
+          path={app_config.community + "requests/" + ":id"}
+          element={<CommunityLayout path="Requests" />}
+        />
+        <Route
+          path={app_config.community + "settings/" + ":id"}
+          element={<CommunityLayout path="Settings" />}
+        />
+        <Route path={app_config.quizzes} element={<Quizzes />} />
+
+        {/* AUTHENTICATIONS */}
+        <Route
+          path={app_config.confrimEmail + ":token"}
+          element={<AuthLayout path="ConfirmEmail" />}
+        />
+        <Route
+          path={app_config.login_page}
+          element={<AuthLayout path="Login" />}
+        />
+        <Route
+          path={app_config.forgetPassword}
+          element={<AuthLayout path="ForgetPassword" />}
+        />
+        <Route element={<ProtectedRoute element={<>Home</>} />} path="/home" />
+        <Route
+          element={<ProtectedRoute element={<Onboarding />} />}
+          path={app_config.onboarding_page}
+        />
+
+        {/* QUIZZES */}
+        <Route path={app_config.explore_page} element={<Explore />} />
+        <Route path={app_config.quiz + ":id"} element={<Quiz />} />
+
+        {/* CREATE SURVEYS */}
+        <Route
+          element={<ProtectedRoute element={<Create />} />}
+          path={app_config.create_survey}
+        />
+        <Route
+          element={<ProtectedRoute element={<WorkSpace />} />}
+          path={app_config.survey_workspace}
+        />
+      </Routes>
+    </AppProvider>
   );
 }
 

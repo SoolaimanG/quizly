@@ -2,14 +2,13 @@ import { Button } from "../../components/Button";
 import { MessageSquare, Timer, X } from "lucide-react";
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import { Description } from "./QuickQuiz";
+import { Description } from "../ExplorePage/QuickQuiz";
 import {
   IQuiz,
-  app_config,
   localStorageKeys,
   quizResultProps,
 } from "../../Types/components.types";
-import React, { useEffect } from "react";
+import React, { ReactElement } from "react";
 import { cn } from "../../lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getQuizResult } from "../../Functions/APIqueries";
@@ -19,48 +18,42 @@ import EmptyState from "../../components/App/EmptyState";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useText } from "../../Hooks/text";
 import PageLoader from "../../components/Loaders/PageLoader";
-import { RetakeQuizButton } from "../../components/App/RetakeQuizButton";
 import Error from "../Comps/Error";
 import { errorMessageForToast } from "../../Functions";
 import { formatDistance } from "date-fns";
 import { useAuthentication } from "../../Hooks";
-import Cookies from "js-cookie";
-import { Link } from "react-router-dom";
 import { AxiosError } from "axios";
+import { WaitingForMarking } from "./WaitingForMarking";
 
 const content = Object.freeze({
   completionText:
     "Thanks for participating in our quiz! Whether you excelled or faced challenges, each question was an opportunity to learn and grow.",
 });
 
-export const QuizEndView: React.FC<Partial<IQuiz>> = ({
+export const QuizResult: React.FC<
+  Partial<IQuiz> & { children?: ReactElement; className?: string }
+> = ({
   result_display_type,
   id,
   title,
   finish_message,
+  children,
+  className,
 }) => {
   const [anonymous_id] = useLocalStorage<string>(localStorageKeys.anonymous_id);
-  const { isAuthenticated } = useAuthentication();
-  const access_token = Cookies.get("access_token") || "";
+  const { loading, isAuthenticated } = useAuthentication();
   const { isLoading, data, error, refetch } = useQuery<{
     data: quizResultProps;
   }>({
-    queryKey: ["quiz_result"],
+    queryKey: ["quiz_result", id, isAuthenticated, loading],
     queryFn: () =>
       getQuizResult({
         isAuthenticated,
         anonymous_id,
         quiz_id: id as string,
-        access_token,
         ip_address: "",
       }),
   });
-
-  useEffect(() => {
-    setTimeout(() => {
-      refetch();
-    }, 1500);
-  }, [isAuthenticated]);
 
   if (isLoading) return <PageLoader size={90} text="Getting Your Result" />;
 
@@ -75,9 +68,9 @@ export const QuizEndView: React.FC<Partial<IQuiz>> = ({
     );
 
   return (
-    <div className="mt-3 h-full w-full relative">
+    <div className={cn("h-full w-full", className)}>
       {result_display_type === "mark_by_teacher" ? (
-        <div></div>
+        <WaitingForMarking finish_message={finish_message!} />
       ) : (
         <QuizResultsSolo
           {...data?.data}
@@ -85,12 +78,7 @@ export const QuizEndView: React.FC<Partial<IQuiz>> = ({
           finish_message={finish_message}
         />
       )}
-      <div className="flex absolute bottom-4 w-full gap-3">
-        <RetakeQuizButton to_go={"#start"} quiz_id={id as string} />
-        <Button asChild variant="base" className="w-full h-[3rem]">
-          <Link to={app_config.quizzes}>Another Quiz</Link>
-        </Button>
-      </div>
+      {children}
     </div>
   );
 };
@@ -210,10 +198,12 @@ export const QuizResultsSolo: React.FC<
 
 export const ShadowCard: React.FC<{
   className?: string;
+  onClick?: () => void;
   children: React.ReactNode;
-}> = ({ className, children }) => {
+}> = ({ className, children, onClick }) => {
   return (
     <div
+      onClick={onClick}
       className={cn(
         "w-full cursor-pointer h-fit shadow-sm p-2 rounded-md",
         className

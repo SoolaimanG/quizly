@@ -11,7 +11,11 @@ const Glassmorphism: React.FC<GlassmorphismProps> = ({
 }) => {
   const glassmorphismStyle: React.CSSProperties = {
     background:
-      color === "default" ? "rgba(247,247,247,0.5)" : "rgba(187,247,208,0.45)",
+      color === "default"
+        ? "rgba(247,247,247,0.5)"
+        : color === "green"
+        ? "rgba(187,247,208,0.45)"
+        : "rgba(44,44,44,0.5)",
     WebkitBackdropFilter: `blur(${blur})`,
     backdropFilter: `blur(${blur})`,
     border: "1px solid rgba(255,255,255,0.1)",

@@ -11,39 +11,33 @@ import { useTimerColor } from "../../Hooks/quizHooks";
 import { toast } from "../use-toaster";
 import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
+import { useAuthentication } from "../../Hooks";
 
 export const Timer: React.FC<timerProps> = ({
   quiz_id,
   className,
   initialTime,
-  isAuthenticated,
   onTimeFinish,
 }) => {
+  const { loading, isAuthenticated } = useAuthentication();
   const [anonymous_id] = useLocalStorage<string | undefined>(
     localStorageKeys.anonymous_id
   );
   // As component mount send reqyest to server to make sure user is till using the assign time by tutor if not and user is still taking quiz ---> SUBMIT QUIZ
-  const { isLoading, data, error, refetch, isSuccess } = useQuery<{
+  const { isLoading, data, error } = useQuery<{
     data: { time_remaining: number };
   }>({
-    queryKey: ["timer", quiz_id],
+    queryKey: ["timer", quiz_id, isAuthenticated],
     queryFn: () => checkTimer({ quiz_id, anonymous_id, isAuthenticated }),
-    enabled: isAuthenticated,
+    enabled: !loading,
   });
 
   // Using this to set and decrement the time
-  const [time, { set, decrement }] = useCounter(2, {
+  const [time, { set, decrement }] = useCounter(60, {
     min: 0,
   });
 
   useEffect(() => {
-    // This is to prevent the component to settle
-    if (!isSuccess) {
-      setTimeout(() => {
-        refetch();
-      }, 1000);
-    }
-
     if (error) {
       console.log(error);
       toast({
@@ -53,12 +47,9 @@ export const Timer: React.FC<timerProps> = ({
         ),
         variant: "destructive",
       });
-      onTimeFinish();
     }
 
-    if (!data?.data.time_remaining) return;
-
-    set(data.data.time_remaining); //Set the timer from server, convert to secs and mins and start count down.
+    set(data?.data?.time_remaining!); //Set the timer from server, convert to secs and mins and start count down.
 
     // Start decrementing..
     const timer = setInterval(() => {
@@ -66,7 +57,11 @@ export const Timer: React.FC<timerProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [data?.data.time_remaining, error, isAuthenticated]);
+  }, [data?.data.time_remaining, error]);
+
+  useEffect(() => {
+    time === 0 && onTimeFinish();
+  }, [time]);
 
   const varient = useTimerColor(initialTime, time); // ---> This will return either success, destructive or warning to assign to Badge
 
@@ -76,7 +71,7 @@ export const Timer: React.FC<timerProps> = ({
       className={cn(
         "py-[3px] px-4 rounded-sm flex items-center gap-2",
         className,
-        isLoading && "animate-pulse"
+        (isLoading || loading) && "animate-pulse"
       )}
     >
       <TimerIcon />

@@ -1,6 +1,6 @@
 import { useLocalStorage, useWindowSize } from "@uidotdev/usehooks";
 import React, { useEffect } from "react";
-import { useZStore } from "../../provider";
+import { useComingSoonProps, useZStore } from "../../provider";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -27,6 +27,7 @@ import { useAuthentication } from "../../Hooks";
 import { useQuery } from "@tanstack/react-query";
 import { getUser } from "../../Functions/APIqueries";
 import { IUser } from "../../Types/components.types";
+import { ComingSoon } from "./ComingSoon";
 
 const content = Object.freeze({
   description:
@@ -44,6 +45,15 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     emailVerificationRequired,
     setEmailVerificationRequired,
   } = useZStore();
+  const {
+    isVisible,
+    description,
+    joinWaitList,
+    featureName,
+    setIsVisible,
+    setType,
+    type,
+  } = useComingSoonProps();
   const [localstorage_data, saveTheme] = useLocalStorage<
     "dark" | "light" | null
   >("theme", null);
@@ -116,7 +126,10 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <Login
             fallback={loginAttempt.fallback}
             title="First things first login!"
-            description="Just login need for you to access this action/page"
+            description={
+              loginAttempt.note ||
+              "Just login need for you to access this action/page"
+            }
             isPopup
           />
         </SheetContent>
@@ -174,6 +187,19 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <React.Fragment>
       {authPopup}
       {verify_email_pop}
+      {isVisible && (
+        <ComingSoon
+          props={{
+            description,
+            joinWaitList,
+            featureName,
+            isVisible,
+            setIsVisible,
+            type,
+            setType,
+          }}
+        />
+      )}
       {children}
     </React.Fragment>
   );

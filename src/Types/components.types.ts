@@ -1,10 +1,10 @@
 import { Editor } from "@tiptap/react";
 import { Variants } from "framer-motion";
-import React, { SetStateAction } from "react";
+import React, { RefObject, SetStateAction } from "react";
 
 //Combo-Box Type
-export interface combo_box_type {
-  value: string;
+export interface combo_box_type<T> {
+  value: T;
   label: string;
 }
 
@@ -37,6 +37,8 @@ export interface editor_props {
   setValue: React.Dispatch<SetStateAction<string>>;
   setHtml: React.Dispatch<SetStateAction<string>>;
   className?: string;
+  show_tools?: boolean;
+  disable?: boolean;
 }
 
 export interface uploaderProps {
@@ -52,6 +54,7 @@ export interface image_uploader_props {
   filesToAccept: string[];
   multiples?: number;
   data: uploaderProps;
+  className?: string;
 }
 
 //Calculator Props
@@ -69,7 +72,7 @@ export interface protected_route_props {
 //Zustand state props for States and Actions
 export interface Zstate {
   is_darkmode: boolean;
-  loginAttempt: { fallback: string; attempt: boolean };
+  loginAttempt: { fallback: string; attempt: boolean; note?: string };
   emailVerificationRequired: boolean;
   user: IUser | null | undefined;
 }
@@ -79,9 +82,11 @@ export interface Zaction {
   setLoginAttempt: ({
     fallback,
     attempt,
+    note,
   }: {
     fallback?: string;
     attempt: boolean;
+    note?: string;
   }) => void;
   setUser: (prop: IUser | null) => void;
   setEmailVerificationRequired: (props: boolean) => void;
@@ -93,12 +98,16 @@ export interface GlassmorphismProps {
   children: React.ReactNode;
   className?: string;
   blur?: string;
-  color?: "green" | "default";
+  color?: "green" | "default" | "dark";
 }
 
 //Rating Component Props
 export interface rating_props {
   rating?: number;
+  className?: string;
+  rating_length?: number;
+  size?: number;
+  onRatingSelect: (i: number) => void;
   setRating?: React.Dispatch<SetStateAction<number>>;
 }
 
@@ -186,6 +195,8 @@ export interface IQuiz {
   finish_message?: string;
   allow_retake?: boolean;
   allowed_users: string;
+  quiz_completed: boolean;
+  is_completed: boolean;
 }
 
 export type question_type =
@@ -290,7 +301,7 @@ export enum app_config {
   explore_page = "/quizly/explore",
   forgetPassword = "/auth/forget-password",
   confrimEmail = "/auth/confirm-email/",
-  create_survey = "/quizly/create-survey",
+  create_survey = "/quizly/survey",
   quizzes = "/quizly/quizzes",
   quiz = "/quizly/quiz/",
   user = "/quizly/user/",
@@ -299,6 +310,11 @@ export enum app_config {
   image_path = "/media/images",
   my_profile = "/quizly/profile/",
   my_communities = "/quizly/my-communities/",
+  community = "/quizly/community/",
+  survey_workspace = "/quizly/survey/create/",
+  connect_survey = "/quizly/survey/connect/",
+  share_survey = "/quizly/survey/share/",
+  survey_result = "/quizly/survey/result/",
 }
 
 export type onboardingProps =
@@ -335,6 +351,9 @@ export interface localStorageQuestions {
 export interface TabsProps {
   header: string[];
   elements: React.ReactElement[];
+  style?: "dot" | "underline" | "buttons";
+  className?: string;
+  hideBorder?: boolean;
 }
 
 export interface commentsCompProps {
@@ -426,7 +445,6 @@ export interface timerProps {
   quiz_id: string;
   className?: string;
   initialTime: number;
-  isAuthenticated: boolean;
   onTimeFinish: () => void;
 }
 
@@ -476,7 +494,8 @@ export interface QuizState {
   questionIDs: string[];
   currentQuizData: IQuiz | null;
   openComment: boolean;
-  questionsAnswered: number
+  questionsAnswered: number;
+  refs: RefObject<HTMLDivElement>[];
 }
 
 export interface QuizAction {
@@ -485,7 +504,9 @@ export interface QuizAction {
   setQuestionIDs: (props: string[]) => void;
   setCurrentQuizData: (props: IQuiz | null) => void;
   setOpenComment: (props: boolean) => void;
-  setQuestionsAnswered: (props: 'increment' | 'decrement') => void
+  setQuestionsAnswered: (props: "increment" | "decrement") => void;
+  setRefs: (props: RefObject<HTMLDivElement>[]) => void;
+  clearQuestionAnswered: () => void;
 }
 
 export interface SideBarProps {
@@ -514,4 +535,55 @@ export type questionUIStateProps = {
   is_correct?: boolean;
   question_type: string;
   correct_answer: string;
+  editted: boolean;
 };
+
+export interface ComboBoxProps {
+  isLoading?: boolean;
+  error?: Error | null;
+  disabled?: boolean;
+  title?: string;
+  data: combo_box_type<string>[];
+  value: string;
+  className?: string;
+  popoverClassName?: string;
+  search: string;
+
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  setValue: React.Dispatch<React.SetStateAction<string>>;
+}
+
+export interface NotificationsProps {
+  id: string;
+  message: string;
+  path: null;
+  user: Pick<IUser, "id" | "profile_image" | "username">;
+  user_requesting: Pick<IUser, "id" | "profile_image" | "username">;
+  notification_type:
+    | "default"
+    | "community_request"
+    | "new_quiz_alert"
+    | "achievement";
+  is_read: boolean;
+  created_at: Date;
+  updated_at: Date;
+  quiz: Pick<IQuiz, "id" | "title" | "banner" | "host">;
+}
+
+export interface paginationNavProps {
+  className?: string;
+  length: number;
+}
+
+export interface comingSoonProps {
+  isVisible: boolean;
+  featureName: string;
+  description: string;
+  joinWaitList: boolean;
+
+  // Actions
+  setFeatureName: (prop: string) => void;
+  setDescription: (prop: string) => void;
+  setJoinWaitList: (prop: boolean) => void;
+  setIsVisible: (prop: boolean) => void;
+}

@@ -12,10 +12,11 @@ import { Button } from "../Button";
 import { image_uploader_props } from "../../Types/components.types";
 import { Input } from "../Input";
 import { useEffect, useState } from "react";
-import Dropzone from "react-dropzone";
+import Dropzone, { DropEvent } from "react-dropzone";
 import { toast } from "../use-toaster";
 import { Img } from "react-image";
 import { Skeleton } from "../Loaders/Skeleton";
+import { cn } from "../../lib/utils";
 
 const ImageUploader = ({
   button,
@@ -24,6 +25,7 @@ const ImageUploader = ({
   setData,
   multiples = 1,
   data,
+  className,
 }: image_uploader_props) => {
   const [urlImage, setUrlImage] = useState("");
 
@@ -44,14 +46,10 @@ const ImageUploader = ({
 
         const { result } = e.target;
 
-        const findURL = data?.previewUrl?.find((url) => url === result);
-
-        if (!findURL) {
-          setData((prevData) => ({
-            ...prevData,
-            previewUrl: [...data.previewUrl!, result as string],
-          }));
-        }
+        setData({
+          ...data,
+          previewUrl: [...new Set([...data.previewUrl!, result as string])],
+        });
       };
 
       reader.onabort = () => {
@@ -84,6 +82,23 @@ const ImageUploader = ({
     setData({ files: removeFile, previewUrl: removeImage });
   };
 
+  const handleDropAccepted: <T extends File>(
+    files: T[],
+    event: DropEvent
+  ) => void = (acceptedFiles) => {
+    let fileFound = false;
+    data.files.forEach((_, index) => {
+      fileFound = acceptedFiles[index].name === _.name;
+    });
+
+    if (fileFound) return;
+
+    setData({
+      ...data,
+      files: [...new Set([...data.files, ...acceptedFiles])],
+    });
+  };
+
   const selectedFiles = (
     <div className="w-full flex flex-wrap gap-2">
       {data.previewUrl?.map((image, i) => (
@@ -107,7 +122,9 @@ const ImageUploader = ({
 
   return (
     <Dialog>
-      <DialogTrigger>{button}</DialogTrigger>
+      <DialogTrigger className={cn("w-full", className)}>
+        {button}
+      </DialogTrigger>
       <DialogContent>
         <DialogTitle className="text-center text-lg">Add Image</DialogTitle>
 
@@ -115,6 +132,13 @@ const ImageUploader = ({
           accept={{ "image/*": filesToAccept }}
           maxFiles={multiples}
           maxSize={maxSize * Math.pow(1024, 2)}
+          onDropRejected={(e) =>
+            toast({
+              title: "Error",
+              description: e.toString(),
+              variant: "destructive",
+            })
+          }
           onError={(e) => {
             toast({
               title: "Error",
@@ -122,9 +146,7 @@ const ImageUploader = ({
               variant: "destructive",
             });
           }}
-          onDropAccepted={(acceptedFiles) => {
-            setData({ ...data, files: acceptedFiles });
-          }}
+          onDropAccepted={handleDropAccepted}
         >
           {({ getRootProps, getInputProps }) => (
             <div {...getRootProps({ className: "dropzone" })}>
@@ -186,7 +208,7 @@ const ImageUploader = ({
               urlImage &&
                 setData({
                   ...data,
-                  previewUrl: [...data.previewUrl!, urlImage],
+                  previewUrl: [...new Set(...data.previewUrl!, urlImage)],
                 });
               setUrlImage("");
             }}

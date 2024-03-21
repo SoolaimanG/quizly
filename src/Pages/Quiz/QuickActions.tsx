@@ -8,16 +8,16 @@ import { QuizDetails } from "./QuizDetails";
 import { AlertCircleIcon } from "lucide-react";
 import { SaveQuiz } from "./SaveQuiz";
 import { useWindowSize } from "@uidotdev/usehooks";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogTrigger,
-} from "../../components/DialogModal";
 import { useQuizStore } from "../../provider";
 import { Sheet, SheetContent, SheetTrigger } from "../../components/Sheet";
 import { Comments } from "../../components/App/Comments";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogTrigger,
+} from "../../components/AlertModal";
 
 export const QuickActions: React.FC<QuickActionProps> = ({ className }) => {
   const { width } = useWindowSize();
@@ -67,14 +67,14 @@ export const QuickActions: React.FC<QuickActionProps> = ({ className }) => {
               side={Number(width) > 800 ? "left" : "top"}
             />
           </SheetTrigger>
-          <SheetContent>
+          <SheetContent className=" w-[85%]">
             <Comments quiz_id={currentQuizData?.id!} type="textarea" />
           </SheetContent>
         </Sheet>
       )}
 
-      <Dialog>
-        <DialogTrigger>
+      <AlertDialog>
+        <AlertDialogTrigger>
           <Hint
             element={
               <Button
@@ -88,16 +88,14 @@ export const QuickActions: React.FC<QuickActionProps> = ({ className }) => {
             content="Quiz Details"
             side={Number(width) > 800 ? "left" : "top"}
           />
-        </DialogTrigger>
-        <DialogContent>
+        </AlertDialogTrigger>
+        <AlertDialogContent className="overflow-auto">
           <QuizDetails />
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button>Close</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <SaveQuiz quiz_id={currentQuizData?.id!} />
     </div>
   );

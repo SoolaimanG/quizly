@@ -3,15 +3,20 @@ import {
   IUser,
   QuizAction,
   QuizState,
-  SideBarAction,
-  SideBarState,
   Zaction,
   Zstate,
+  app_config,
+  comingSoonProps,
 } from "./Types/components.types";
+import { CommunityStoreProps } from "./Types/community.types";
+import {
+  SurveyWorkSpaceAction,
+  SurveyWorkSpaceState,
+} from "./Types/survey.types";
 
 export const useZStore = create<Zstate & Zaction>()((set) => ({
   is_darkmode: false,
-  loginAttempt: { attempt: false, fallback: "" },
+  loginAttempt: { attempt: false, fallback: "", note: "" },
   user: null,
   emailVerificationRequired: false,
   setIsDarkMode: (prop) => set((state) => ({ ...state, is_darkmode: prop })),
@@ -19,9 +24,9 @@ export const useZStore = create<Zstate & Zaction>()((set) => ({
     set((state) => ({
       ...state,
       loginAttempt: {
-        ...prop,
         attempt: prop.attempt,
         fallback: prop.fallback as string,
+        note: prop.note,
       },
     }));
   },
@@ -49,6 +54,7 @@ export const useQuizStore = create<QuizState & QuizAction>()((set) => ({
   currentQuizData: null,
   openComment: false,
   questionsAnswered: 0,
+  refs: [],
   setOpenDictionary() {
     set((state) => ({
       ...state,
@@ -88,21 +94,155 @@ export const useQuizStore = create<QuizState & QuizAction>()((set) => ({
           : state.questionsAnswered - 1,
     }));
   },
-}));
-
-export const useSiderBar = create<SideBarState & SideBarAction>()((set) => ({
-  isNavOpen: false,
-  isCollapsed: false,
-  toggleSideBar(props) {
+  setRefs(props) {
     set((state) => ({
       ...state,
-      isNavOpen: props,
+      refs: props,
     }));
   },
-  setCollapseSidebar(props) {
+  clearQuestionAnswered() {
+    set({ questionsAnswered: 0 });
+  },
+}));
+
+export const useCommunityStore = create<CommunityStoreProps>((set) => ({
+  openSearch: false,
+  communityDetails: null,
+  editCommunityData: {
+    quiz_id: undefined,
+    caption: "",
+    remove_image_len: 0,
+    remove_images: [],
+    imagesProps: {
+      files: [],
+      previewUrl: [],
+    },
+  },
+  setOpenSearch() {
     set((state) => ({
       ...state,
-      isCollapsed: props,
+      openSearch: !state.openSearch,
+    }));
+  },
+  setCommunityDetails(props) {
+    set((state) => ({
+      ...state,
+      communityDetails: props,
+    }));
+  },
+  setEditCommunity({
+    quiz_id,
+    caption,
+    files,
+    previewUrl,
+    remove_image_len,
+    remove_images,
+  }) {
+    set((state) => ({
+      ...state,
+      editCommunityData: {
+        quiz_id,
+        caption,
+        remove_image_len,
+        remove_images,
+        imagesProps: { files, previewUrl },
+      },
+    }));
+  },
+}));
+
+export const useSurveyWorkSpace = create<
+  SurveyWorkSpaceState & SurveyWorkSpaceAction
+>((set) => ({
+  formType: "feedback",
+  survey: undefined,
+  survey_blocks: undefined,
+  collapseSideBar: {
+    sideBarOne: false,
+    sideBarTwo: false,
+  },
+  deviceView: "desktop",
+  auto_save_ui_props: {
+    status: "loading",
+    is_visible: false,
+    message: app_config.AppName + " Is AutoSaving your progress",
+  },
+  setFormType(props) {
+    set((state) => ({
+      ...state,
+      formType: props,
+    }));
+  },
+  setCollapseSideBar({ sideBarOne, sideBarTwo }) {
+    set((state) => ({
+      ...state,
+      collapseSideBar: {
+        sideBarOne,
+        sideBarTwo,
+      },
+    }));
+  },
+  setDeviceView(props) {
+    set((state) => ({
+      ...state,
+      deviceView: props,
+    }));
+  },
+  setSurvey(props) {
+    set((state) => ({
+      ...state,
+      survey: props,
+    }));
+  },
+  setSurveyBlocks(props) {
+    set((state) => ({
+      ...state,
+      survey_blocks: props,
+    }));
+  },
+  setAutoSaveUiProps(props) {
+    set((state) => ({
+      ...state,
+      auto_save_ui_props: props,
+    }));
+  },
+}));
+
+export const useComingSoonProps = create<comingSoonProps>((set) => ({
+  description: "",
+  featureName: "Feature is coming soon!",
+  joinWaitList: true,
+  isVisible: false,
+  type: "AI_HELP",
+
+  setDescription(prop) {
+    set((state) => ({
+      ...state,
+      description: prop,
+    }));
+  },
+  setFeatureName(prop) {
+    set((state) => ({
+      ...state,
+      featureName: prop,
+    }));
+  },
+  setJoinWaitList(prop) {
+    set((state) => ({
+      ...state,
+      joinWaitList: prop,
+    }));
+  },
+  setIsVisible(isVisible) {
+    set((state) => ({
+      ...state,
+      isVisible,
+    }));
+  },
+  setType(type) {
+    set((state) => ({
+      ...state,
+      type,
     }));
   },
 }));

@@ -1,25 +1,23 @@
-import { IQuiz, localStorageKeys } from "../../Types/components.types";
-import { Button } from "../../components/Button";
-//import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
-  getTrendingQuiz,
-  //nextQuestion,
-  //startQuiz,
-} from "../../Functions/APIqueries";
-import { useLocation } from "react-router-dom";
+  IQuiz,
+  app_config,
+  localStorageKeys,
+} from "../../Types/components.types";
+import { Button } from "../../components/Button";
+import { ReactElement, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getTrendingQuiz } from "../../Functions/APIqueries";
+import { Link, useLocation } from "react-router-dom";
 import { QuizStartView } from "./QuizStartView";
-import { QuizEndView } from "./QuizEndView";
 import Error from "../Comps/Error";
-//import { toast } from "../../components/use-toaster";
-//import { errorMessageForToast } from "../../Functions";
 
 import queryString from "query-string";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { cn } from "../../lib/utils";
 import { useAuthentication } from "../../Hooks";
 import { QuizQuestion } from "../Quiz/QuizQuestion";
+import { QuizResult } from "../Quiz/QuizResult";
+import { RetakeQuizButton } from "../../components/App/RetakeQuizButton";
 
 export const QuickQuiz = () => {
   const { isAuthenticated } = useAuthentication();
@@ -64,7 +62,19 @@ export const QuickQuiz = () => {
   const views = {
     start: <QuizStartView data={data?.data[0] as IQuiz} />,
     question: <QuizQuestion quiz={data?.data[0]!} question_id={question_id} />,
-    result: <QuizEndView {...data?.data[0]} />,
+    result: (
+      <QuizResult {...data?.data[0]}>
+        <div className="flex absolute bottom-4 w-full gap-3">
+          <RetakeQuizButton
+            to_go={"#start"}
+            quiz_id={data?.data[0].id as string}
+          />
+          <Button asChild variant="base" className="w-full h-[3rem]">
+            <Link to={app_config.quizzes}>Another Quiz</Link>
+          </Button>
+        </div>
+      </QuizResult>
+    ),
   };
 
   return (
@@ -86,14 +96,16 @@ export const QuickQuiz = () => {
 
 export const Description = ({
   text,
+  children,
   className,
 }: {
   text?: string;
   className?: string;
+  children?: ReactElement;
 }) => {
   return (
-    <p className={cn("text-sm text-muted-foreground", className)}>
-      {text || ""}
-    </p>
+    <div className={cn("text-sm text-muted-foreground", className)}>
+      {text || children || ""}
+    </div>
   );
 };

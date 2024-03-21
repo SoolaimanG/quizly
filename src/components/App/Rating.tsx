@@ -3,18 +3,57 @@ import { rating_props } from "../../Types/components.types";
 import { cn } from "../../lib/utils";
 import Hint from "../Hint";
 
-const Rating = ({ rating = 3 }: rating_props) => {
-  const _RATING_LENGTH = 5;
-
-  const content = ["Bad", "Not Bad", "Good", "Very Good", "The Best"];
+const Rating = ({
+  rating = 3,
+  className,
+  rating_length = 5,
+  size = 17,
+  onRatingSelect,
+}: rating_props) => {
+  const content = [
+    "Terrible",
+    "Poor",
+    "Fair",
+    "Average",
+    "Satisfactory",
+    "Above Average",
+    "Excellent",
+    "Outstanding",
+    "Exceptional",
+    "Superb",
+    "Magnificent",
+    "Phenomenal",
+    "Top-notch",
+    "Incredible",
+    "Fantastic",
+    "Amazing",
+    "Wonderful",
+    "Splendid",
+    "Brilliant",
+    "Impressive",
+    "Spectacular",
+    "Marvelous",
+    "Fabulous",
+    "Extraordinary",
+    "Stellar",
+    "Unbelievable",
+    "Remarkable",
+    "Awesome",
+    "Incomparable",
+    "Perfect",
+  ];
 
   return (
-    <div className="flex cursor-pointer items-center gap-1">
-      {Array.from({ length: _RATING_LENGTH }, (_, i) => (
+    <div className={cn("flex cursor-pointer items-center gap-1", className)}>
+      {Array.from({ length: rating_length }, (_, i) => (
         <Hint
           key={i}
           element={
-            <Star size={17} className={cn(i < rating && "text-green-500")} />
+            <Star
+              onClick={() => onRatingSelect(i)}
+              size={size}
+              className={cn(i < rating && "text-green-500")}
+            />
           }
           content={content[i]}
           delay={700}

@@ -13,6 +13,7 @@ import { Button } from "../../components/Button";
 import { Link } from "react-router-dom";
 import {
   Calculator,
+  Loader2,
   MessageCircle,
   MessageSquare,
   UserCircle,
@@ -25,6 +26,7 @@ import Fade from "../../Animations/Fade";
 import Slide from "../../Animations/Slide";
 import Stagger from "../../Animations/Stagger";
 import { app_config } from "../../Types/components.types";
+import { Img } from "react-image";
 
 const item: Variants = {
   hidden: { scale: 0, opacity: 0 },
@@ -160,7 +162,9 @@ const Hero = () => {
   const secondFlex = (
     <div className="w-full h-full relative flex items-center justify-center md:w-1/2">
       <Fade className="h-full">
-        <img
+        {/* Girl Model */}
+        <Img
+          loader={<Loader2 className="animate-spin" size={16} />}
           draggable={false}
           className="h-full shadow-sm w-auto"
           src={Model}

@@ -1,13 +1,11 @@
-//import React from 'react'
-
 import { Link } from "react-router-dom";
 import { useText } from "../../Hooks/text";
 import { ICommunity } from "../../Types/community.types";
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/Avatar";
 import { Button, buttonVariants } from "../../components/Button";
 import { Description } from "../ExplorePage/QuickQuiz";
-import { ShadowCard } from "../ExplorePage/QuizEndView";
-import React, { useEffect, useTransition } from "react";
+import { ShadowCard } from "../Quiz/QuizResult";
+import React, { FC, useTransition } from "react";
 import { useNumbers } from "../../Hooks/numbers";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -31,20 +29,27 @@ import { CreateCommunity } from "./CreateCommunity";
 import EmptyState from "../../components/App/EmptyState";
 import { AxiosError } from "axios";
 
-export const CommunityCard = () => {
-  const { isAuthenticated } = useAuthentication();
+export const CommunityCard: FC<{
+  title?: string;
+  buttonText?: string;
+  truncate?: boolean;
+  size?: number;
+}> = ({
+  title = "Trending Communities",
+  buttonText = "Create",
+  truncate = false,
+  size = 5,
+}) => {
+  const { loading, isAuthenticated } = useAuthentication();
   const { isLoading, data, error, refetch } = useQuery<{ data: ICommunity[] }>({
-    queryKey: ["trending_communities"],
+    queryKey: ["trending_communities", isAuthenticated],
     queryFn: () =>
-      get_trending_communities({ size: 5, get_popular: true, isAuthenticated }),
+      get_trending_communities({ size, isAuthenticated, get_popular: true }),
+    enabled: !loading,
   });
 
-  const { getFirstLetterAndCapitalize } = useText();
+  const { getFirstLetterAndCapitalize, truncateWord } = useText();
   const { formatNumber } = useNumbers();
-
-  useEffect(() => {
-    isAuthenticated && refetch();
-  }, [isAuthenticated]);
 
   if (isLoading)
     return (
@@ -67,10 +72,7 @@ export const CommunityCard = () => {
   return (
     <div className="mt-2 h-full w-full flex relative flex-col gap-5">
       <div className="flex px-2 items-center justify-between w-full">
-        <CardDescription className="text-xl">
-          Trending Communities
-        </CardDescription>
-
+        <CardDescription className="text-xl">{title}</CardDescription>
         <CreateCommunity
           button={
             <Hint
@@ -80,7 +82,7 @@ export const CommunityCard = () => {
                   className="flex items-center hover:text-green-500 text-lg gap-2"
                   variant={"ghost"}
                 >
-                  <PlusSquare size={15} /> Create
+                  <PlusSquare size={15} /> {" " + buttonText}
                 </Button>
               }
             />
@@ -95,7 +97,10 @@ export const CommunityCard = () => {
             className="shadow-none p-2 hover:shadow-md flex items-center justify-between transition-all delay-75 ease-linear"
             key={d.id}
           >
-            <div className="flex items-center gap-3">
+            <Link
+              to={app_config.community + d.id}
+              className="flex items-center gap-3"
+            >
               <Avatar>
                 <AvatarImage src={d.display_picture} />
                 <AvatarFallback className=" rounded-md">
@@ -103,12 +108,14 @@ export const CommunityCard = () => {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-green-500">{d.name}</h1>
+                <h1 className="text-green-500">
+                  {truncateWord(d.name, truncate ? 10 : d.name.length)}
+                </h1>
                 <Description
                   text={formatNumber(d.participants_count) + " Participants"}
                 />
               </div>
-            </div>
+            </Link>
             <JoinCommunity
               buttonVarient={{ variant: "ghost" }}
               community_id={d.id}
@@ -139,7 +146,7 @@ export const JoinCommunity: React.FC<{
   const { isLoading, data, error, refetch } = useQuery<{
     data: { is_member: boolean; is_requested: boolean };
   }>({
-    queryKey: [`check_membership_${community_id}`],
+    queryKey: ["check_membership", community_id],
     queryFn: () => checkForMembership(community_id, isAuthenticated),
     enabled: isAuthenticated,
   });
@@ -174,7 +181,7 @@ export const JoinCommunity: React.FC<{
   if (isLoading)
     return (
       <ButtonSkeleton
-        size={5}
+        size={1}
         className=""
         width="w-full"
         height="h-[4.5rem]"

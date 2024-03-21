@@ -27,6 +27,12 @@ html {
   display: none;
 }
 
+.PhoneInputInput {
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
 .auth-gradient {
   background-image: linear-gradient(
     to right bottom,
@@ -43,6 +49,15 @@ html {
     #eaf4ff,
     #f9f9f9
   );
+}
+.swiper-button-next,
+.swiper-button-prev {
+  color: #22c55e;
+  width: calc(var(--swiper-navigation-size) / 44);
+}
+
+.swiper-notification {
+  display: none;
 }
 
 @layer base {

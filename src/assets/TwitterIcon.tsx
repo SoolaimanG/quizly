@@ -1,4 +1,6 @@
-const TwitterIcon = ({ size = 40 }: { size?: number }) => {
+import { FC } from "react";
+
+export const TwitterIcon: FC<{ size?: number }> = ({ size = 40 }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -15,5 +17,3 @@ const TwitterIcon = ({ size = 40 }: { size?: number }) => {
     </svg>
   );
 };
-
-export default TwitterIcon;

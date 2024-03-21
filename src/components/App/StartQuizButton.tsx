@@ -14,6 +14,7 @@ import { toast } from "../use-toaster";
 import { Restricted } from "./Restricted";
 import { Input } from "../Input";
 import { useQuizStore } from "../../provider";
+import { Loader2 } from "lucide-react";
 
 export const StartQuizButton: React.FC<startQuizButtonProps> = ({
   id,
@@ -63,7 +64,7 @@ export const StartQuizButton: React.FC<startQuizButtonProps> = ({
       setAnoymousID(anonymousID || uuid); //Saving the ID to local storage for further identification
       const firstQuestion = res?.data?.uuids[0];
       //Add question to storage
-      setQuestionUUIDs(res.data.uuids);
+      haveExternalFunction && setQuestionUUIDs(res.data.uuids);
 
       !haveExternalFunction
         ? navigate(
@@ -75,11 +76,9 @@ export const StartQuizButton: React.FC<startQuizButtonProps> = ({
       haveExternalFunction && setQuestionIDs(res.data.uuids);
     } catch (error: any) {
       const status = String(error) as "000";
-      console.log(status);
       setStates({ ...states, status });
     } finally {
       setAccessToken("");
-      // states.status !== "000" && setStates({ status: "000" });
     }
   };
 
@@ -114,7 +113,7 @@ export const StartQuizButton: React.FC<startQuizButtonProps> = ({
               value={access_token}
               onChange={(e) => setAccessToken(e.target.value)}
               className="h-[3rem]"
-              placeholder="Access Token (Q53jL9K)"
+              placeholder="Access Token (Example -- Q53jL9K)"
             />
             <Button type="submit" className="h-[3rem]" variant={"destructive"}>
               Join Quiz
@@ -129,8 +128,9 @@ export const StartQuizButton: React.FC<startQuizButtonProps> = ({
       disabled={isPending}
       onClick={start_quiz}
       variant={"base"}
-      className="w-full h-[3rem]"
+      className="w-full h-[3rem] flex items-center gap-1"
     >
+      {isPending && <Loader2 className="animate-spin" size={30} />}
       {button_text}
     </Button>
   );

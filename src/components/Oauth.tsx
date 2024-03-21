@@ -1,6 +1,6 @@
 import { Button } from "./Button";
 import GoogleIcon from "../assets/GoogleIcon";
-import TwitterIcon from "../assets/TwitterIcon";
+import { TwitterIcon } from "../assets/TwitterIcon";
 
 import {
   GoogleAuthProvider,
@@ -202,7 +202,7 @@ const Oauth: React.FC<{ fallback?: string }> = ({ fallback = "/" }) => {
         </Alert>
         <AlertDialogFooter className="w-full flex flex-row items-end justify-end gap-2">
           <Button variant={"secondary"}>
-            <Link to={app_config.eplore_page}>Cancel</Link>
+            <Link to={app_config.explore_page}>Cancel</Link>
           </Button>
           <Button className="bg-green-400 hover:bg-green-500 dark:bg-green-500 hover:dark:bg-green-600 ">
             <Link to={app_config.onboarding_page}>Ok! Start onboarding</Link>

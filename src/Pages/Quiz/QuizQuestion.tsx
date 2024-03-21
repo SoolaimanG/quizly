@@ -18,7 +18,11 @@ import { useQuizStore, useZStore } from "../../provider";
 import { useAuthentication, useMethods } from "../../Hooks";
 import { Lightbulb, Loader2, Volume2 } from "lucide-react";
 import Hint from "../../components/Hint";
-import { errorMessageForToast, readAloud } from "../../Functions";
+import {
+  errorMessageForToast,
+  handleScrollInView,
+  readAloud,
+} from "../../Functions";
 import { Skeleton } from "../../components/Loaders/Skeleton";
 import { ButtonSkeleton } from "../../components/App/FilterByCategory";
 import { motion } from "framer-motion";
@@ -60,12 +64,14 @@ import {
   AlertDialogTrigger,
 } from "../../components/AlertModal";
 import { Textarea } from "../../components/TextArea";
+import { Img } from "react-image";
 
 interface QuizQuestionProps {
   question_id: string;
   quiz: IQuiz;
   haveNavigation?: boolean;
   displayTimer?: boolean;
+  index?: number;
 }
 
 const QuestionLoader = () => {
@@ -86,6 +92,7 @@ export const QuizQuestion = forwardRef(
       quiz,
       haveNavigation = true,
       displayTimer = true,
+      index,
     }: QuizQuestionProps,
     ref: ForwardedRef<HTMLDivElement>
   ) => {
@@ -102,6 +109,7 @@ export const QuizQuestion = forwardRef(
       question_type: "",
       show_answer: false,
       correct_answer: "",
+      editted: false,
     });
     const [animate_to, setAnimate_to] = useState<"left" | "right">("right");
     const [issue, setIssue] = useState("");
@@ -117,7 +125,7 @@ export const QuizQuestion = forwardRef(
     const [isPending, startTransition] = useTransition();
     const [isReporting, startReport] = useTransition();
     const { setLoginAttempt } = useZStore();
-    const { setQuestionsAnswered } = useQuizStore();
+    const { refs, currentQuizData, setQuestionsAnswered } = useQuizStore();
     const navigate = useNavigate();
     const location = useLocation();
     const { login_required } = useMethods();
@@ -137,7 +145,13 @@ export const QuizQuestion = forwardRef(
           question_id: data?.data.id || "",
         });
         setState(res.data);
-        setQuestionsAnswered("increment");
+        !res.data.editted && setQuestionsAnswered("increment");
+        if (index) {
+          index + 1 < Number(currentQuizData?.total_questions) &&
+            handleScrollInView(refs[index + 1]);
+        } else if (index === 0) {
+          handleScrollInView(refs[index + 1]);
+        }
       } catch (error) {
         toast({
           title: "Error",
@@ -239,9 +253,15 @@ export const QuizQuestion = forwardRef(
       );
 
     const questionType = {
-      german: <GermanUI markQuestion={submitAnswer} />,
+      german: (
+        <GermanUI
+          disableAnswer={currentQuizData?.is_completed!}
+          markQuestion={submitAnswer}
+        />
+      ),
       objective: (
         <ObjectiveUI
+          disableAnswer={currentQuizData?.is_completed!}
           quiz={quiz as IQuiz}
           data={data?.data as IQuestion}
           markQuestion={submitAnswer}
@@ -249,10 +269,15 @@ export const QuizQuestion = forwardRef(
         />
       ),
       multiple_choices: (
-        <MultipleChoiceUI data={data?.data!} markQuestion={submitAnswer} />
+        <MultipleChoiceUI
+          disableAnswer={currentQuizData?.is_completed!}
+          data={data?.data!}
+          markQuestion={submitAnswer}
+        />
       ),
       true_or_false: (
         <BooleanUI
+          disableAnswer={currentQuizData?.is_completed!}
           quiz={quiz as IQuiz}
           markQuestion={submitAnswer}
           state={state}
@@ -279,7 +304,6 @@ export const QuizQuestion = forwardRef(
                   quiz_id={quiz?.id as string}
                   onTimeFinish={() => navigate("#result")}
                   initialTime={quiz?.time_limit || 0}
-                  isAuthenticated={isAuthenticated}
                 />
               )}
             </div>
@@ -304,8 +328,9 @@ export const QuizQuestion = forwardRef(
           <div className="w-full flex text-green-600 dark:text-green-500 flex-col gap-2 rounded-sm  h-fit p-3">
             <p className="text-xl text-center">{data?.data?.question_body}</p>
             {data?.data?.question_image && (
-              <img
-                className="h-[15rem]"
+              <Img
+                loader={<Loader2 size={40} className="animate-spin" />}
+                className="h-[15rem] rounded-md"
                 src={data?.data?.question_image}
                 alt="question_img"
               />

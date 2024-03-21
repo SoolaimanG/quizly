@@ -11,9 +11,9 @@ export const useMethods = () => {
     return user?.account_type === "T";
   };
 
-  const login_required = () => {
+  const login_required = (note?: string) => {
     if (!user?.id) {
-      setLoginAttempt({ attempt: true });
+      setLoginAttempt({ attempt: true, note });
       return false;
     }
 
@@ -55,7 +55,7 @@ export const useAuthentication = () => {
       loading: isLoading,
       error: isError,
     });
-  }, [user, isSuccess]);
+  }, [user, isSuccess, isLoading]);
 
   return state;
 };

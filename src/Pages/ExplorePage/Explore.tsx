@@ -20,6 +20,7 @@ import { useAuthentication } from "../../Hooks";
 import { Card, CardContent } from "../../components/Card";
 import Footer from "../Comps/Footer";
 import { AxiosError } from "axios";
+import { Img } from "react-image";
 
 const content = Object.freeze({
   subHeader: "Prepared to tackle exciting challenges?",
@@ -36,22 +37,26 @@ const num_of_quizly_users = (num: number) => {
 
 const Explore = () => {
   const { user } = useZStore();
+  const { isAuthenticated } = useAuthentication();
 
-  // TODO: Do somethingg....
   const { isLoading, data, error } = useQuery<{ data: ICategory[] }>({
-    queryKey: ["subject_category"],
+    queryKey: ["subject_category", isAuthenticated],
     queryFn: fetchCategory,
   });
   const quizList = useQuery<{ data: IQuiz[] }>({
     queryKey: ["quiz_lists"],
-    queryFn: getQuizzesForUser,
+    queryFn: () => getQuizzesForUser(10),
   });
 
   const [quizzes, setQuizzes] = useState<IQuiz[]>([]);
   const [showSearch, setShowSearch] = useState(false);
   const ref = useRef<HTMLInputElement | null>(null);
 
-  const { isAuthenticated } = useAuthentication();
+  const handleSearch = (q: string) => {
+    console.log(q);
+  };
+
+  console.log(quizList.data);
 
   useEffect(() => {
     quizList.data && setQuizzes(quizList.data?.data);
@@ -72,11 +77,12 @@ const Explore = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const Header = user?.username ? "Recommended Quizzes" : "Trending Quizzes";
+  const Header = isAuthenticated ? "Recommended Quizzes" : "Trending Quizzes";
 
   return (
     <React.Fragment>
       <NavBar
+        onSubmit={handleSearch}
         navbarText="Explore"
         isAuthenticated={isAuthenticated}
         show_search_bar={showSearch}
@@ -122,7 +128,7 @@ const Explore = () => {
             </div>
           </div>
           <div className="md:w-1/2">
-            <img src={Illustration} alt="illustrtion" />
+            <Img src={Illustration} alt="illustrtion" />
           </div>
         </div>
         {/* This is a component that user can use to filter through the subject/category */}
@@ -144,10 +150,13 @@ const Explore = () => {
           <div className="overflow-auto w-full">
             <AnimatePresence>
               <motion.div
+                layout
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                initial={{ opacity: 0 }}
-                layout
+                transition={{
+                  opacity: { ease: "linear" },
+                  layout: { duration: 0.3 },
+                }}
                 className="w-fit flex gap-5"
               >
                 {quizzes?.map((quiz) => (
