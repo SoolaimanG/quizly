@@ -17,12 +17,14 @@ import {
   SurveyQuestions,
   SurveySettings,
 } from "./AllSurveySettings";
+import EmptyState from "../../components/App/EmptyState";
 
 export const WorkSpaceSettings: FC<{ className?: string }> = ({
   className,
 }) => {
   const {
     collapseSideBar: { sideBarTwo },
+    survey_blocks,
   } = useSurveyWorkSpace();
   return (
     <AnimatePresence>
@@ -32,11 +34,11 @@ export const WorkSpaceSettings: FC<{ className?: string }> = ({
           animate={{ opacity: 1, width: "35%" }}
           exit={{ opacity: 0, width: "0%" }}
           className={cn(
-            "dark:bg-slate-950 bg-white p-2 overflow-hidden w-full",
+            "dark:bg-slate-950 bg-white h-full p-2 overflow-hidden w-full",
             className
           )}
         >
-          <Tabs defaultValue="questions">
+          <Tabs className="h-full" defaultValue="questions">
             <TabsList className="overflow-auto w-full px-1">
               <TabsTrigger value="questions">Questions</TabsTrigger>
               <TabsTrigger value="design">Design</TabsTrigger>
@@ -45,20 +47,28 @@ export const WorkSpaceSettings: FC<{ className?: string }> = ({
                 <SettingsIcon size={15} />
               </TabsTrigger>
             </TabsList>
-            <div className=" overflow-y-auto">
-              <TabsContent value="questions">
-                <SurveyQuestions />
-              </TabsContent>
-              <TabsContent value="design">
-                <Designs />
-              </TabsContent>
-              <TabsContent value="logics">
-                <Logics />
-              </TabsContent>
-              <TabsContent value="settings">
-                <SurveySettings />
-              </TabsContent>
-            </div>
+            {survey_blocks?.length ? (
+              <div className=" overflow-y-auto">
+                <TabsContent value="questions">
+                  <SurveyQuestions />
+                </TabsContent>
+                <TabsContent value="design">
+                  <Designs />
+                </TabsContent>
+                <TabsContent value="logics">
+                  <Logics />
+                </TabsContent>
+                <TabsContent value="settings">
+                  <SurveySettings />
+                </TabsContent>
+              </div>
+            ) : (
+              <EmptyState
+                message="No Blocks Available"
+                state="empty"
+                className="mt-5"
+              />
+            )}
           </Tabs>
         </motion.div>
       )}

@@ -3,7 +3,11 @@
 import { FC, useEffect, useState } from "react";
 import { Combobox } from "../../components/ComboBox";
 import { BlockToolProps, ISurveyFont } from "../../Types/survey.types";
-import { combo_box_type, uploaderProps } from "../../Types/components.types";
+import {
+  app_config,
+  combo_box_type,
+  uploaderProps,
+} from "../../Types/components.types";
 import {
   AddWebsiteSettings,
   ChoicesSettings,
@@ -33,6 +37,11 @@ import ImageUploader from "../../components/App/ImageUploader";
 import { ImageIcon } from "lucide-react";
 import { useGetCurrentBlock } from "../../Hooks/useSurvey";
 import { Description } from "../ExplorePage/QuickQuiz";
+import { SurveyWorkSpace } from "../../Functions/surveyApis";
+import { useSurveyWorkSpace } from "../../provider";
+import { errorMessageForToast } from "../../Functions";
+import { AxiosError } from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 const _data: combo_box_type<BlockToolProps>[] = [
   {
@@ -138,15 +147,85 @@ const __data: combo_box_type<ISurveyFont>[] = [
 
 export const SurveyQuestions: FC<{}> = () => {
   const b = useGetCurrentBlock();
+  const { survey, setAutoSaveUiProps } = useSurveyWorkSpace();
+  const action = new SurveyWorkSpace(survey?.id ?? "");
 
   const [value, setValue] = useState("");
   const [search, setSearch] = useState("");
+  const query = useQueryClient();
 
   useEffect(() => {
     if (!b) return;
 
     setValue(b.block_type);
+
+    return setValue("");
   }, [b]);
+
+  useEffect(() => {
+    if (value && b?.block_type.toLowerCase() !== value.toLowerCase()) {
+      const _block_type: BlockToolProps[] = [
+        "Choices",
+        "Date",
+        "DropDown",
+        "Email",
+        "EndScreen",
+        "LongText",
+        "ShortText",
+        "Number",
+        "PictureChoice",
+        "Rating",
+        "QuestionGroup",
+        "RedirectToURL",
+        "Time",
+        "Website",
+        "WelcomeScreen",
+        "YesNo",
+      ];
+
+      const av = _block_type.find(
+        (v) => v.toLowerCase() === value.toLowerCase()
+      );
+
+      if (!av) return;
+
+      const index = _block_type.indexOf(av);
+
+      const changeBlock = async () => {
+        try {
+          setAutoSaveUiProps({
+            is_visible: true,
+            message: "Please wait saving your progress.",
+            status: "loading",
+          });
+          await action.changeBlockToPreferred({
+            old_block: {
+              index: b?.index ?? 0,
+              block_type: b?.block_type as BlockToolProps,
+              id: b?.id ?? "",
+            },
+            new_block: { block_type: _block_type[index] },
+          });
+          await query.invalidateQueries({ queryKey: ["survey", survey?.id] });
+          setAutoSaveUiProps({
+            is_visible: true,
+            message: app_config.AppName + " has auto-save your progress",
+            status: "success",
+          });
+        } catch (error) {
+          setAutoSaveUiProps({
+            is_visible: true,
+            message: errorMessageForToast(
+              error as AxiosError<{ message: string }>
+            ),
+            status: "failed",
+          });
+        }
+      };
+
+      changeBlock();
+    }
+  }, [value]);
 
   if (!b)
     return <Description text="Add a block to edit." className="text-lg" />;

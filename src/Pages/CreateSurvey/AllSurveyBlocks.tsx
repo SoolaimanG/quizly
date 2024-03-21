@@ -927,8 +927,8 @@ export const PictureViews: FC<{
 
     setSurveyBlocks(data);
     try {
-      await action.editBlock(
-        b?.id ?? "",
+      await action.modifyBlock(
+        b?.picture_choice.id ?? "",
         "PictureChoice",
         { id },
         undefined,
@@ -991,8 +991,8 @@ export const PictureViews: FC<{
     setSurveyBlocks(data);
 
     try {
-      await action.editBlock(
-        b?.id ?? "",
+      await action.modifyBlock(
+        b?.picture_choice.id ?? "",
         "PictureChoice",
         { saturation, contrast, blur, brightness, x, y, rotationIndex, id },
         undefined,
@@ -1035,8 +1035,8 @@ export const PictureViews: FC<{
 
       setSurveyBlocks(data);
 
-      await action.editBlock(
-        b?.id ?? "",
+      await action.modifyBlock(
+        b?.picture_choice.id ?? "",
         "PictureChoice",
         { id, name: props.name },
         undefined,
@@ -1358,12 +1358,13 @@ export const SurveyQuestions: FC<{
     // API LOGIC HERE!
     const handleSaving = async () => {
       try {
-        await action.editBlock(
+        await action.modifyBlock(
           0,
           "Choices",
           {},
           b?.is_required,
           b?.is_visible,
+          b?.id,
           "header_or_label",
           delayHeaderChange,
           delayLabelChange

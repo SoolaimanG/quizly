@@ -14,7 +14,7 @@ export const BlockNotFound: FC<{
   return (
     <div className={cn("", className)}>
       <h1 className="text-3xl">{title}</h1>
-      <Description text={message} />
+      <Description text={message + " Press Ctrl + / to open blocks."} />
     </div>
   );
 };

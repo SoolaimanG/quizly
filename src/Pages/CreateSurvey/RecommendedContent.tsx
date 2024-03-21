@@ -25,7 +25,8 @@ export const RecommendedContent: FC<{ className?: string }> = ({
     "Date",
   ];
   const [isPending, startTransition] = useTransition();
-  const { survey, setAutoSaveUiProps } = useSurveyWorkSpace();
+  const { survey, setAutoSaveUiProps, setOpenBlockDialog } =
+    useSurveyWorkSpace();
   const query = useQueryClient();
 
   const addBlock = async (block_type: BlockToolProps) => {
@@ -46,6 +47,7 @@ export const RecommendedContent: FC<{ className?: string }> = ({
       // setOpen(false);
     });
     await query.invalidateQueries({ queryKey: ["survey", survey?.id] });
+    setOpenBlockDialog(false);
   };
 
   // TODO:Api Call Here

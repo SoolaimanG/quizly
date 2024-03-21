@@ -101,7 +101,7 @@ export class SurveyWorkSpace {
       survey_id,
     });
     const response = await api.delete(
-      this.survey_workspace + "/block-actions?" + params,
+      this.survey_workspace + "/block-actions/?" + params,
       {
         headers: {
           Authorization: "Bearer " + this.access_token,
@@ -116,15 +116,17 @@ export class SurveyWorkSpace {
     block_type,
     action,
     block_id,
+    id,
   }: {
     survey_id: string;
     block_type: BlockToolProps;
     action: workSpaceAction;
     block_id?: string;
+    id?: string;
   }) {
     const response = await api.post(
-      this.survey_workspace + "/block-actions",
-      { survey_id, block_type, action, block_id },
+      this.survey_workspace + "/block-actions/",
+      { survey_id, block_type, action, block_id, id },
       {
         headers: {
           Authorization: "Bearer " + this.access_token,
@@ -134,12 +136,13 @@ export class SurveyWorkSpace {
 
     return response.data;
   }
-  async editBlock(
-    block_id: string | number,
+  async modifyBlock(
+    sub_block_id: string | number,
     block_type: BlockToolProps,
     rest_block: {},
     is_required?: boolean,
     is_visible?: boolean,
+    block_id?: string | number,
     action_type?:
       | "is_required"
       | "is_visible"
@@ -150,13 +153,14 @@ export class SurveyWorkSpace {
     label?: string
   ) {
     const response = await api.patch(
-      this.survey_workspace + "/block-actions",
+      this.survey_workspace + "/block-actions/",
       {
         block_id,
         block_type,
         is_required,
         is_visible,
-        survey_block_id: this.survey_id,
+        survey_id: this.survey_id,
+        sub_block_id,
         action_type,
         question,
         label,
@@ -179,7 +183,7 @@ export class SurveyWorkSpace {
     block_type: BlockToolProps
   ) {
     const response = await api.post(
-      this.survey_workspace + "/block-actions",
+      this.survey_workspace + "/block-actions/",
       {
         choices,
         id,
@@ -203,7 +207,7 @@ export class SurveyWorkSpace {
     block_type: BlockToolProps
   ) {
     const response = await api.post(
-      this.survey_workspace + "/block-actions",
+      this.survey_workspace + "/block-actions/",
       {
         dropdown_options,
         id,
@@ -225,7 +229,7 @@ export class SurveyWorkSpace {
     choice_id: string
   ) {
     const response = await api.post(
-      this.survey_workspace + "/block-actions",
+      this.survey_workspace + "/block-actions/",
       {
         survey_id,
         block_type,
@@ -287,7 +291,7 @@ export class SurveyWorkSpace {
     };
 
     const response = await api.post(
-      this.survey_workspace + "/block-actions",
+      this.survey_workspace + "/block-actions/",
       payload,
       {
         headers: {
@@ -322,8 +326,30 @@ export class SurveyWorkSpace {
     formData.append("action_type", action_type);
 
     const response = await api.patch(
-      this.survey_workspace + "/block-actions",
+      this.survey_workspace + "/block-actions/",
       formData,
+      {
+        headers: {
+          Authorization: "Bearer " + this.access_token,
+        },
+      }
+    );
+
+    return response.data;
+  }
+  async changeBlockToPreferred({
+    old_block,
+    new_block,
+  }: {
+    old_block: { index: number; block_type: BlockToolProps; id: string };
+    new_block: { block_type: BlockToolProps };
+  }) {
+    const response = await api.patch(
+      this.survey_workspace +
+        "/change-block-to-preferred/" +
+        this.survey_id +
+        "/",
+      { old_block, new_block },
       {
         headers: {
           Authorization: "Bearer " + this.access_token,

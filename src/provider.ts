@@ -157,6 +157,7 @@ export const useSurveyWorkSpace = create<
   formType: "feedback",
   survey: undefined,
   survey_blocks: undefined,
+  openBlockDialog: false,
   collapseSideBar: {
     sideBarOne: false,
     sideBarTwo: false,
@@ -171,6 +172,12 @@ export const useSurveyWorkSpace = create<
     set((state) => ({
       ...state,
       formType: props,
+    }));
+  },
+  setOpenBlockDialog(prop) {
+    set((state) => ({
+      ...state,
+      openBlockDialog: prop,
     }));
   },
   setCollapseSideBar({ sideBarOne, sideBarTwo }) {

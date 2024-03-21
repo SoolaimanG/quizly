@@ -26,6 +26,7 @@ export interface SurveyWorkSpaceState {
     sideBarOne: boolean;
     sideBarTwo: boolean;
   };
+  openBlockDialog: boolean;
   survey_blocks?: ISurveyBlocks[];
   survey?: ISurvey;
   auto_save_ui_props: AutoSaveUi;
@@ -37,6 +38,7 @@ export interface SurveyWorkSpaceAction {
     sideBarOne: boolean;
     sideBarTwo: boolean;
   }) => void;
+  setOpenBlockDialog: (props: boolean) => void;
   setDeviceView: (props: deviceViewProps) => void;
   setSurvey: (props: ISurvey) => void;
   setSurveyBlocks: (props: ISurveyBlocks[]) => void;
@@ -233,10 +235,12 @@ interface Website {
 }
 
 interface RedirectWithUrl {
+  id: string;
   url: string;
   message: string;
   custom_html: string;
   click_option: boolean;
+  button_text: string;
 }
 
 interface Choices {
@@ -258,6 +262,7 @@ export interface ISurveyBlocks {
   label: string;
   id: string;
   question: string;
+  index: number;
 
   // Blocks
   dropdown: DropDown;

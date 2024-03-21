@@ -537,7 +537,7 @@ export const LongTextSettings: FC<{}> = () => {
           message: "",
         });
 
-        await action.editBlock(b?.long_text.id!, "LongText", {
+        await action.modifyBlock(b?.long_text.id!, "LongText", {
           max_character,
           place_holder,
         });
@@ -621,7 +621,7 @@ export const NumberSettings: FC<{}> = () => {
     };
 
     try {
-      await action.editBlock(b?.number.id! + "", "Number", payload);
+      await action.modifyBlock(b.number.id!, "Number", payload);
       setAutoSaveUiProps({
         is_visible: true,
         message: "Changes made and your update is updated.",
@@ -726,7 +726,7 @@ export const ChoicesSettings: FC<{}> = () => {
 
     try {
       setSurveyBlocks(data);
-      await action.editBlock(b?.choices.id!, "Choices", payload);
+      await action.modifyBlock(b?.choices.id!, "Choices", payload);
       setAutoSaveUiProps({
         is_visible: true,
         status: "success",
@@ -789,7 +789,7 @@ export const EmailSettings: FC<{}> = () => {
         message: app_config.AppName + " is auto-saving your progress.",
       });
 
-      await actions.editBlock(b?.email?.id!, "Email", { check_email: e });
+      await actions.modifyBlock(b?.email.id!, "Email", { check_email: e });
 
       setAutoSaveUiProps({
         is_visible: true,
@@ -874,7 +874,7 @@ export const DateSettings: FC<{}> = () => {
           ?.value ?? "PPP";
 
       try {
-        await action.editBlock(b?.date?.id!, "Date", {
+        await action.modifyBlock(b?.date.id!, "Date", {
           format,
         });
 
@@ -1075,7 +1075,7 @@ export const DropDownSettings: FC<{}> = () => {
 
     try {
       setSurveyBlocks(data);
-      await action.editBlock(b?.dropdown.id!, "DropDown", payload);
+      await action.modifyBlock(b?.dropdown.id!, "DropDown", payload);
 
       setAutoSaveUiProps({
         is_visible: true,
@@ -1140,7 +1140,7 @@ export const PictureChoiceSettings: FC<{}> = () => {
     setSurveyBlocks(data);
 
     try {
-      await action.editBlock(b?.picture_choice.id ?? "", "PictureChoice", {
+      await action.modifyBlock(b?.picture_choice.id ?? "", "PictureChoice", {
         multiple_selection: e,
       });
       setAutoSaveUiProps({
@@ -1241,7 +1241,7 @@ export const RedirectWithURl: FC<{}> = () => {
       setSurveyBlocks(data);
 
       try {
-        await action.editBlock(b?.redirect_with_url.id!, "RedirectToURL", {
+        await action.modifyBlock(b?.redirect_with_url.id!, "RedirectToURL", {
           message,
           url,
           button_text,
@@ -1308,7 +1308,7 @@ export const RedirectWithURl: FC<{}> = () => {
     setSurveyBlocks(data);
 
     try {
-      await action.editBlock(b?.redirect_with_url.id!, "RedirectToURL", {
+      await action.modifyBlock(b?.redirect_with_url.id!, "RedirectToURL", {
         custom_html: values.custom_html,
       });
       setAutoSaveUiProps({
@@ -1421,12 +1421,13 @@ export const ToggleIsRequired: FC<{
         message: app_config.AppName + " is auto-saving your progress.",
       });
 
-      await actions.editBlock(
-        id as string,
+      await actions.modifyBlock(
+        "",
         type,
         {},
         e,
         undefined,
+        b?.id,
         "is_required"
       );
 

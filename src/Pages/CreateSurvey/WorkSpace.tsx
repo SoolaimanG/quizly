@@ -1,4 +1,3 @@
-// import React from 'react'
 import queryString from "query-string";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { NameSurvey } from "./NameSurvey";
@@ -38,17 +37,13 @@ import { SurveyWorkSpace } from "../../Functions/surveyApis";
 import { useEffect } from "react";
 import { ISurvey, ISurveyBlocks } from "../../Types/survey.types";
 import { useText } from "../../Hooks/text";
-import {
-  useDocumentTitle,
-  useLocalStorage,
-  useWindowSize,
-} from "@uidotdev/usehooks";
-import { Block } from "./Block";
+import { useDocumentTitle, useLocalStorage } from "@uidotdev/usehooks";
 import { SunIcon } from "lucide-react";
 import { MoonIcon } from "lucide-react";
 import { Description } from "../ExplorePage/QuickQuiz";
 import { app_config } from "../../Types/components.types";
 import { AutoSaveUI } from "../../components/App/AutoSaveUI";
+import useKeyboardShortcut from "use-keyboard-shortcut";
 
 const WorkSpace = () => {
   const location = useLocation();
@@ -59,11 +54,20 @@ const WorkSpace = () => {
     setSurvey,
     setSurveyBlocks,
     auto_save_ui_props,
+    openBlockDialog,
     setAutoSaveUiProps,
+    setOpenBlockDialog,
   } = useSurveyWorkSpace();
-  const survey = new SurveyWorkSpace();
+
+  // This is to open the block with shortcut.
+  useKeyboardShortcut(["Control", "/"], () =>
+    setOpenBlockDialog(!openBlockDialog)
+  );
+
+  const survey = new SurveyWorkSpace(s?.id ?? "");
   const qs = queryString.parse(location.search, { parseBooleans: true }) as {
     id: string;
+    block: string;
     opend: boolean;
   };
 
@@ -81,7 +85,7 @@ const WorkSpace = () => {
     enabled: Boolean(qs.id),
   });
 
-  useDocumentTitle("Workspace" + " | " + data?.data.survey_details.name ?? "");
+  useDocumentTitle("Workspace" + " | " + data?.data.survey_details.name);
 
   const errorMessage = errorMessageForToast(
     error as AxiosError<{ message: string }>

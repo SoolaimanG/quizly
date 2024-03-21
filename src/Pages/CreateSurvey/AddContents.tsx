@@ -1,6 +1,6 @@
 // import React from 'react'
 
-import { FC, useState, useTransition } from "react";
+import { FC, useTransition } from "react";
 import { cn } from "../../lib/utils";
 import { useComingSoonProps, useSurveyWorkSpace } from "../../provider";
 import { AnimatePresence, motion } from "framer-motion";
@@ -32,6 +32,7 @@ import { errorMessageForToast, handleAddBlock } from "../../Functions";
 import { AxiosError } from "axios";
 import { toast } from "../../components/use-toaster";
 import { useQueryClient } from "@tanstack/react-query";
+import Hint from "../../components/Hint";
 
 export const ContactGroup: BlockToolProps[] = ["Email", "PhoneNumber"];
 export const InputGroup: BlockToolProps[] = ["LongText", "ShortText", "Number"];
@@ -55,12 +56,13 @@ export const AddContents: FC<{ className?: string }> = ({ className }) => {
     survey,
     collapseSideBar: { sideBarOne },
     survey_blocks,
+    openBlockDialog,
+    setOpenBlockDialog,
     setAutoSaveUiProps,
   } = useSurveyWorkSpace();
   const { truncateWord } = useText();
   const navigate = useNavigate();
   const location = useLocation();
-  const [open, setOpen] = useState(false);
   const query = useQueryClient();
   const [isPending, startTransition] = useTransition();
   const {
@@ -109,10 +111,9 @@ export const AddContents: FC<{ className?: string }> = ({ className }) => {
         block_type,
         setAutoSaveUiProps,
       });
-
-      setOpen(false);
     });
     await query.invalidateQueries({ queryKey: ["survey", qs.id] });
+    setOpenBlockDialog(false);
   };
 
   return (
@@ -129,11 +130,19 @@ export const AddContents: FC<{ className?: string }> = ({ className }) => {
         >
           <header className="flex items-center border-gray-100 pb-2 dark:border-slate-700 border-b justify-between">
             <Description text="Add Content" className="text-lg" />
-            <Dialog open={open} onOpenChange={(e) => setOpen(e)}>
+            <Dialog
+              open={openBlockDialog}
+              onOpenChange={(e) => setOpenBlockDialog(e)}
+            >
               <DialogTrigger>
-                <Button className="h-7" variant="secondary" size="icon">
-                  <PlusIcon size={18} />
-                </Button>
+                <Hint
+                  element={
+                    <Button className="h-7" variant="secondary" size="icon">
+                      <PlusIcon size={18} />
+                    </Button>
+                  }
+                  content="Press Ctrl + / to open and close"
+                />
               </DialogTrigger>
               <DialogContent className="md:w-[80%]">
                 <div className="h-[80vh] flex gap-3 w-full overflow-hidden">
@@ -372,6 +381,7 @@ export const BlockMoreOptions: FC<{
         block_type: block.block_type,
         block_id: id,
         action: "DUPLICATE",
+        id: block.id,
       });
 
       setAutoSaveUiProps({
