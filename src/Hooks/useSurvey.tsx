@@ -29,17 +29,3 @@ export const useGetCurrentBlock = () => {
 
   return block;
 };
-
-export const useCustomEffect = (hookEffect: () => void, dep: any[]): void => {
-  const [isFirstMount, setIsFirstMount] = useState(true);
-
-  useEffect(() => {
-    if (isFirstMount) {
-      setIsFirstMount(false);
-    } else {
-      hookEffect();
-    }
-
-    return () => setIsFirstMount(true);
-  }, dep);
-};

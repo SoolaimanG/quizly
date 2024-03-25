@@ -34,11 +34,11 @@ export const WorkSpaceSettings: FC<{ className?: string }> = ({
           animate={{ opacity: 1, width: "35%" }}
           exit={{ opacity: 0, width: "0%" }}
           className={cn(
-            "dark:bg-slate-950 bg-white h-full p-2 overflow-hidden w-full",
+            "dark:bg-slate-950 bg-white h-full p-2 overflow-auto w-full",
             className
           )}
         >
-          <Tabs className="h-full" defaultValue="questions">
+          <Tabs className="h-full pb-5" defaultValue="questions">
             <TabsList className="overflow-auto w-full px-1">
               <TabsTrigger value="questions">Questions</TabsTrigger>
               <TabsTrigger value="design">Design</TabsTrigger>
@@ -48,7 +48,7 @@ export const WorkSpaceSettings: FC<{ className?: string }> = ({
               </TabsTrigger>
             </TabsList>
             {survey_blocks?.length ? (
-              <div className=" overflow-y-auto">
+              <div className="">
                 <TabsContent value="questions">
                   <SurveyQuestions />
                 </TabsContent>

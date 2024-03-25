@@ -270,7 +270,7 @@ export const FullTextEditor: FC<{
       editorProps={{
         attributes: {
           class: cn(
-            "p-1 outline-none focus:outline-none focus:ring-0 w-full h-full",
+            "p-1 outline-none focus:outline-none focus:ring-0 w-full h-full relative",
             className
           ),
         },
@@ -287,7 +287,7 @@ export const FullTextEditor: FC<{
       extensions={extensions}
       content={html ?? content}
     >
-      <Logo size="sm" show_word className="mt-4" />
+      <Logo size="sm" show_word className="mt-4 absolute left-2 bottom-3" />
     </EditorProvider>
   );
 };

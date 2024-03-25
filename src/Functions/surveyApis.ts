@@ -90,6 +90,18 @@ export class SurveyWorkSpace {
     );
     return response.data;
   }
+  async modifySurvey(payload: {}) {
+    const response = await api.patch(
+      this.survey_workspace + "/survey-workspace/",
+      { ...payload, survey_id: this.survey_id },
+      {
+        headers: {
+          Authorization: "Bearer " + this.access_token,
+        },
+      }
+    );
+    return response.data;
+  }
   async removeBlock(
     survey_id: string,
     block_id: string,
@@ -148,7 +160,10 @@ export class SurveyWorkSpace {
       | "is_visible"
       | "header_or_label"
       | "edit_picture_image"
-      | "remove_picture_choice",
+      | "remove_picture_choice"
+      | "add_social_media"
+      | "edit_social_media"
+      | "remove_social_media",
     question?: string,
     label?: string
   ) {
@@ -350,6 +365,22 @@ export class SurveyWorkSpace {
         this.survey_id +
         "/",
       { old_block, new_block },
+      {
+        headers: {
+          Authorization: "Bearer " + this.access_token,
+        },
+      }
+    );
+
+    return response.data;
+  }
+  async editSurveyDesign(id: string, payload: {}) {
+    const response = await api.patch(
+      this.survey_workspace + "/edit-survey-design/" + this.survey_id + "/",
+      {
+        id,
+        ...payload,
+      },
       {
         headers: {
           Authorization: "Bearer " + this.access_token,

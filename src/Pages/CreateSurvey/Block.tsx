@@ -24,6 +24,8 @@ import {
 import { BlockNotFound } from "./BlockNotFound";
 import { useGetCurrentBlock } from "../../Hooks/useSurvey";
 import { FC } from "react";
+import { cn } from "../../lib/utils";
+import { allStyles } from "../../constant";
 
 // This function is for development mode
 // class MicroFunctions {
@@ -42,7 +44,7 @@ import { FC } from "react";
 // }
 
 export const Block: FC<{ mode: mode }> = ({ mode }) => {
-  const { survey_blocks } = useSurveyWorkSpace();
+  const { survey_blocks, surveyDesign } = useSurveyWorkSpace();
   const blocks = useGetCurrentBlock();
 
   // const _ = block ? new MicroFunctions(data) : null;
@@ -81,8 +83,19 @@ export const Block: FC<{ mode: mode }> = ({ mode }) => {
     view[blocks?.block_type as BlockToolProps] ?? WelcomeScreenBlockStyle;
 
   return (
-    <Card className="p-0 w-full h-full">
-      <CardContent className="p-2 rounded-md w-full flex items-center justify-center h-full">
+    <Card
+      className={cn(
+        "p-0 w-full h-full",
+        allStyles.border_radius[surveyDesign?.border_radius ?? "MEDIUM"]
+      )}
+    >
+      <CardContent
+        className={cn(
+          "p-2 w-full flex items-center justify-center h-full",
+          allStyles.color[surveyDesign?.color ?? "GREEN"],
+          allStyles.font_size[surveyDesign?.font_size ?? "MEDIUM"]
+        )}
+      >
         {/* <div className="w-full h-full flex gap-2"> */}
         <div className="w-full h-full items-center flex overflow-auto px-5">
           <View mode={mode} />

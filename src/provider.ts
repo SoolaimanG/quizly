@@ -168,6 +168,7 @@ export const useSurveyWorkSpace = create<
     is_visible: false,
     message: app_config.AppName + " Is AutoSaving your progress",
   },
+  surveyDesign: null,
   setFormType(props) {
     set((state) => ({
       ...state,
@@ -211,6 +212,12 @@ export const useSurveyWorkSpace = create<
     set((state) => ({
       ...state,
       auto_save_ui_props: props,
+    }));
+  },
+  setSurveyDesign(props) {
+    set((state) => ({
+      ...state,
+      surveyDesign: props,
     }));
   },
 }));

@@ -106,7 +106,7 @@ export const ComingSoon: FC<{
                 {images.map((imageUrl, index) => (
                   <div
                     className={cn(
-                      "w-[2.5rem] h-[2.5rem] rounded-full bg-green-100"
+                      "w-[2.5rem] h-[2.5rem] rounded-full bg-green-100 flex justify-start -space-x-1.5"
                     )}
                     key={index}
                   >

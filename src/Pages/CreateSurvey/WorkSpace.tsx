@@ -35,7 +35,11 @@ import { errorMessageForToast, toggle_modes } from "../../Functions";
 import { AxiosError } from "axios";
 import { SurveyWorkSpace } from "../../Functions/surveyApis";
 import { useEffect } from "react";
-import { ISurvey, ISurveyBlocks } from "../../Types/survey.types";
+import {
+  ISurvey,
+  ISurveyBlocks,
+  ISurveyDesign,
+} from "../../Types/survey.types";
 import { useText } from "../../Hooks/text";
 import { useDocumentTitle, useLocalStorage } from "@uidotdev/usehooks";
 import { SunIcon } from "lucide-react";
@@ -57,6 +61,7 @@ const WorkSpace = () => {
     openBlockDialog,
     setAutoSaveUiProps,
     setOpenBlockDialog,
+    setSurveyDesign,
   } = useSurveyWorkSpace();
 
   // This is to open the block with shortcut.
@@ -78,7 +83,11 @@ const WorkSpace = () => {
   );
 
   const { isLoading, data, error, refetch } = useQuery<{
-    data: { survey_details: ISurvey; blocks: ISurveyBlocks[] };
+    data: {
+      survey_details: ISurvey;
+      blocks: ISurveyBlocks[];
+      design: ISurveyDesign;
+    };
   }>({
     queryKey: ["survey", qs.id],
     queryFn: () => survey.get_survey_details(qs.id),
@@ -94,10 +103,11 @@ const WorkSpace = () => {
   useEffect(() => {
     if (!data) return;
     const {
-      data: { survey_details, blocks },
+      data: { survey_details, blocks, design },
     } = data;
     setSurvey(survey_details);
     setSurveyBlocks(blocks);
+    setSurveyDesign(design);
   }, [data]);
 
   // This will handle the removal of the toast
@@ -109,7 +119,7 @@ const WorkSpace = () => {
         ...auto_save_ui_props,
         is_visible: false,
       });
-    }, 3000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [auto_save_ui_props.is_visible]);

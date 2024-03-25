@@ -58,7 +58,7 @@ export const NameSurvey: FC<{
   const [survey_type, setSurveyType] = useState<formType>("feedback");
   const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
-  const survey = new SurveyWorkSpace();
+  const survey = new SurveyWorkSpace(s?.id ?? "");
 
   const qs = queryString.parse(location.search) as { id: string };
 

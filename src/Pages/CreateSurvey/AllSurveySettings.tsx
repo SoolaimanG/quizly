@@ -2,7 +2,13 @@
 
 import { FC, useEffect, useState } from "react";
 import { Combobox } from "../../components/ComboBox";
-import { BlockToolProps, ISurveyFont } from "../../Types/survey.types";
+import {
+  BlockToolProps,
+  ISurveyDesign,
+  ISurveyFont,
+  colorVariant,
+  sizeVariant,
+} from "../../Types/survey.types";
 import {
   app_config,
   combo_box_type,
@@ -42,6 +48,10 @@ import { useSurveyWorkSpace } from "../../provider";
 import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "../../components/Button";
+import { Toggle } from "../../components/Toggle";
+import { cn } from "../../lib/utils";
+import Hint from "../../components/Hint";
 
 const _data: combo_box_type<BlockToolProps>[] = [
   {
@@ -116,31 +126,31 @@ const _data: combo_box_type<BlockToolProps>[] = [
 
 const __data: combo_box_type<ISurveyFont>[] = [
   {
-    value: "Arial",
+    value: "ARIAL",
     label: "Arial",
   },
   {
-    value: "Futura",
+    value: "FUTURA",
     label: "Futura",
   },
   {
-    value: "Garamond",
+    value: "GARAMOND",
     label: "Garamond",
   },
   {
-    value: "Helvetia",
+    value: "HELVETIA",
     label: "Helvetia",
   },
   {
-    value: "Josefin Sans",
+    value: "JOSEFIN_SANS",
     label: "Josefin Sans",
   },
   {
-    value: "System Font",
+    value: "SYSTEM",
     label: "System Font",
   },
   {
-    value: "Times New Roman",
+    value: "TIMES_NEW_ROMAN",
     label: "Times New Roman",
   },
 ];
@@ -155,12 +165,14 @@ export const SurveyQuestions: FC<{}> = () => {
   const query = useQueryClient();
 
   useEffect(() => {
-    if (!b) return;
+    if (!b) {
+      return setValue("");
+    }
 
-    setValue(b.block_type);
+    setValue(b?.block_type.toLowerCase() as string);
 
-    return setValue("");
-  }, [b]);
+    return () => setValue("");
+  }, [b?.block_type]);
 
   useEffect(() => {
     if (value && b?.block_type.toLowerCase() !== value.toLowerCase()) {
@@ -276,12 +288,184 @@ export const SurveyQuestions: FC<{}> = () => {
 };
 
 export const Designs: FC<{}> = () => {
+  const borderRadiusSizes: { display_text: string; type: sizeVariant }[] = [
+    {
+      display_text: "SM",
+      type: "SMALL",
+    },
+    {
+      display_text: "MD",
+      type: "MEDIUM",
+    },
+    {
+      display_text: "LG",
+      type: "LARGE",
+    },
+  ];
+  const colorVariant: {
+    color: string;
+    type: "GREEN" | "BLUE" | "YELLOW";
+  }[] = [
+    {
+      color: "bg-green-300",
+
+      type: "GREEN",
+    },
+    {
+      color: "bg-yellow-300",
+
+      type: "YELLOW",
+    },
+    {
+      color: "bg-blue-300",
+
+      type: "BLUE",
+    },
+  ];
+  const buttonColorVariant: {
+    color: string;
+    type: colorVariant;
+  }[] = [
+    {
+      color: "bg-green-300",
+
+      type: "GREEN",
+    },
+    {
+      color: "bg-yellow-300",
+
+      type: "YELLOW",
+    },
+    {
+      color: "bg-blue-300",
+
+      type: "BLUE",
+    },
+  ];
+
+  const { survey, surveyDesign, setSurveyDesign, setAutoSaveUiProps } =
+    useSurveyWorkSpace();
+  const action = new SurveyWorkSpace(survey?.id ?? "");
   const [value, setValue] = useState("");
   const [search, setSearch] = useState("");
   const [imageData, setImageData] = useState<uploaderProps>({
     files: [],
     previewUrl: [],
   });
+
+  useEffect(() => {
+    if (!surveyDesign?.font_family) {
+      return;
+    }
+
+    setValue(surveyDesign?.font_family);
+
+    return () => setValue("");
+  }, [surveyDesign]);
+
+  const handleBorderRadiusChange = async (prop: sizeVariant) => {
+    setAutoSaveUiProps({
+      is_visible: true,
+      message: "Loading please wait...",
+      status: "loading",
+    });
+    try {
+      await action.editSurveyDesign(surveyDesign?.id!, { border_radius: prop });
+      setSurveyDesign({
+        ...(surveyDesign as ISurveyDesign),
+        border_radius: prop,
+      });
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
+  };
+  const handleButtonTextColorChange = async (prop: colorVariant) => {
+    setAutoSaveUiProps({
+      is_visible: true,
+      message: "Loading please wait...",
+      status: "loading",
+    });
+    try {
+      await action.editSurveyDesign(surveyDesign?.id!, { button_text: prop });
+      setSurveyDesign({
+        ...(surveyDesign as ISurveyDesign),
+        button_text: prop,
+      });
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
+  };
+  const handleColorChange = async (prop: colorVariant) => {
+    setAutoSaveUiProps({
+      is_visible: true,
+      message: "Loading please wait...",
+      status: "loading",
+    });
+    try {
+      await action.editSurveyDesign(surveyDesign?.id!, { color: prop });
+      setSurveyDesign({
+        ...(surveyDesign as ISurveyDesign),
+        color: prop,
+      });
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
+  };
+  const handleButtonColorChange = async (prop: colorVariant) => {
+    setAutoSaveUiProps({
+      is_visible: true,
+      message: "Loading please wait...",
+      status: "loading",
+    });
+    const payload = {
+      button: prop,
+    };
+    try {
+      await action.editSurveyDesign(surveyDesign?.id!, payload);
+      setSurveyDesign({
+        ...(surveyDesign as ISurveyDesign),
+        ...payload,
+      });
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
+  };
 
   return (
     <div>
@@ -300,21 +484,96 @@ export const Designs: FC<{}> = () => {
             />
             <hr className="mt-3" />
             <div className="flex flex-col mt-5 gap-3">
-              <div className="w-full flex items-center justify-between">
-                <Label>Questions</Label>
-                <Color className="cursor-pointer" />
+              <div className="flex flex-col gap-2">
+                <Label>Button</Label>
+                <div className="flex items-center gap-2">
+                  {colorVariant.map((color, index) => (
+                    <Hint
+                      key={index}
+                      element={
+                        <Toggle
+                          pressed={surveyDesign?.color === color.type}
+                          onPressedChange={() =>
+                            handleButtonColorChange(color.type)
+                          }
+                          className={cn(
+                            "cursor-pointer hover:bg-current hover:text-accent-foreground h-[2rem] w-[2rem] rounded-full",
+                            color.color
+                          )}
+                          size="sm"
+                        />
+                      }
+                      content={color.type}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="w-full flex items-center justify-between">
-                <Label>Answers</Label>
-                <Color className="cursor-pointer" />
-              </div>
-              <div className="w-full flex items-center justify-between">
-                <Label>Buttons</Label>
-                <Color className="cursor-pointer" />
-              </div>
-              <div className="w-full flex items-center justify-between">
+              <div className="flex flex-col gap-2">
                 <Label>Button Text</Label>
-                <Color className="cursor-pointer" />
+                <div className="flex items-center gap-2">
+                  {buttonColorVariant.map((color, index) => (
+                    <Hint
+                      key={index}
+                      element={
+                        <Toggle
+                          variant={"outline"}
+                          pressed={surveyDesign?.button_text === color.type}
+                          onPressedChange={() =>
+                            handleButtonTextColorChange(color.type)
+                          }
+                          className={cn(
+                            "cursor-pointer hover:bg-current p-[2px] hover:text-accent-foreground h-[2rem] w-[2rem] rounded-full",
+                            color.color
+                          )}
+                          size="sm"
+                        />
+                      }
+                      content={color.type}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Questions</Label>
+                <div className="flex items-center gap-2">
+                  {colorVariant.map((color, index) => (
+                    <Hint
+                      key={index}
+                      element={
+                        <Toggle
+                          pressed={surveyDesign?.color === color.type}
+                          onPressedChange={() => handleColorChange(color.type)}
+                          className={cn(
+                            "cursor-pointer hover:bg-current hover:text-accent-foreground h-[2rem] w-[2rem] rounded-full",
+                            color.color
+                          )}
+                          size="sm"
+                        />
+                      }
+                      content={color.type}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Border Radius</Label>
+                <div className="flex items-center gap-2">
+                  {borderRadiusSizes.map((brs, index) => (
+                    <Toggle
+                      key={index}
+                      variant="outline"
+                      pressed={surveyDesign?.border_radius === brs.type}
+                      onPressedChange={() => handleBorderRadiusChange(brs.type)}
+                      className={cn(
+                        "",
+                        "data-[state=on]:bg-green-200 data-[state=on]:text-green-500"
+                      )}
+                      size="sm"
+                    >
+                      {brs.display_text}
+                    </Toggle>
+                  ))}
+                </div>
               </div>
             </div>
           </AccordionContent>
@@ -331,7 +590,16 @@ export const Designs: FC<{}> = () => {
                 <Label>Background Image</Label>
                 <ImageUploader
                   className="w-fit"
-                  button={<ImageIcon size={25} />}
+                  button={
+                    <Button
+                      size="sm"
+                      variant="base"
+                      className="flex items-center gap-2"
+                    >
+                      <ImageIcon size={17} />
+                      Upload
+                    </Button>
+                  }
                   maxSize={3}
                   filesToAccept={[".jpg", ".png"]}
                   setData={setImageData}

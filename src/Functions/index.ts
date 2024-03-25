@@ -299,7 +299,7 @@ export const handleAddBlock = async ({
   block_type: BlockToolProps;
   setAutoSaveUiProps: (props: AutoSaveUi) => void;
 }) => {
-  const survey = new SurveyWorkSpace();
+  const survey = new SurveyWorkSpace(survey_id);
 
   return new Promise(async (resolve, reject) => {
     try {
@@ -346,9 +346,6 @@ export const imageEdittingStyles = ({
   rotationIndex,
   x,
   y,
-  hue,
-  invert,
-  pixelate,
   rotationDeg,
   grayscale,
 }: {

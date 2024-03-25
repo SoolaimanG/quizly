@@ -11,7 +11,6 @@ import { useSurveyWorkSpace } from "../../provider";
 import { Desktop } from "./Desktop";
 import { Mobile } from "./Mobile";
 import { ToggleDeviceView } from "./ToggleDeviceView";
-import { CardContent, Card } from "../../components/Card";
 
 export const MySpace: FC<{ className?: string }> = ({ className }) => {
   const { collapseSideBar, deviceView, setCollapseSideBar } =

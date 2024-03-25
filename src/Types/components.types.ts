@@ -1,6 +1,7 @@
 import { Editor } from "@tiptap/react";
 import { Variants } from "framer-motion";
 import React, { RefObject, SetStateAction } from "react";
+import { featureWaitListProps } from "../components/App/ComingSoon";
 
 //Combo-Box Type
 export interface combo_box_type<T> {
@@ -580,10 +581,12 @@ export interface comingSoonProps {
   featureName: string;
   description: string;
   joinWaitList: boolean;
+  type: featureWaitListProps;
 
   // Actions
   setFeatureName: (prop: string) => void;
   setDescription: (prop: string) => void;
   setJoinWaitList: (prop: boolean) => void;
   setIsVisible: (prop: boolean) => void;
+  setType: (prop: featureWaitListProps) => void;
 }

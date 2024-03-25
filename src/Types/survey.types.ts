@@ -30,6 +30,7 @@ export interface SurveyWorkSpaceState {
   survey_blocks?: ISurveyBlocks[];
   survey?: ISurvey;
   auto_save_ui_props: AutoSaveUi;
+  surveyDesign: ISurveyDesign | null;
 }
 
 export interface SurveyWorkSpaceAction {
@@ -43,6 +44,7 @@ export interface SurveyWorkSpaceAction {
   setSurvey: (props: ISurvey) => void;
   setSurveyBlocks: (props: ISurveyBlocks[]) => void;
   setAutoSaveUiProps: (props: AutoSaveUi) => void;
+  setSurveyDesign: (props: ISurveyDesign) => void;
 }
 
 export type BlockToolProps =
@@ -294,12 +296,27 @@ export type socialMediaTypes =
   | "email";
 
 export type ISurveyFont =
-  | "System Font"
-  | "Arial"
-  | "Futura"
-  | "Josefin Sans"
-  | "Times New Roman"
-  | "Helvetia"
-  | "Garamond";
+  | "SYSTEM"
+  | "ARIAL"
+  | "FUTURA"
+  | "JOSEFIN_SANS"
+  | "TIMES_NEW_ROMAN"
+  | "HELVETIA"
+  | "GARAMOND";
+
+export type sizeVariant = "SMALL" | "MEDIUM" | "LARGE";
+export type colorVariant = "GREEN" | "BLUE" | "YELLOW";
+
+export interface ISurveyDesign {
+  id: string;
+  color: colorVariant;
+  font_size: sizeVariant;
+  font_family: ISurveyFont;
+  border_radius: sizeVariant;
+  survey: string;
+  button: colorVariant;
+  questions: colorVariant;
+  button_text: colorVariant & "WHITE";
+}
 
 export type workSpaceAction = "ADD" | "DUPLICATE";

@@ -3,12 +3,8 @@ import {
   BlockToolProps,
   ChoiceOption,
   DropDownOptions,
-  EndScreen,
   ISurveyBlocks,
-  PhoneNumber,
   PictureChoiceImages,
-  RatingBlock,
-  ShortTextBlock,
   WelcomeScreenBlock,
   socialMediaTypes,
 } from "../../Types/survey.types";
@@ -21,15 +17,12 @@ import {
   Check,
   Clock10Icon,
   EditIcon,
-  ImageIcon,
   ImagePlusIcon,
   MailIcon,
   PlusIcon,
   Trash2Icon,
   Users2Icon,
 } from "lucide-react";
-import { MinimalEditor } from "../../components/App/Editor";
-import { Editor } from "@tiptap/react";
 import { Button } from "../../components/Button";
 import Rating from "../../components/App/Rating";
 import { Description } from "../ExplorePage/QuickQuiz";
@@ -77,6 +70,7 @@ import {
   transformImageProps,
 } from "../../components/App/EditImage";
 import DOMPurify from "dompurify";
+import { allStyles } from "../../constant";
 
 export type mode = "DEVELOPMENT" | "PRODUCTION";
 
@@ -430,14 +424,19 @@ export const DropdownBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
 
 export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
-  const { survey, survey_blocks, setSurveyBlocks, setAutoSaveUiProps } =
-    useSurveyWorkSpace();
+  const {
+    survey,
+    survey_blocks,
+    surveyDesign,
+    setSurveyBlocks,
+    setAutoSaveUiProps,
+  } = useSurveyWorkSpace();
   const action = new SurveyWorkSpace(survey?.id ?? "");
   const { getLetter } = useText();
 
   const [value, setValue] = useState("");
 
-  const buttonClass = "border-green-500 hover:bg-green-200 flex justify-start";
+  const buttonClass = "flex justify-start";
   const [userChoice, setUserChoice] = useState<ChoiceOption[]>([
     {
       id: "1",
@@ -470,6 +469,8 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       created_at: "",
     },
   ]);
+
+  // console.log(surveyDesign);
 
   useEffect(() => {
     if (!b) {
@@ -586,11 +587,18 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
           <Button
             variant="outline"
             className={cn(
-              "flex items-center gap-2 w-full p-0 px-1 relative transition-all ease-in delay-75",
-              buttonClass
+              "flex items-center gap-2 w-full p-0 px-[2px] relative transition-all ease-in delay-75",
+              buttonClass,
+              allStyles.border[surveyDesign?.button ?? "GREEN"]
             )}
           >
-            <Button variant="base" className="h-8" size="sm">
+            <Button
+              className={cn(
+                "",
+                allStyles.button[surveyDesign?.button ?? "GREEN"]
+              )}
+              size="sm"
+            >
               {getLetter(i)}
             </Button>
             {d.option}
@@ -714,27 +722,17 @@ export const EndScreenBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
     whatsapp: <WhatsAppIcon size={35} />,
   };
 
-  const handleEndScreenHeaderChange = (_: Editor) => {};
+  // const handleEndScreenHeaderChange = (_: Editor) => {};
 
   return (
     <div className="w-full flex items-center justify-center flex-col gap-3">
       {mode === "DEVELOPMENT" ? (
-        <MinimalEditor
-          header
-          value={b?.end_screen?.message!}
-          onChange={handleEndScreenHeaderChange}
+        <Input
+          value={b?.end_screen.message}
+          className="flex w-full text-center flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 bg-background ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
         />
       ) : (
-        <h1>{b?.end_screen?.message}</h1>
-      )}
-      {mode === "DEVELOPMENT" ? (
-        <MinimalEditor
-          description
-          value={b?.end_screen?.label!}
-          onChange={handleEndScreenHeaderChange}
-        />
-      ) : (
-        <Description text={b?.end_screen?.label} />
+        <h1>{b?.end_screen.message}</h1>
       )}
 
       <div className="w-full flex items-center gap-2 justify-center">
@@ -749,8 +747,10 @@ export const EndScreenBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       </div>
 
       {b?.end_screen?.button && (
-        <Button variant="base" size="sm">
-          {b.end_screen?.button_text}
+        <Button asChild variant="base" size="sm">
+          <a target="__blank" href={b.end_screen.button_link}>
+            {b.end_screen?.button_text}
+          </a>
         </Button>
       )}
     </div>
@@ -762,7 +762,58 @@ export const WelcomeScreenBlockStyle: FC<{
   mode: mode;
 }> = ({ mode }) => {
   const b = useGetCurrentBlock();
-  const { survey } = useSurveyWorkSpace();
+  const { survey, surveyDesign, setAutoSaveUiProps } = useSurveyWorkSpace();
+  const action = new SurveyWorkSpace(survey?.id ?? "");
+  const [header, setHeader] = useState("");
+
+  const delayHeader = useDebounce(header, 3000);
+
+  useEffect(() => {
+    if (!b?.welcome_screen) {
+      return;
+    }
+
+    setHeader(b.welcome_screen.message);
+
+    return () => setHeader("");
+  }, [b?.welcome_screen]);
+
+  useEffect(() => {
+    if (!delayHeader) {
+      return;
+    }
+    if (b?.welcome_screen.message === delayHeader) {
+      return;
+    }
+
+    const handleChange = async () => {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: "Loading please wait...",
+        status: "loading",
+      });
+      try {
+        await action.modifyBlock(b?.welcome_screen.id!, "WelcomeScreen", {
+          message: header,
+        });
+        setAutoSaveUiProps({
+          is_visible: true,
+          message: app_config.AppName + " has auto-save your progress.",
+          status: "success",
+        });
+      } catch (error) {
+        setAutoSaveUiProps({
+          is_visible: true,
+          message: errorMessageForToast(
+            error as AxiosError<{ message: string }>
+          ),
+          status: "failed",
+        });
+      }
+    };
+
+    handleChange();
+  }, [delayHeader]);
 
   return (
     <div
@@ -771,14 +822,31 @@ export const WelcomeScreenBlockStyle: FC<{
         `bg-[${b?.welcome_screen?.background}]`
       )}
     >
-      <SurveyQuestions question={b?.question!} label={b?.label!} mode={mode} />
+      {mode === "DEVELOPMENT" ? (
+        <Input
+          value={header}
+          onChange={(e) => setHeader(e.target.value)}
+          className="flex w-full text-center flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 bg-background ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+      ) : (
+        b?.welcome_screen.message && <h1>{b?.welcome_screen.message}</h1>
+      )}
       {b?.welcome_screen?.custom_html && (
         <div
-          dangerouslySetInnerHTML={{ __html: b?.welcome_screen?.custom_html }}
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(b?.welcome_screen?.custom_html),
+          }}
         />
       )}
       {b?.welcome_screen?.have_continue_button && (
-        <Button variant="base" className="rounded-sm mt-5" size="sm">
+        <Button
+          disabled={mode === "DEVELOPMENT"}
+          className={cn(
+            "rounded-sm mt-5",
+            allStyles.button[surveyDesign?.button ?? "GREEN"]
+          )}
+          size="sm"
+        >
           {b?.welcome_screen?.button_text || "Start Survey"}
         </Button>
       )}
@@ -786,7 +854,9 @@ export const WelcomeScreenBlockStyle: FC<{
         {survey?.show_time_to_complete && (
           <div className="flex items-center gap-1">
             <Clock10Icon size={12} />
-            <p className="text-[12px]">Takes X minutes</p>
+            <p className="text-[12px]">
+              Takes {mode === "DEVELOPMENT" ? "X" : "1"} minutes
+            </p>
           </div>
         )}
         {survey?.show_number_of_submissions && (
@@ -837,6 +907,7 @@ export const WebsiteBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
         mode={mode}
       />
       <Input
+        disabled={mode === "DEVELOPMENT"}
         className="flex h-10 w-full rounded-none border-b-green-300 focus:border-b-green-500 border-t-0 border-x-0 bg-background px-1 py-2 text-sm ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0  focus-visible:ring-ring placeholder:text-lg focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
         placeholder="http://"
       />
@@ -1057,6 +1128,63 @@ export const PictureViews: FC<{
     }
   };
 
+  const handleImageUpload = async () => {
+    const _d = survey_blocks?.map((block) => {
+      return block.id === b?.id
+        ? {
+            ...block,
+            picture_choice: {
+              ...block.picture_choice,
+              images: block.picture_choice.images.map((image) => {
+                return image.id === id
+                  ? {
+                      ...image,
+                      url: data?.previewUrl?.[0] ?? "",
+                      alt_tag: data.files[0].name,
+                    }
+                  : { ...image };
+              }),
+            },
+          }
+        : { ...block };
+    }) as ISurveyBlocks[];
+    setSurveyBlocks(_d);
+
+    try {
+      const action_type = "add_image_to_picture_choice";
+      const image = data.files[0];
+      const block_id = b?.id ?? "";
+      const block_type: BlockToolProps = "PictureChoice";
+
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: "Saving your progress...",
+        status: "loading",
+      });
+
+      await action.addImageToPictureChoice({
+        block_id,
+        block_type,
+        url,
+        image,
+        id,
+        action_type,
+      });
+
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
+  };
+
   useEffect(() => {
     name && setProps({ ...props, name });
     b?.picture_choice &&
@@ -1119,63 +1247,6 @@ export const PictureViews: FC<{
 
     return () => setIsFirstMount(true);
   }, [delayName]);
-
-  const handleImageUpload = async () => {
-    const _d = survey_blocks?.map((block) => {
-      return block.id === b?.id
-        ? {
-            ...block,
-            picture_choice: {
-              ...block.picture_choice,
-              images: block.picture_choice.images.map((image) => {
-                return image.id === id
-                  ? {
-                      ...image,
-                      url: data?.previewUrl?.[0] ?? "",
-                      alt_tag: data.files[0].name,
-                    }
-                  : { ...image };
-              }),
-            },
-          }
-        : { ...block };
-    }) as ISurveyBlocks[];
-    setSurveyBlocks(_d);
-
-    try {
-      const action_type = "add_image_to_picture_choice";
-      const image = data.files[0];
-      const block_id = b?.id ?? "";
-      const block_type: BlockToolProps = "PictureChoice";
-
-      setAutoSaveUiProps({
-        is_visible: true,
-        message: "Saving your progress...",
-        status: "loading",
-      });
-
-      await action.addImageToPictureChoice({
-        block_id,
-        block_type,
-        url,
-        image,
-        id,
-        action_type,
-      });
-
-      setAutoSaveUiProps({
-        is_visible: true,
-        message: app_config.AppName + " has auto-save your progress.",
-        status: "success",
-      });
-    } catch (error) {
-      setAutoSaveUiProps({
-        is_visible: true,
-        message: errorMessageForToast(error as AxiosError<{ message: string }>),
-        status: "failed",
-      });
-    }
-  };
 
   useEffect(() => {
     if (!data.files.length || !data.previewUrl?.length) {
@@ -1423,10 +1494,14 @@ export const SurveyQuestions: FC<{
 };
 
 export const SurveyOKButton: FC<{ onClick: () => void }> = ({}) => {
+  const { surveyDesign } = useSurveyWorkSpace();
+
   return (
     <Button
-      className="h-7 px-3 w-fit flex items-center gap-1 rounded-sm"
-      variant="base"
+      className={cn(
+        "h-7 px-3 w-fit flex items-center gap-1 rounded-sm",
+        allStyles.button[surveyDesign?.button ?? "GREEN"]
+      )}
       size="sm"
     >
       <Check size={15} />

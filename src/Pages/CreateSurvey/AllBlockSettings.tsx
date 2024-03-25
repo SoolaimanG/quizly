@@ -13,17 +13,6 @@ import {
   dateFormat,
   socialMediaTypes,
 } from "../../Types/survey.types";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "../../components/AlertModal";
-import { AlertDescription } from "../../components/Alert";
 import { FullTextEditor } from "../../components/App/FullTextEditor";
 import { Button } from "../../components/Button";
 import { PlusIcon } from "lucide-react";
@@ -50,52 +39,178 @@ export const WelcomeBlockSettings: FC<{ className?: string }> = ({
   className,
 }) => {
   const b = useGetCurrentBlock(); //Current block
-  const { setSurveyBlocks, survey_blocks, survey, setSurvey } =
-    useSurveyWorkSpace();
+  const {
+    setSurveyBlocks,
+    survey_blocks,
+    survey,
+    setSurvey,
+    setAutoSaveUiProps,
+  } = useSurveyWorkSpace();
   const [custom_html, setCustomHtml] = useState("");
+  const action = new SurveyWorkSpace(survey?.id ?? "");
+  const [button_text, setButton_text] = useState("");
+  const delayedButtonText = useDebounce(button_text, 3000);
 
-  const handleButtonTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleButtonTextChange = async () => {
+    setAutoSaveUiProps({
+      is_visible: true,
+      message: "Please wait saving your progress.",
+      status: "loading",
+    });
+
     const edittedBlocks = survey_blocks?.map((block) =>
       block.id === b?.id
         ? {
             ...block,
             welcome_screen: {
               ...block.welcome_screen,
-              button_text: e.target.value,
+              button_text,
             },
           }
         : { ...block }
     );
     setSurveyBlocks(edittedBlocks as ISurveyBlocks[]);
+
+    try {
+      await action.modifyBlock(b?.welcome_screen.id!, "WelcomeScreen", {
+        button_text,
+      });
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
   };
-  const handleToggleTimeToComplete = (e: boolean) => {
+  const handleToggleTimeToComplete = async (e: boolean) => {
     setSurvey({
       ...(survey as ISurvey),
       show_time_to_complete: e,
       show_number_of_submissions: false,
     });
+    setAutoSaveUiProps({
+      is_visible: true,
+      message: "Please wait saving your progress.",
+      status: "loading",
+    });
+    try {
+      await action.modifySurvey({
+        show_time_to_complete: e,
+        show_number_of_submissions: false,
+      });
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
   };
-  const handleNumberOfSubmission = (e: boolean) => {
+  const handleNumberOfSubmission = async (e: boolean) => {
     setSurvey({
       ...(survey as ISurvey),
       show_number_of_submissions: e,
       show_time_to_complete: false,
     });
+    setAutoSaveUiProps({
+      is_visible: true,
+      message: "Please wait saving your progress.",
+      status: "loading",
+    });
+    try {
+      await action.modifySurvey({
+        show_time_to_complete: false,
+        show_number_of_submissions: e,
+      });
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
   };
 
   const handleCustomTextChange = (e: Editor) => {
     setCustomHtml(e.getHTML());
   };
 
-  const saveCustomHtml = () => {
-    const data = survey_blocks?.map((block) => {
-      return block.id === b?.id
-        ? { ...block, welcome_screen: { ...block.welcome_screen, custom_html } }
-        : { ...block };
-    }) as ISurveyBlocks[];
+  const addCustomHtml = async () => {
+    try {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: "Please wait while your progress been save",
+        status: "loading",
+      });
 
-    setSurveyBlocks(data);
+      const data = survey_blocks?.map((block) => {
+        return block.id === b?.id
+          ? {
+              ...block,
+              welcome_screen: { ...block.welcome_screen, custom_html },
+            }
+          : { ...block };
+      }) as ISurveyBlocks[];
+
+      setSurveyBlocks(data);
+
+      await action.modifyBlock(b?.welcome_screen.id!, "WelcomeScreen", {
+        custom_html,
+      });
+
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
   };
+
+  useEffect(() => {
+    if (!delayedButtonText) {
+      return;
+    }
+
+    if (b?.welcome_screen.button_text === delayedButtonText) {
+      return;
+    }
+
+    handleButtonTextChange();
+  }, [delayedButtonText]);
+
+  useEffect(() => {
+    if (b) {
+      setCustomHtml(b.welcome_screen.custom_html);
+      setButton_text(b.welcome_screen.button_text as string);
+    }
+
+    return () => {
+      setCustomHtml("");
+      setButton_text("");
+    };
+  }, [b?.welcome_screen]);
 
   return (
     <div className={cn("w-full flex flex-col gap-4", className)}>
@@ -118,36 +233,44 @@ export const WelcomeBlockSettings: FC<{ className?: string }> = ({
       <div>
         <span>Button Text</span>
         <Input
-          value={b?.welcome_screen.button_text ?? "Start Survey"}
-          onChange={handleButtonTextChange}
+          value={button_text ?? "Start Survey"}
+          onChange={(e) => setButton_text(e.target.value)}
           className="mt-2"
         />
       </div>
-      <div className="w-full flex items-center justify-between">
-        <h1>Custom Text</h1>
-        <AlertDialog>
-          <AlertDialogTrigger>
-            <Button variant="secondary" className="h-8" size="icon">
-              <PlusIcon className="text-green-500" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="md:w-[75%]">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Write Custom Text</AlertDialogTitle>
-              <AlertDescription></AlertDescription>
-            </AlertDialogHeader>
-            <div className="w-full h-[25rem] overflow-auto">
-              <FullTextEditor handleChange={handleCustomTextChange} />
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={saveCustomHtml}>
-                Save
-              </AlertDialogAction>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      <Dialog>
+        <DialogTrigger>
+          <Button size="sm" variant="base" className="w-full">
+            Add Custom HTML
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="md:w-[90%] w-[90%]">
+          <DialogHeader>
+            <DialogTitle className="text-green-500">
+              Add Your Custom HTML.
+            </DialogTitle>
+          </DialogHeader>
+          <div className="h-[25rem] overflow-auto">
+            <FullTextEditor
+              html={custom_html}
+              show_divider
+              handleChange={handleCustomTextChange}
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose>
+              <Hint
+                element={
+                  <Button onClick={addCustomHtml} variant="base" size="sm">
+                    Save
+                  </Button>
+                }
+                content="Save HTML"
+              />
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -314,79 +437,225 @@ export const RatingSettings: FC<{}> = () => {
 
 export const EndSreenSettings: FC<{}> = () => {
   const b = useGetCurrentBlock();
-  const { survey_blocks, setSurveyBlocks } = useSurveyWorkSpace();
+  const { survey, survey_blocks, setSurveyBlocks, setAutoSaveUiProps } =
+    useSurveyWorkSpace();
+  const action = new SurveyWorkSpace(survey?.id ?? "");
+  const [buttonProps, setButtonProps] = useState({
+    button_link: "",
+    button_text: "",
+  });
+  const delayButtonProps = useDebounce(buttonProps, 3000);
 
-  const handleButtonSwitch = (e: boolean) => {
+  const socialMedia: socialMediaTypes[] = [
+    "email",
+    "facebook",
+    "instagram",
+    "tiktok",
+    "twitter",
+    "whatsapp",
+  ];
+
+  const handleButtonSwitch = async (e: boolean) => {
+    setAutoSaveUiProps({
+      is_visible: true,
+      message: "Loading please wait...",
+      status: "loading",
+    });
     const data = survey_blocks?.map((block) => {
       return block?.id === b?.id
         ? { ...block, end_screen: { ...block.end_screen, button: e } }
         : { ...block };
     }) as ISurveyBlocks[];
-
     setSurveyBlocks(data);
+    try {
+      await action.modifyBlock(b?.end_screen.id!, "EndScreen", { button: e });
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
   };
 
-  const handleButtonTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const {
-      target: { value },
-    } = e;
+  const handleButtonTextChange = async () => {
+    setAutoSaveUiProps({
+      is_visible: true,
+      message: "Loading please wait...",
+      status: "loading",
+    });
     const data = survey_blocks?.map((block) => {
       return block?.id === b?.id
-        ? { ...block, end_screen: { ...block.end_screen, button_text: value } }
-        : { ...block };
-    }) as ISurveyBlocks[];
-
-    setSurveyBlocks(data);
-  };
-
-  const handleButtonLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const {
-      target: { value },
-    } = e;
-    const data = survey_blocks?.map((block) => {
-      return block?.id === b?.id
-        ? { ...block, end_screen: { ...block.end_screen, button_link: value } }
-        : { ...block };
-    }) as ISurveyBlocks[];
-
-    setSurveyBlocks(data);
-  };
-
-  const addSocialMedia = () => {
-    const socialmedia: socialMediaTypes[] = [
-      "email",
-      "facebook",
-      "instagram",
-      "tiktok",
-      "twitter",
-      "whatsapp",
-    ];
-    const media_type =
-      socialmedia[Math.floor(Math.random() * socialmedia.length)];
-
-    const id = generateUUID();
-    const payload: EndScreenSocialMedia = {
-      id,
-      media_type,
-      social_media_link: "",
-    };
-
-    const social_media = [...b?.end_screen.social_media!, payload];
-
-    const data = survey_blocks?.map((block) => {
-      return block.id === b?.id
         ? {
             ...block,
             end_screen: {
               ...block.end_screen,
-              social_media,
+              button_text: buttonProps.button_text,
+              button_link: buttonProps.button_link,
             },
           }
         : { ...block };
     }) as ISurveyBlocks[];
 
     setSurveyBlocks(data);
+
+    try {
+      await action.modifyBlock(b?.end_screen.id!, "EndScreen", {
+        button_text: buttonProps.button_text,
+        button_link: buttonProps.button_link,
+      });
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
   };
+
+  const handleButtonPropsChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "button_text" | "button_link"
+  ) => {
+    const {
+      target: { value },
+    } = e;
+
+    setButtonProps({ ...buttonProps, [type]: value });
+  };
+
+  const checkIfSocialMediaExists = (media_type: socialMediaTypes) => {
+    const check = b?.end_screen.social_media.find(
+      (sm) => sm.media_type === media_type
+    );
+    return check;
+  };
+
+  const generateMediaType = function () {
+    return socialMedia[Math.floor(Math.random() * socialMedia.length)];
+  };
+
+  const addSocialMedia = async () => {
+    // Set autosave UI props to loading state
+    setAutoSaveUiProps({
+      is_visible: true,
+      message: "Loading please wait....",
+      status: "loading",
+    });
+
+    // Generate a unique media type
+    let media_type = generateMediaType();
+    let attempts = 0;
+
+    // Loop until a unique media type is found or all options are exhausted
+    while (
+      checkIfSocialMediaExists(media_type) &&
+      attempts < socialMedia.length
+    ) {
+      media_type = generateMediaType();
+      attempts++;
+    }
+
+    // Handle situation where no unique media type is found
+    if (attempts === socialMedia.length) {
+      return setAutoSaveUiProps({
+        is_visible: true,
+        message: "All available social media has been used by you.",
+        status: "failed",
+      });
+    }
+
+    const id = generateUUID();
+    const newSocialMedia = {
+      id,
+      media_type,
+      social_media_link: "",
+    };
+
+    // Update survey block data with new social media entry
+    const updatedData = survey_blocks?.map((block) =>
+      block.id === b?.id
+        ? {
+            ...block,
+            end_screen: {
+              ...block.end_screen,
+              social_media: [...b?.end_screen.social_media!, newSocialMedia],
+            },
+          }
+        : block
+    ) as ISurveyBlocks[];
+
+    setSurveyBlocks(updatedData);
+
+    try {
+      // Call modifyBlock action with new social media data
+      await action.modifyBlock(
+        b?.end_screen.id!,
+        "EndScreen",
+        newSocialMedia,
+        undefined,
+        undefined,
+        b?.id,
+        "add_social_media"
+      );
+
+      // Update autosave UI props with success message
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: `${app_config.AppName} has auto-saved your progress.`,
+        status: "success",
+      });
+    } catch (error) {
+      // Update autosave UI props with error message
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed", // Consider changing to "error" for better feedback
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!delayButtonProps.button_link && !delayButtonProps.button_text) {
+      return;
+    }
+
+    if (
+      delayButtonProps.button_link === b?.end_screen.button_link &&
+      delayButtonProps.button_text === b?.end_screen.button_text
+    ) {
+      return;
+    }
+
+    handleButtonTextChange();
+  }, [delayButtonProps.button_link, delayButtonProps.button_text]);
+
+  useEffect(() => {
+    if (!b?.end_screen) {
+      return;
+    }
+
+    setButtonProps({
+      button_link: b.end_screen.button_link,
+      button_text: b.end_screen.button_text,
+    });
+
+    return () =>
+      setButtonProps({
+        button_link: "",
+        button_text: "",
+      });
+  }, [b?.end_screen]);
 
   return (
     <div className="w-full mt-3 flex flex-col gap-3">
@@ -401,16 +670,16 @@ export const EndSreenSettings: FC<{}> = () => {
         <Input
           maxLength={24}
           placeholder="Button Text"
-          value={b?.end_screen.button_text ?? "Button Text"}
-          onChange={handleButtonTextChange}
+          value={buttonProps.button_text ?? "Button Text"}
+          onChange={(e) => handleButtonPropsChange(e, "button_text")}
         />
       )}
       {b?.end_screen.button && (
         <Input
           maxLength={24}
           placeholder="Add a link to the button"
-          value={b?.end_screen.button_link ?? "https://button-link.com"}
-          onChange={handleButtonLinkChange}
+          value={buttonProps.button_link ?? "https://button-link.com"}
+          onChange={(e) => handleButtonPropsChange(e, "button_link")}
         />
       )}
       <div className="w-full flex flex-col mt-3 gap-2">
@@ -418,13 +687,24 @@ export const EndSreenSettings: FC<{}> = () => {
           <Label>Add a social media</Label>
           <Hint
             element={
-              <Button onClick={addSocialMedia} className="h-7" size="icon">
+              <Button
+                variant="base"
+                onClick={addSocialMedia}
+                className="h-7"
+                size="icon"
+              >
                 <PlusIcon size={17} />
               </Button>
             }
             content="Add a social media"
           />
         </div>
+        {!!b?.end_screen.social_media.length && (
+          <Description
+            className="text-sm text-yellow-300"
+            text="select the media again to remove"
+          />
+        )}
         {b?.end_screen?.social_media?.map((social_media) => (
           <SocialMedias key={social_media.id} {...social_media} />
         ))}
@@ -922,7 +1202,11 @@ export const DateSettings: FC<{}> = () => {
   );
 };
 
-export const SocialMedias: FC<EndScreenSocialMedia> = ({ media_type, id }) => {
+export const SocialMedias: FC<EndScreenSocialMedia> = ({
+  media_type,
+  id,
+  social_media_link,
+}) => {
   const _socialMedias: combo_box_type<socialMediaTypes>[] = [
     {
       value: "facebook",
@@ -950,15 +1234,95 @@ export const SocialMedias: FC<EndScreenSocialMedia> = ({ media_type, id }) => {
     },
   ];
 
-  const { survey_blocks, setSurveyBlocks } = useSurveyWorkSpace();
+  const { survey, survey_blocks, setSurveyBlocks, setAutoSaveUiProps } =
+    useSurveyWorkSpace();
   const b = useGetCurrentBlock();
+  const action = new SurveyWorkSpace(survey?.id ?? "");
 
   const [value, setValue] = useState(media_type);
   const [search, setSearch] = useState("");
   const [link, setLink] = useState("");
 
+  const handleRemoveSocialMedia = async () => {
+    try {
+      await action.modifyBlock(
+        b?.end_screen.id!,
+        "EndScreen",
+        { id },
+        undefined,
+        undefined,
+        b?.id,
+        "remove_social_media"
+      );
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
+  };
+
+  /**
+   * The function `handleChangeSocialMediaType` updates the social media type in a survey block's end
+   * screen and triggers an auto-save feature with success or failure messages.
+   */
+  const handleChangeSocialMediaType = async () => {
+    const data = survey_blocks?.map((block) => {
+      return block.id === b?.id
+        ? {
+            ...block,
+            end_screen: {
+              ...block.end_screen,
+              social_media: block.end_screen.social_media.map((sm) =>
+                sm.id === id ? { ...sm, media_type: value } : { ...sm }
+              ),
+            },
+          }
+        : { ...block };
+    }) as ISurveyBlocks[];
+    try {
+      await action.modifyBlock(
+        b?.end_screen.id!,
+        "EndScreen",
+        { id, media_type: value },
+        undefined,
+        undefined,
+        b?.id,
+        "edit_social_media"
+      );
+      setSurveyBlocks(data);
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: app_config.AppName + " has auto-save your progress.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
+  };
+
   useEffect(() => {
+    /* The below code is checking if the `value` is falsy. If it is falsy, it sets some UI properties
+   for auto-saving, then it maps over `survey_blocks` and updates the `end_screen` property of a
+   block by removing a specific social media item based on its ID. Finally, it updates the
+   `surveyBlocks` state with the modified data and calls the `handleRemoveSocialMedia` function
+   before returning. */
     if (!value) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: "Loading please wait...",
+        status: "loading",
+      });
       const data = survey_blocks?.map((block) => {
         return block?.id === b?.id
           ? {
@@ -974,25 +1338,80 @@ export const SocialMedias: FC<EndScreenSocialMedia> = ({ media_type, id }) => {
       }) as ISurveyBlocks[];
 
       setSurveyBlocks(data);
+      handleRemoveSocialMedia();
       return;
     }
 
-    const data = survey_blocks?.map((block) => {
-      return block.id === b?.id
-        ? {
-            ...block,
-            end_screen: {
-              ...block.end_screen,
-              social_media: block.end_screen.social_media.map((sm) =>
-                sm.id === id ? { ...sm, media_type: value } : { ...sm }
-              ),
-            },
-          }
-        : { ...block };
-    }) as ISurveyBlocks[];
-
-    setSurveyBlocks(data);
+    if (value !== media_type) {
+      handleChangeSocialMediaType();
+    }
   }, [value]);
+
+  const delayLink = useDebounce(link, 3000);
+
+  useEffect(() => {
+    if (!link || link === social_media_link) {
+      return;
+    }
+
+    const handleSocialMediaLinkChange = async () => {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: "Loading please wait...",
+        status: "loading",
+      });
+
+      const data = survey_blocks?.map((block) => {
+        return block.id === b?.id
+          ? {
+              ...block,
+              end_screen: {
+                ...block.end_screen,
+                social_media: block.end_screen.social_media.map((sm) =>
+                  sm.id === id ? { ...sm, social_media_link: link } : { ...sm }
+                ),
+              },
+            }
+          : { ...block };
+      }) as ISurveyBlocks[];
+
+      try {
+        await action.modifyBlock(
+          b?.end_screen.id!,
+          "EndScreen",
+          { social_media_link: link, id },
+          undefined,
+          undefined,
+          b?.id,
+          "edit_social_media"
+        );
+        setSurveyBlocks(data);
+        setAutoSaveUiProps({
+          is_visible: true,
+          message: app_config.AppName + " has auto-save your progress.",
+          status: "success",
+        });
+      } catch (error) {
+        setAutoSaveUiProps({
+          is_visible: true,
+          message: errorMessageForToast(
+            error as AxiosError<{ message: string }>
+          ),
+          status: "failed",
+        });
+      }
+    };
+
+    handleSocialMediaLinkChange();
+  }, [delayLink]);
+
+  useEffect(() => {
+    if (!social_media_link) {
+      return;
+    }
+
+    setLink(social_media_link);
+  }, [social_media_link]);
 
   return (
     <div className="w-full flex flex-col gap-2">
@@ -1009,26 +1428,7 @@ export const SocialMedias: FC<EndScreenSocialMedia> = ({ media_type, id }) => {
       {value && (
         <Input
           value={link}
-          onChange={(e) => {
-            const data = survey_blocks?.map((block) => {
-              return block.id === b?.id
-                ? {
-                    ...block,
-                    end_screen: {
-                      ...block.end_screen,
-                      social_media: block.end_screen.social_media.map((sm) =>
-                        sm.id === id
-                          ? { ...sm, social_media_link: e.target.value }
-                          : { ...sm }
-                      ),
-                    },
-                  }
-                : { ...block };
-            }) as ISurveyBlocks[];
-
-            setSurveyBlocks(data);
-            setLink(e.target.value);
-          }}
+          onChange={(e) => setLink(e.target.value)}
           type={value === "email" ? value : "url"}
           placeholder="Enter social media link"
         />
@@ -1421,15 +1821,7 @@ export const ToggleIsRequired: FC<{
         message: app_config.AppName + " is auto-saving your progress.",
       });
 
-      await actions.modifyBlock(
-        "",
-        type,
-        {},
-        e,
-        undefined,
-        b?.id,
-        "is_required"
-      );
+      await actions.modifyBlock("", type, {}, e, undefined, id, "is_required");
 
       setAutoSaveUiProps({
         is_visible: true,

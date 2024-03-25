@@ -19,7 +19,7 @@ import Logo from "../../components/Logo";
 export const SurveyDetails: FC<{ listtype: "list" | "grid" }> = ({
   listtype,
 }) => {
-  const survey = new SurveyWorkSpace();
+  const survey = new SurveyWorkSpace("");
   const { isLoading, data, error, refetch } = useInfiniteQuery<{
     data: ISurvey[];
   }>({
@@ -32,8 +32,6 @@ export const SurveyDetails: FC<{ listtype: "list" | "grid" }> = ({
       return (lastPageParams as number) + 1;
     },
   });
-
-  console.log({ data });
 
   if (isLoading)
     return (

@@ -4,8 +4,9 @@ import { FC, ReactElement } from "react";
 import { cn } from "../../lib/utils";
 
 type navbarType = {
-  title: string;
+  title?: string;
   className?: string;
+  firstContent?: ReactElement;
   middleContent: ReactElement;
   lastContent: ReactElement;
 };
@@ -13,6 +14,7 @@ type navbarType = {
 export const Navbar: FC<navbarType> = ({
   title,
   className,
+  firstContent,
   middleContent,
   lastContent,
 }) => {
@@ -23,7 +25,8 @@ export const Navbar: FC<navbarType> = ({
         className
       )}
     >
-      <h1 className="text-green-500 text-lg">{title}</h1>
+      {title && <h1 className="text-green-500 text-lg">{title}</h1>}
+      {firstContent && firstContent}
       {middleContent}
       {lastContent}
     </nav>
