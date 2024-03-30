@@ -5,10 +5,9 @@ import { Button } from "../components/Button";
 import React, { useState, useTransition } from "react";
 import { toast } from "../components/use-toaster";
 import axios, { AxiosError } from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import Oauth from "../components/Oauth";
-import CompleteSignUp from "../components/App/CompleteSignUp";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -22,6 +21,8 @@ import {
 
 import DoesNotExist from "../assets/imgTwo.png";
 import { useZStore } from "../provider";
+import queryString from "query-string";
+import { errorMessageForToast } from "../Functions";
 
 const Login = ({
   title,
@@ -30,6 +31,10 @@ const Login = ({
   fallback = "/",
 }: loginProps) => {
   const [isPending, startTransition] = useTransition();
+  const location = useLocation();
+  const fallBackURL = queryString.parse(location.search) as {
+    fallbackUrl: string;
+  };
   const router = useNavigate();
   const [state, setState] = useState({
     navigate_to_onboarding: false,
@@ -40,7 +45,7 @@ const Login = ({
     username: "",
     password: "",
   });
-  const { setLoginAttempt, setUser } = useZStore();
+  const { setLoginAttempt, setUser, setOpenOnboardingModal } = useZStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -88,18 +93,17 @@ const Login = ({
       Cookies.set("access_token", res.data.data.access_token); //Setting the user access token using the cookies
 
       if (!_user.signup_complete) {
-        setState({
-          ...state,
-          navigate_to_onboarding: true, //If the user hasnt complete sign up show the navigate to onboarding page
+        setOpenOnboardingModal({
+          fallbackUrl: fallBackURL.fallbackUrl,
+          open: true,
         });
-      } else {
-        router(fallback);
+        return;
       }
-      isPopup && setLoginAttempt({ attempt: false });
-      window.location.reload();
-    } catch (error: AxiosError | any) {
-      console.error(error);
 
+      isPopup && setLoginAttempt({ attempt: false });
+      isPopup && window.location.reload();
+      router(fallBackURL.fallbackUrl ?? fallback);
+    } catch (error: AxiosError | any) {
       toast({
         title: "ERROR " + error.response.status,
         description:
@@ -110,10 +114,7 @@ const Login = ({
       });
       setState({
         ...state,
-        error:
-          error.response.data.message ||
-          error.response.data.detail ||
-          "Something went wrong...",
+        error: errorMessageForToast(error as AxiosError<{ message: string }>),
         account_does_not_exist: Boolean(error.response.status === 404),
       });
     }
@@ -161,7 +162,6 @@ const Login = ({
   return (
     <div className="flex w-full flex-col gap-3">
       {account_does_not_exist}
-      <CompleteSignUp fallback={fallback} open={state.navigate_to_onboarding} />
       <div className="flex flex-col">
         <Sparkles className="text-green-500" size={30} />
         <h1 className="text-2xl text-green-500 md:text-3xl">{title}</h1>

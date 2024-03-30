@@ -7,6 +7,7 @@ import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "../Button";
 import Hint from "../Hint";
+import { useWindowSize } from "@uidotdev/usehooks";
 
 export const AutoSaveUI: FC<{
   className?: string;
@@ -15,6 +16,7 @@ export const AutoSaveUI: FC<{
   const {
     auto_save_ui_props: { is_visible, status, message },
   } = useSurveyWorkSpace();
+  const { width } = useWindowSize();
 
   // Different varient of notifications
   const StatusIcon = {
@@ -39,11 +41,11 @@ export const AutoSaveUI: FC<{
           className={cn(className, "z-[99]")}
           initial={{
             opacity: 0,
-            y: 100,
+            y: Number(width) > 767 ? 100 : -100,
           }}
           exit={{
             opacity: 0,
-            y: 100,
+            y: Number(width) > 767 ? 100 : -100,
           }}
           animate={{
             opacity: 1,

@@ -25,6 +25,7 @@ export const DropDownComponent: React.FC<{
   allowMultipleSelection?: boolean;
   dropDownOptions?: string[];
   placeHolder: string;
+  dropDownStyle?: string;
 }> = ({
   className,
   dropDownHeader,
@@ -33,6 +34,7 @@ export const DropDownComponent: React.FC<{
   dropDownOptions,
   allowMultipleSelection,
   placeHolder,
+  dropDownStyle,
 }) => {
   const [open, setOpen] = React.useState(false);
   const [list, setList] = React.useState<string[]>([]);
@@ -69,7 +71,8 @@ export const DropDownComponent: React.FC<{
       <DropdownMenuTrigger asChild className={cn("cursor-pointer", className)}>
         <div
           className={cn(
-            "flex gap-1 w-full h-fit flex-wrap rounded-md border border-green-200 px-2 py-2 relative"
+            "flex gap-1 w-full h-fit flex-wrap rounded-md border border-green-200 px-2 py-2 relative",
+            dropDownStyle
           )}
         >
           {!list.length ? (

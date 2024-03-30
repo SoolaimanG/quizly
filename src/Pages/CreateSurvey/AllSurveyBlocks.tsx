@@ -1,4 +1,10 @@
-import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
+import React, {
+  Dispatch,
+  FC,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import {
   BlockToolProps,
   ChoiceOption,
@@ -8,7 +14,7 @@ import {
   WelcomeScreenBlock,
   socialMediaTypes,
 } from "../../Types/survey.types";
-import { Input } from "../../components/Input";
+import { Input, InputProps } from "../../components/Input";
 import { useGetCurrentBlock } from "../../Hooks/useSurvey";
 import { useSurveyWorkSpace } from "../../provider";
 import { cn } from "../../lib/utils";
@@ -71,8 +77,27 @@ import {
 } from "../../components/App/EditImage";
 import DOMPurify from "dompurify";
 import { allStyles } from "../../constant";
+import { Reorder } from "framer-motion";
+import { all } from "mathjs";
 
 export type mode = "DEVELOPMENT" | "PRODUCTION";
+
+export const SurveyInput = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
+    const { surveyDesign } = useSurveyWorkSpace();
+    return (
+      <Input
+        type={type}
+        className={cn(
+          "mt-3 flex h-10 w-full text-xl rounded-none placeholder:text-xl border-t-0 border-x-0 bg-transparent px-1 py-2 ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50",
+          allStyles.border[surveyDesign?.color ?? "GREEN"]
+        )}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
 
 // Contacts
 export const EmailBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
@@ -81,10 +106,7 @@ export const EmailBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   return (
     <div className="w-full flex flex-col gap-2">
       <SurveyQuestions question={b?.question!} label={b?.label!} mode={mode} />
-      <Input
-        placeholder="name@example.com"
-        className="mt-3 flex h-10 w-full rounded-none border-b-green-300 focus:border-b-green-500 border-t-0 border-x-0 bg-background px-1 py-2 text-sm ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0  focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
-      />
+      <SurveyInput placeholder="name@email.com" />
       <SurveyOKButton onClick={() => {}} />
     </div>
   );
@@ -119,7 +141,7 @@ export const LongTextBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
       <Textarea
         maxLength={b?.long_text.max_character}
         placeholder={b?.long_text.place_holder ?? "Type a placeholder here.."}
-        className="mt-2 placeholder:italic resize-none min-h-0 flex w-full rounded-none border-b-green-300 focus:border-b-green-500 border-t-0 border-x-0 bg-background px-1 py-0 text-sm ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0  focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-2 placeholder:italic resize-none min-h-0 flex w-full rounded-none border-b-green-300 focus:border-b-green-500 border-t-0 border-x-0 bg-background px-1 py-0 text-sm ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0 placeholder:text-xl focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
       />
       <Description text="Click Enter to break line and click the OK button to submit." />
       <SurveyOKButton onClick={() => {}} />
@@ -135,12 +157,12 @@ export const ShortTextBlockStlye: FC<{
   return (
     <div className="flex flex-col w-full items-start justify-start gap-1">
       <SurveyQuestions question={b?.question!} label={b?.label!} mode={mode} />
-      <Input
-        className="flex h-10 w-full rounded-none border-b-green-300 focus:border-b-green-500 border-t-0 border-x-0 bg-background px-1 py-2 text-sm ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0  focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+      <SurveyInput
+        placeholder={b?.short_text?.place_holder ?? "Enter your data"}
         value={""}
         maxLength={b?.short_text?.max_character}
-        placeholder={b?.short_text?.place_holder ?? "Enter your data"}
       />
+      <SurveyOKButton onClick={() => {}} />
     </div>
   );
 };
@@ -151,12 +173,11 @@ export const NumberBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
   return (
     <div className="w-full flex flex-col gap-2">
       <SurveyQuestions question={b?.question!} label={b?.label!} mode={mode} />
-      <Input
+      <SurveyInput
         min={b?.number.min as number}
         max={b?.number.max as number}
         disabled={mode === "DEVELOPMENT"}
         placeholder="Enter a number."
-        className="mt-2 flex h-10 w-full rounded-none border-b-green-300 focus:border-b-green-500 border-t-0 border-x-0 bg-background px-1 py-2 text-sm ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0  focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
         type="number"
       />
       <SurveyOKButton onClick={() => {}} />
@@ -167,11 +188,21 @@ export const NumberBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
 // Media Group
 export const PictureBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
-  const { survey, survey_blocks, setSurveyBlocks, setAutoSaveUiProps } =
-    useSurveyWorkSpace();
+  /* The above code snippet is using TypeScript with React. It is destructuring values from the
+  `useSurveyWorkSpace` hook, including `survey`, `survey_blocks`, `setSurveyBlocks`,
+  `setAutoSaveUiProps`, and `surveyDesign`. These values are likely being used to manage and
+  interact with survey-related data and UI elements within a workspace component. */
+  const {
+    survey,
+    survey_blocks,
+    setSurveyBlocks,
+    setAutoSaveUiProps,
+    surveyDesign,
+  } = useSurveyWorkSpace();
   const action = new SurveyWorkSpace(survey?.id ?? "");
 
   const handleAddImage = async () => {
+    /* The above code snippet is performing the following tasks: */
     const newImage: PictureChoiceImages = {
       id: generateUUID(),
       url: "",
@@ -261,7 +292,10 @@ export const PictureBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
     <div
       title="Add A New Choice"
       onClick={handleAddImage}
-      className="w-full text-green-500 flex items-center justify-center h-[10rem] border border-green-500 cursor-pointer rounded-sm bg-green-200 dark:bg-green-300"
+      className={cn(
+        "w-full flex items-center justify-center h-[10rem] border cursor-pointer rounded-sm ",
+        allStyles.light_background_color[surveyDesign?.button ?? "GREEN"]
+      )}
     >
       <PlusIcon />
     </div>
@@ -298,8 +332,13 @@ export const DropdownBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
   const [value, setValue] = useState("");
   const [dropDownOptions, setDropDownOptions] = useState<DropDownOptions[]>([]);
-  const { survey_blocks, setSurveyBlocks, setAutoSaveUiProps, survey } =
-    useSurveyWorkSpace();
+  const {
+    survey_blocks,
+    setSurveyBlocks,
+    setAutoSaveUiProps,
+    survey,
+    surveyDesign,
+  } = useSurveyWorkSpace();
   const action = new SurveyWorkSpace(survey?.id ?? "");
 
   useEffect(() => {
@@ -395,6 +434,7 @@ export const DropdownBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
     <div className="w-full flex flex-col gap-2">
       <SurveyQuestions question={b?.question!} label={b?.label!} mode={mode} />
       <DropDownComponent
+        dropDownStyle={allStyles.border[surveyDesign?.button ?? "GREEN"]}
         allowMultipleSelection={b?.dropdown.multiple_selection}
         placeHolder="Select your choice."
         className="w-[400px]"
@@ -437,47 +477,47 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const [value, setValue] = useState("");
 
   const buttonClass = "flex justify-start";
-  const [userChoice, setUserChoice] = useState<ChoiceOption[]>([
-    {
-      id: "1",
-      option: "First Choice",
-      updated_at: "",
-      created_at: "",
-    },
-    {
-      id: "2",
-      option: "Second Choice",
-      updated_at: "",
-      created_at: "",
-    },
-    {
-      id: "3",
-      option: "Third Choice",
-      updated_at: "",
-      created_at: "",
-    },
-    {
-      id: "4",
-      option: "Fourth Choice",
-      updated_at: "",
-      created_at: "",
-    },
-    {
-      id: "5",
-      option: "Fifth Choice",
-      updated_at: "",
-      created_at: "",
-    },
-  ]);
+  const [userChoice, setUserChoice] = useState<ChoiceOption[]>([]);
 
   // console.log(surveyDesign);
 
   useEffect(() => {
-    if (!b) {
-      return;
-    }
+    const choicesPlaceholder: ChoiceOption[] = [
+      {
+        id: "1",
+        option: "First Choice",
+        updated_at: "",
+        created_at: "",
+      },
+      {
+        id: "2",
+        option: "Second Choice",
+        updated_at: "",
+        created_at: "",
+      },
+      {
+        id: "3",
+        option: "Third Choice",
+        updated_at: "",
+        created_at: "",
+      },
+      {
+        id: "4",
+        option: "Fourth Choice",
+        updated_at: "",
+        created_at: "",
+      },
+      {
+        id: "5",
+        option: "Fifth Choice",
+        updated_at: "",
+        created_at: "",
+      },
+    ];
 
-    setUserChoice(b.choices.options);
+    setUserChoice(
+      b?.choices.options ?? mode === "DEVELOPMENT" ? choicesPlaceholder : []
+    );
 
     return () => setUserChoice([]);
   }, [b]);
@@ -576,14 +616,21 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
     }
   };
   const choicesOptions = (
-    <div
+    <Reorder.Group
+      onReorder={() => {}}
+      values={[]}
+      axis="y"
       className={cn(
         "flex flex-col gap-2 w-full",
         b?.choices.vertical_alignment ? "flex-row flex-wrap" : "flex-col"
       )}
     >
       {userChoice?.map((d, i) => (
-        <div key={d.id} className="w-[250px] group flex items-center gap-1">
+        <Reorder.Item
+          value={[]}
+          key={d.id}
+          className="w-[250px] group flex items-center gap-1"
+        >
           <Button
             variant="outline"
             className={cn(
@@ -595,7 +642,8 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
             <Button
               className={cn(
                 "",
-                allStyles.button[surveyDesign?.button ?? "GREEN"]
+                allStyles.button[surveyDesign?.button ?? "GREEN"],
+                allStyles.button_text[surveyDesign?.button_text ?? "WHITE"]
               )}
               size="sm"
             >
@@ -614,9 +662,9 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
               size={17}
             />
           )}
-        </div>
+        </Reorder.Item>
       ))}
-    </div>
+    </Reorder.Group>
   );
 
   return (
@@ -645,6 +693,7 @@ export const RatingsBlockStyle: FC<{
   mode: mode;
 }> = ({ mode }) => {
   const b = useGetCurrentBlock();
+  const { surveyDesign } = useSurveyWorkSpace();
 
   const handleSelectRating = (_: number) => {};
 
@@ -658,6 +707,7 @@ export const RatingsBlockStyle: FC<{
           className="mt-3"
           rating={8}
           size={30}
+          color={allStyles.button_style[surveyDesign?.button ?? "GREEN"]}
         />
       </div>
     </div>
@@ -666,6 +716,7 @@ export const RatingsBlockStyle: FC<{
 
 export const YesNoBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
+  const { surveyDesign } = useSurveyWorkSpace();
 
   const buttons = ["YES", "NO"];
 
@@ -676,7 +727,11 @@ export const YesNoBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
         {buttons.map((button, index) => (
           <Button
             key={index}
-            className="w-full rounded-sm flex items-start hover:bg-green-200 justify-start border-green-400"
+            className={cn(
+              "w-full rounded-sm flex items-start justify-start",
+              allStyles.button[surveyDesign?.button ?? "GREEN"],
+              allStyles.button_text[surveyDesign?.button_text ?? "WHITE"]
+            )}
             variant="outline"
           >
             {button}
@@ -713,6 +768,7 @@ export const TimeBlockStyle: FC<{}> = () => {
 // End Screen
 export const EndScreenBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
+  const { surveyDesign } = useSurveyWorkSpace();
   const socialMediaIcons: Record<socialMediaTypes, any> = {
     email: <MailIcon size={35} />,
     facebook: <FaceBookIcon size={35} />,
@@ -729,7 +785,7 @@ export const EndScreenBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       {mode === "DEVELOPMENT" ? (
         <Input
           value={b?.end_screen.message}
-          className="flex w-full text-center flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 bg-background ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full text-center bg-transparent flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
         />
       ) : (
         <h1>{b?.end_screen.message}</h1>
@@ -747,7 +803,11 @@ export const EndScreenBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       </div>
 
       {b?.end_screen?.button && (
-        <Button asChild variant="base" size="sm">
+        <Button
+          className={allStyles.button[surveyDesign?.button ?? "GREEN"]}
+          asChild
+          size="sm"
+        >
           <a target="__blank" href={b.end_screen.button_link}>
             {b.end_screen?.button_text}
           </a>
@@ -779,10 +839,7 @@ export const WelcomeScreenBlockStyle: FC<{
   }, [b?.welcome_screen]);
 
   useEffect(() => {
-    if (!delayHeader) {
-      return;
-    }
-    if (b?.welcome_screen.message === delayHeader) {
+    if (b?.welcome_screen.message === delayHeader || !delayHeader) {
       return;
     }
 
@@ -826,7 +883,7 @@ export const WelcomeScreenBlockStyle: FC<{
         <Input
           value={header}
           onChange={(e) => setHeader(e.target.value)}
-          className="flex w-full text-center flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 bg-background ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full text-center flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 bg-transparent ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
         />
       ) : (
         b?.welcome_screen.message && <h1>{b?.welcome_screen.message}</h1>
@@ -842,7 +899,7 @@ export const WelcomeScreenBlockStyle: FC<{
         <Button
           disabled={mode === "DEVELOPMENT"}
           className={cn(
-            "rounded-sm mt-5",
+            "rounded-sm mt-2",
             allStyles.button[surveyDesign?.button ?? "GREEN"]
           )}
           size="sm"
@@ -944,12 +1001,16 @@ export const PictureViews: FC<{
   index,
 }) => {
   const { getLetter } = useText();
-  const { survey, survey_blocks, setSurveyBlocks, setAutoSaveUiProps } =
-    useSurveyWorkSpace();
+  const {
+    survey,
+    survey_blocks,
+    setSurveyBlocks,
+    setAutoSaveUiProps,
+    surveyDesign,
+  } = useSurveyWorkSpace();
   const action = new SurveyWorkSpace(survey?.id ?? "");
   const b = useGetCurrentBlock();
   const rotationDeg = [0, 90, 180, 270];
-  const [isFirstMount, setIsFirstMount] = useState(true);
   const [props, setProps] = useState({
     name: "",
   });
@@ -1112,6 +1173,7 @@ export const PictureViews: FC<{
         { id, name: props.name },
         undefined,
         undefined,
+        undefined,
         "edit_picture_image"
       );
       setAutoSaveUiProps({
@@ -1235,17 +1297,11 @@ export const PictureViews: FC<{
   }, [name, b?.picture_choice]);
 
   useEffect(() => {
-    if (isFirstMount) {
-      setIsFirstMount(false);
+    if (delayName === name || !delayName) {
       return;
     }
 
-    if (delayName !== name) {
-      // Perform Action.
-      handleNameChange();
-    }
-
-    return () => setIsFirstMount(true);
+    handleNameChange();
   }, [delayName]);
 
   useEffect(() => {
@@ -1279,8 +1335,13 @@ export const PictureViews: FC<{
   );
 
   const URLUnavailable = (
-    <div className="bg-green-300 dark:bg-green-400 w-full h-full flex items-center justify-center">
-      <ImagePlusIcon className="text-green-500" />
+    <div
+      className={cn(
+        " w-full h-full flex items-center justify-center",
+        allStyles.dark_background_color[surveyDesign?.button ?? "GREEN"]
+      )}
+    >
+      <ImagePlusIcon className="" />
     </div>
   );
 
@@ -1335,8 +1396,9 @@ export const PictureViews: FC<{
   return (
     <div
       className={cn(
-        "h-[10rem] w-full flex flex-col gap-1 border group relative cursor-pointer border-green-500 bg-green-200 dark:bg-green-300 rounded-sm p-1",
-        className
+        "h-[10rem] w-full flex flex-col gap-1 border group relative cursor-pointer rounded-sm p-1",
+        className,
+        allStyles.light_background_color[surveyDesign?.button ?? "GREEN"]
       )}
     >
       <div className="h-[85%] w-full rounded-sm">{imageView[mode]}</div>
@@ -1347,7 +1409,11 @@ export const PictureViews: FC<{
         >
           {getLetter(index)}
         </Button>
-        <div className="text-green-600">
+        <div
+          className={
+            allStyles.button_text[surveyDesign?.button_text ?? "GREEN"]
+          }
+        >
           {mode === "DEVELOPMENT" ? (
             <Input
               value={props.name}
@@ -1472,7 +1538,7 @@ export const SurveyQuestions: FC<{
             onChange={handleChange}
             value={b?.question}
             placeholder="This a Question placeholder!!"
-            className="flex w-full flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 bg-background ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 bg-transparent ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
           />
         ) : (
           question && <h1>{question}</h1>
@@ -1484,7 +1550,7 @@ export const SurveyQuestions: FC<{
           onChange={handleChange}
           value={b?.label}
           placeholder="This a Label placeholder!!"
-          className="flex w-full flex-grow italic text-sm rounded-none h-auto px-0 py-0 border-y-0 border-x-0 bg-background ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full flex-grow italic text-sm rounded-none h-auto px-0 py-0 border-y-0 border-x-0 bg-transparent ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
         />
       ) : (
         label && <Description text={label} />
@@ -1500,7 +1566,8 @@ export const SurveyOKButton: FC<{ onClick: () => void }> = ({}) => {
     <Button
       className={cn(
         "h-7 px-3 w-fit flex items-center gap-1 rounded-sm",
-        allStyles.button[surveyDesign?.button ?? "GREEN"]
+        allStyles.button[surveyDesign?.button ?? "GREEN"],
+        allStyles.button_text[surveyDesign?.button_text ?? "GREEN"]
       )}
       size="sm"
     >
@@ -1544,7 +1611,7 @@ export const AddOptions: FC<{
           onChange={(e) => setValue(e.target.value)}
           className="w-full h-[10rem] resize-none"
         />
-        <DialogFooter>
+        <DialogFooter className="gap-2">
           <DialogClose asChild>
             <Button variant="outline">Close</Button>
           </DialogClose>

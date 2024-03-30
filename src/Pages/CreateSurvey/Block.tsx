@@ -25,7 +25,7 @@ import { BlockNotFound } from "./BlockNotFound";
 import { useGetCurrentBlock } from "../../Hooks/useSurvey";
 import { FC } from "react";
 import { cn } from "../../lib/utils";
-import { allStyles } from "../../constant";
+import { allStyles, backgroundPatterns } from "../../constant";
 
 // This function is for development mode
 // class MicroFunctions {
@@ -48,7 +48,20 @@ export const Block: FC<{ mode: mode }> = ({ mode }) => {
   const blocks = useGetCurrentBlock();
 
   // const _ = block ? new MicroFunctions(data) : null;
-  // const showLabel = _?.show_label || "";
+  // const showLabel = _?.show_label || "";ba
+
+  const backgroundImage = backgroundPatterns.find(
+    (bp) => bp.id === surveyDesign?.background_pattern
+  );
+
+  const backgroundStyles: React.CSSProperties = {
+    backgroundImage: `url(${
+      backgroundImage?.id === "Non" ? "" : backgroundImage?.image
+    })`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  };
 
   const view: Record<BlockToolProps, any> = {
     WelcomeScreen: WelcomeScreenBlockStyle,
@@ -84,9 +97,12 @@ export const Block: FC<{ mode: mode }> = ({ mode }) => {
 
   return (
     <Card
+      style={backgroundStyles}
       className={cn(
         "p-0 w-full h-full",
-        allStyles.border_radius[surveyDesign?.border_radius ?? "MEDIUM"]
+        allStyles.border_radius[surveyDesign?.border_radius ?? "MEDIUM"],
+        allStyles.font_family[surveyDesign?.font_family ?? "SYSTEM"],
+        allStyles.background_color[surveyDesign?.background_color ?? "WHITE"]
       )}
     >
       <CardContent

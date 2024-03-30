@@ -9,6 +9,7 @@ const Rating = ({
   rating_length = 5,
   size = 17,
   onRatingSelect,
+  color,
 }: rating_props) => {
   const content = [
     "Terrible",
@@ -52,7 +53,7 @@ const Rating = ({
             <Star
               onClick={() => onRatingSelect(i)}
               size={size}
-              className={cn(i < rating && "text-green-500")}
+              className={cn(i < rating && "text-green-500", color)}
             />
           }
           content={content[i]}

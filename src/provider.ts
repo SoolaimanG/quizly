@@ -19,6 +19,11 @@ export const useZStore = create<Zstate & Zaction>()((set) => ({
   loginAttempt: { attempt: false, fallback: "", note: "" },
   user: null,
   emailVerificationRequired: false,
+  openOnboardingModal: {
+    open: false,
+    fallbackUrl: "/",
+  },
+  openSettings: false,
   setIsDarkMode: (prop) => set((state) => ({ ...state, is_darkmode: prop })),
   setLoginAttempt(prop) {
     set((state) => ({
@@ -43,6 +48,21 @@ export const useZStore = create<Zstate & Zaction>()((set) => ({
     set((state) => ({
       ...state,
       emailVerificationRequired: props,
+    }));
+  },
+  setOpenOnboardingModal(props) {
+    set((state) => ({
+      ...state,
+      openOnboardingModal: {
+        open: props.open,
+        fallbackUrl: props.fallbackUrl,
+      },
+    }));
+  },
+  setOpenSettings(prop) {
+    set((state) => ({
+      ...state,
+      openSettings: prop,
     }));
   },
 }));
@@ -169,6 +189,8 @@ export const useSurveyWorkSpace = create<
     message: app_config.AppName + " Is AutoSaving your progress",
   },
   surveyDesign: null,
+  surveySettings: null,
+  surveyLogics: [],
   setFormType(props) {
     set((state) => ({
       ...state,
@@ -218,6 +240,40 @@ export const useSurveyWorkSpace = create<
     set((state) => ({
       ...state,
       surveyDesign: props,
+    }));
+  },
+  setSurveySettings(props) {
+    set((state) => ({
+      ...state,
+      surveySettings: props,
+    }));
+  },
+  addSurveyLogics(props) {
+    set((state) => ({
+      ...state,
+      surveyLogics: [...state.surveyLogics, props],
+    }));
+  },
+  removeSurveyLogic(id) {
+    set((state) => ({
+      ...state,
+      surveyLogics: state.surveyLogics.filter((logic) => logic.id !== id),
+    }));
+  },
+  editSurveyLogic(prop, id) {
+    set((state) => ({
+      ...state,
+      surveyLogics: state.surveyLogics.map((surveyLogic) => {
+        return surveyLogic.id === id
+          ? { ...surveyLogic, ...prop }
+          : { ...surveyLogic };
+      }),
+    }));
+  },
+  addAllLogics(props) {
+    set((state) => ({
+      ...state,
+      surveyLogics: props,
     }));
   },
 }));

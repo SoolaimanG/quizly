@@ -259,14 +259,9 @@ export const WelcomeBlockSettings: FC<{ className?: string }> = ({
           </div>
           <DialogFooter>
             <DialogClose>
-              <Hint
-                element={
-                  <Button onClick={addCustomHtml} variant="base" size="sm">
-                    Save
-                  </Button>
-                }
-                content="Save HTML"
-              />
+              <Button className="w-full" onClick={addCustomHtml} variant="base">
+                Save
+              </Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>
@@ -328,7 +323,7 @@ export const ShortTextSettings: FC<{}> = () => {
         onChange={handlePlaceHolderChange}
         type="text"
       />
-      <ToggleIsRequired id={b?.short_text.id!} type="ShortText" />
+      <ToggleIsRequired id={b?.id!} type="ShortText" />
     </div>
   );
 };
@@ -739,7 +734,7 @@ export const PhoneNumberSettings: FC<{}> = () => {
   };
   return (
     <div className="w-full flex flex-col gap-4 mt-3">
-      <ToggleIsRequired id={b?.phone_number.id!} type="PhoneNumber" />
+      <ToggleIsRequired id={b?.id!} type="PhoneNumber" />
       <Label className="flex items-center justify-between w-full">
         Validate Number
         <Switch
@@ -901,7 +896,7 @@ export const NumberSettings: FC<{}> = () => {
     };
 
     try {
-      await action.modifyBlock(b.number.id!, "Number", payload);
+      await action.modifyBlock(b?.id!, "Number", payload);
       setAutoSaveUiProps({
         is_visible: true,
         message: "Changes made and your update is updated.",
@@ -1023,7 +1018,7 @@ export const ChoicesSettings: FC<{}> = () => {
 
   return (
     <div className="flex flex-col gap-3">
-      <ToggleIsRequired id={b?.choices.id!} type="Choices" />
+      <ToggleIsRequired id={b?.id!} type="Choices" />
       <Label className={cn("", className)}>
         Multiple Selection
         <Switch
@@ -1089,7 +1084,7 @@ export const EmailSettings: FC<{}> = () => {
 
   return (
     <div className="w-full flex flex-col gap-3">
-      <ToggleIsRequired id={b?.email.id!} type="Email" />
+      <ToggleIsRequired id={b?.id!} type="Email" />
       <Label className="w-full flex items-center justify-between">
         Check Email
         <Switch
@@ -1493,7 +1488,7 @@ export const DropDownSettings: FC<{}> = () => {
 
   return (
     <div className="flex flex-col gap-3">
-      <ToggleIsRequired id={b?.dropdown?.id!} type="DropDown" />
+      <ToggleIsRequired id={b?.id!} type="DropDown" />
       <Label className="flex items-center justify-between w-full">
         Allow Multiple Selection
         <Switch

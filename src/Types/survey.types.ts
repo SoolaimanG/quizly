@@ -31,6 +31,8 @@ export interface SurveyWorkSpaceState {
   survey?: ISurvey;
   auto_save_ui_props: AutoSaveUi;
   surveyDesign: ISurveyDesign | null;
+  surveySettings: ISurveySettings | null;
+  surveyLogics: ICustomLogicConditions[];
 }
 
 export interface SurveyWorkSpaceAction {
@@ -45,6 +47,25 @@ export interface SurveyWorkSpaceAction {
   setSurveyBlocks: (props: ISurveyBlocks[]) => void;
   setAutoSaveUiProps: (props: AutoSaveUi) => void;
   setSurveyDesign: (props: ISurveyDesign) => void;
+  setSurveySettings: (props: ISurveySettings) => void;
+  addSurveyLogics: (props: ICustomLogicConditions) => void;
+  removeSurveyLogic: (id: string) => void;
+  editSurveyLogic: (prop: Partial<ICustomLogicConditions>, id: string) => void;
+  addAllLogics: (props: ICustomLogicConditions[]) => void;
+}
+
+export interface ISurveySettings {
+  close_date: Date | null;
+  close_message: string | null;
+  free_form_navigation: boolean;
+  id: number;
+  response_limit: number;
+  schedule_close_date: boolean;
+  set_close_message: boolean;
+  set_response_limit: boolean;
+  show_progress_bar: boolean;
+  show_question_number: boolean;
+  survey: string;
 }
 
 export type BlockToolProps =
@@ -301,11 +322,19 @@ export type ISurveyFont =
   | "FUTURA"
   | "JOSEFIN_SANS"
   | "TIMES_NEW_ROMAN"
-  | "HELVETIA"
+  | "HELVETICA"
   | "GARAMOND";
 
 export type sizeVariant = "SMALL" | "MEDIUM" | "LARGE";
 export type colorVariant = "GREEN" | "BLUE" | "YELLOW";
+export type background_pattern =
+  | "pattern-uvskajs"
+  | "pattern-euukzq"
+  | "pattern-ydfyai"
+  | "pattern-ahwmak"
+  | "pattern-arywav"
+  | "pattern-arraaj"
+  | "Non";
 
 export interface ISurveyDesign {
   id: string;
@@ -317,6 +346,27 @@ export interface ISurveyDesign {
   button: colorVariant;
   questions: colorVariant;
   button_text: colorVariant & "WHITE";
+  background_color: colorVariant & "WHITE";
+  background_pattern: background_pattern;
 }
 
 export type workSpaceAction = "ADD" | "DUPLICATE";
+
+export type operatorTypes =
+  | "eq"
+  | "ne"
+  | "gt"
+  | "lt"
+  | "includes"
+  | "not_include";
+export type endFunction = "goto" | "disable_btn";
+
+export interface ICustomLogicConditions {
+  id: string;
+  field: string;
+  operator: operatorTypes;
+  value: string | number;
+  endFunction: endFunction;
+  endValue: string;
+  fallBack: string;
+}

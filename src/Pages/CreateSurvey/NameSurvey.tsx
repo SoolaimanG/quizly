@@ -23,6 +23,7 @@ import { toast } from "../../components/use-toaster";
 import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
 import { Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 const _data: combo_box_type<formType>[] = [
   {
@@ -59,6 +60,7 @@ export const NameSurvey: FC<{
   const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
   const survey = new SurveyWorkSpace(s?.id ?? "");
+  const query = useQueryClient();
 
   const qs = queryString.parse(location.search) as { id: string };
 
@@ -71,6 +73,7 @@ export const NameSurvey: FC<{
         survey_type,
       });
       const params = `?id=${qs.id}&opend=false`;
+      await query.invalidateQueries({ queryKey: ["survey", qs.id] });
       navigate(params);
     } catch (error) {
       toast({

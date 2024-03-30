@@ -36,7 +36,8 @@ export type featureWaitListProps =
   | "IMAGE_FILTER"
   | "AI_HELP"
   | "QuestionGroup"
-  | "Time";
+  | "Time"
+  | "SET_RESPONSE_LIMIT";
 
 export const ComingSoon: FC<{
   props: Omit<
@@ -96,17 +97,17 @@ export const ComingSoon: FC<{
     <Dialog open={isVisible} onOpenChange={(e) => setIsVisible(e)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{featureName}</DialogTitle>
+          <DialogTitle className="text-green-500">{featureName}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="w-full h-full flex items-center gap-3">
           {joinWaitList ? (
             <div className="flex flex-col gap-2 w-full">
-              <div className="w-full h-full flex items-center gap-3">
+              <div className="flex -space-x-1 overflow-hidden">
                 {images.map((imageUrl, index) => (
                   <div
                     className={cn(
-                      "w-[2.5rem] h-[2.5rem] rounded-full bg-green-100 flex justify-start -space-x-1.5"
+                      "inline-block h-[2.5rem] w-[2.5rem] rounded-full bg-green-50"
                     )}
                     key={index}
                   >
@@ -133,7 +134,7 @@ export const ComingSoon: FC<{
             </div>
           )}
         </div>
-        <DialogFooter>
+        <DialogFooter className="gap-2">
           <DialogClose asChild>
             <Button variant="outline" size="sm">
               Close

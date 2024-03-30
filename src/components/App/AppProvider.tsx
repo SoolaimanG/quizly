@@ -10,14 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../AlertModal";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "../Sheet";
 import Login from "../../Pages/Login";
 import { Button } from "../Button";
 import { X } from "lucide-react";
@@ -28,6 +20,15 @@ import { useQuery } from "@tanstack/react-query";
 import { getUser } from "../../Functions/APIqueries";
 import { IUser } from "../../Types/components.types";
 import { ComingSoon } from "./ComingSoon";
+import { CompleteSignUp } from "./CompleteSignUp";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "../Drawer";
 
 const content = Object.freeze({
   description:
@@ -65,6 +66,7 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     queryFn: () => getUser(),
   });
 
+  // This toggle dark modes and light mode.
   useEffect(() => {
     if (
       window.matchMedia("(prefers-color-scheme: dark)").matches ||
@@ -102,13 +104,15 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </AlertDialogContent>
       </AlertDialog>
     ) : (
-      <Sheet
+      <Drawer
+        direction="bottom"
+        shouldScaleBackground
         onOpenChange={() => setLoginAttempt({ attempt: !loginAttempt.attempt })}
         open={loginAttempt.attempt}
       >
-        <SheetContent className="py-6" side="bottom">
-          <SheetHeader>
-            <SheetClose>
+        <DrawerContent className="py-6">
+          <DrawerHeader>
+            <DrawerClose>
               <Hint
                 element={
                   <Button
@@ -121,8 +125,8 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 }
                 content="Close"
               />
-            </SheetClose>
-          </SheetHeader>
+            </DrawerClose>
+          </DrawerHeader>
           <Login
             fallback={loginAttempt.fallback}
             title="First things first login!"
@@ -132,8 +136,8 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             }
             isPopup
           />
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
     );
 
   const verify_email_pop =
@@ -158,12 +162,12 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </AlertDialogContent>
       </AlertDialog>
     ) : (
-      <Sheet>
-        <SheetContent className="py-6" side="bottom">
-          <SheetHeader className="flex flex-col gap-2">
-            <SheetTitle>{content.header}</SheetTitle>
-            <SheetDescription>{content.description}</SheetDescription>
-            <SheetClose>
+      <Drawer>
+        <DrawerContent className="py-6">
+          <DrawerHeader className="flex flex-col gap-2">
+            <DrawerTitle>{content.header}</DrawerTitle>
+            <DrawerDescription>{content.description}</DrawerDescription>
+            <DrawerClose>
               <Hint
                 element={
                   <Button
@@ -176,17 +180,21 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 }
                 content="Close"
               />
-            </SheetClose>
-          </SheetHeader>
+            </DrawerClose>
+          </DrawerHeader>
           <VerifyEmail show_input user_email={user?.email as string} />
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
     );
 
   return (
     <React.Fragment>
       {authPopup}
+
+      {/* A modal to tell users to verify their email address */}
       {verify_email_pop}
+
+      {/* A modal for coming soon features */}
       {isVisible && (
         <ComingSoon
           props={{
@@ -200,6 +208,10 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           }}
         />
       )}
+
+      {/* A Modal for users to complete their sign-up process */}
+      <CompleteSignUp />
+
       {children}
     </React.Fragment>
   );

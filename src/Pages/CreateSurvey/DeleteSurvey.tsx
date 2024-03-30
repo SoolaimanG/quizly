@@ -17,14 +17,24 @@ import { toast } from "../../components/use-toaster";
 import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
+import { cn } from "../../lib/utils";
 
 export const DeleteSurvey: FC<{
   children: ReactElement;
   id: string;
   participants: number;
   name: string;
-}> = ({ participants, children, id, name: survey_name }) => {
-  const survey = new SurveyWorkSpace();
+  className?: string;
+  onDelete?: () => void;
+}> = ({
+  participants,
+  children,
+  id,
+  name: survey_name,
+  className,
+  onDelete,
+}) => {
+  const survey = new SurveyWorkSpace(id);
   const [isDeleting, startDelete] = useTransition();
   const [name, setName] = useState("");
   const query = useQueryClient();
@@ -45,6 +55,7 @@ export const DeleteSurvey: FC<{
         title: "Success",
         description: name + " Deleted successfully",
       });
+      onDelete && onDelete();
     } catch (error) {
       toast({
         title: "Error",
@@ -58,7 +69,9 @@ export const DeleteSurvey: FC<{
 
   return (
     <AlertDialog>
-      <AlertDialogTrigger className="w-full">{children}</AlertDialogTrigger>
+      <AlertDialogTrigger className={cn("w-full", className)}>
+        {children}
+      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="text-red-500">

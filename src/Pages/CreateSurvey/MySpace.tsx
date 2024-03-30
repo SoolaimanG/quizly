@@ -35,7 +35,7 @@ export const MySpace: FC<{ className?: string }> = ({ className }) => {
   return (
     <motion.div
       animate={{ width: "100%" }}
-      className={cn("h-screen w-full relative", className)}
+      className={cn("h-screen w-full -mt-8 relative", className)}
     >
       <div className="md:max-w-3xl w-full h-full flex items-center justify-center m-auto">
         {deviceView === "desktop" ? <Desktop /> : <Mobile />}

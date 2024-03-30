@@ -2,6 +2,7 @@ import {
   BlockToolProps,
   ChoiceOption,
   DropDownOptions,
+  ICustomLogicConditions,
   PictureChoiceImages,
   formType,
   workSpaceAction,
@@ -102,15 +103,11 @@ export class SurveyWorkSpace {
     );
     return response.data;
   }
-  async removeBlock(
-    survey_id: string,
-    block_id: string,
-    block_type: BlockToolProps
-  ) {
+  async removeBlock(block_id: string, block_type: BlockToolProps) {
     const params = queryString.stringify({
       block_id,
       block_type,
-      survey_id,
+      survey_id: this.survey_id,
     });
     const response = await api.delete(
       this.survey_workspace + "/block-actions/?" + params,
@@ -386,6 +383,67 @@ export class SurveyWorkSpace {
           Authorization: "Bearer " + this.access_token,
         },
       }
+    );
+
+    return response.data;
+  }
+  async editSurveySettings(id: number, payload: {}) {
+    const response = await api.patch(
+      this.survey_workspace + "/edit-survey-settings/" + this.survey_id + "/",
+      {
+        id,
+        ...payload,
+      },
+      {
+        headers: {
+          Authorization: "Bearer " + this.access_token,
+        },
+      }
+    );
+
+    return response.data;
+  }
+  async addLastUsedBlock(block_type: BlockToolProps) {
+    const response = await api.post(
+      this.survey_workspace + `/used-block/${this.survey_id}/`,
+      {
+        block_type,
+      },
+      {
+        headers: {
+          Authorization: "Bearer " + this.access_token,
+        },
+      }
+    );
+
+    return response.data;
+  }
+  async getLastUsedBlocks() {
+    const response = await api.get(
+      this.survey_workspace + `/used-block/${this.survey_id}/`,
+      {
+        headers: {
+          Authorization: "Bearer " + this.access_token,
+        },
+      }
+    );
+
+    return response.data;
+  }
+  async saveLogics(logics: ICustomLogicConditions[]) {
+    const response = await api.post(
+      this.survey_workspace + `/survey-logics/${this.survey_id}/`,
+      { logics },
+      { headers: { Authorization: "Bearer " + this.access_token } }
+    );
+
+    return response.data;
+  }
+  async deleteLogics(id: string) {
+    const params = `?id=${id}`;
+    const response = await api.delete(
+      this.survey_workspace + `/survey-logics/${this.survey_id}/${params}`,
+      { headers: { Authorization: "Bearer " + this.access_token } }
     );
 
     return response.data;

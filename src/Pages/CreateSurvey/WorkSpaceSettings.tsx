@@ -19,8 +19,9 @@ import {
 } from "./AllSurveySettings";
 import EmptyState from "../../components/App/EmptyState";
 
-export const WorkSpaceSettings: FC<{ className?: string }> = ({
+export const WorkSpaceSettings: FC<{ className?: string; width?: string }> = ({
   className,
+  width,
 }) => {
   const {
     collapseSideBar: { sideBarTwo },
@@ -31,7 +32,7 @@ export const WorkSpaceSettings: FC<{ className?: string }> = ({
       {!sideBarTwo && (
         <motion.div
           initial={{ opacity: 0, width: "0%" }}
-          animate={{ opacity: 1, width: "35%" }}
+          animate={{ opacity: 1, width: width || "35%" }}
           exit={{ opacity: 0, width: "0%" }}
           className={cn(
             "dark:bg-slate-950 bg-white h-full p-2 overflow-auto w-full",
@@ -44,11 +45,12 @@ export const WorkSpaceSettings: FC<{ className?: string }> = ({
               <TabsTrigger value="design">Design</TabsTrigger>
               <TabsTrigger value="logics">Logics</TabsTrigger>
               <TabsTrigger value="settings">
-                <SettingsIcon size={15} />
+                <SettingsIcon className="hidden md:block" size={15} />
+                <p className="md:hidden block">Settings</p>
               </TabsTrigger>
             </TabsList>
             {survey_blocks?.length ? (
-              <div className="">
+              <div className="h-full">
                 <TabsContent value="questions">
                   <SurveyQuestions />
                 </TabsContent>

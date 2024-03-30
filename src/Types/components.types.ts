@@ -76,6 +76,11 @@ export interface Zstate {
   loginAttempt: { fallback: string; attempt: boolean; note?: string };
   emailVerificationRequired: boolean;
   user: IUser | null | undefined;
+  openSettings: boolean;
+  openOnboardingModal: {
+    open: boolean;
+    fallbackUrl: string;
+  };
 }
 
 export interface Zaction {
@@ -91,6 +96,11 @@ export interface Zaction {
   }) => void;
   setUser: (prop: IUser | null) => void;
   setEmailVerificationRequired: (props: boolean) => void;
+  setOpenOnboardingModal: (prop: {
+    open: boolean;
+    fallbackUrl: string;
+  }) => void;
+  setOpenSettings: (prop: boolean) => void;
 }
 
 //Glassmorphism Props
@@ -109,6 +119,7 @@ export interface rating_props {
   rating_length?: number;
   size?: number;
   onRatingSelect: (i: number) => void;
+  color?: string;
   setRating?: React.Dispatch<SetStateAction<number>>;
 }
 
