@@ -47,9 +47,6 @@ export const Block: FC<{ mode: mode }> = ({ mode }) => {
   const { survey_blocks, surveyDesign } = useSurveyWorkSpace();
   const blocks = useGetCurrentBlock();
 
-  // const _ = block ? new MicroFunctions(data) : null;
-  // const showLabel = _?.show_label || "";ba
-
   const backgroundImage = backgroundPatterns.find(
     (bp) => bp.id === surveyDesign?.background_pattern
   );
@@ -99,7 +96,7 @@ export const Block: FC<{ mode: mode }> = ({ mode }) => {
     <Card
       style={backgroundStyles}
       className={cn(
-        "p-0 w-full h-full",
+        "p-0 w-full h-[25rem] overflow-auto",
         allStyles.border_radius[surveyDesign?.border_radius ?? "MEDIUM"],
         allStyles.font_family[surveyDesign?.font_family ?? "SYSTEM"],
         allStyles.background_color[surveyDesign?.background_color ?? "WHITE"]

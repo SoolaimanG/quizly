@@ -1,3 +1,5 @@
+import { NavigateFunction } from "react-router-dom";
+
 export type formType =
   | "contact"
   | "registration"
@@ -97,6 +99,7 @@ export interface ISurvey {
   host: string;
   show_number_of_submissions: boolean;
   show_time_to_complete: boolean;
+  submission_time: number;
 }
 
 export interface WelcomeScreenBlock {
@@ -369,4 +372,16 @@ export interface ICustomLogicConditions {
   endFunction: endFunction;
   endValue: string;
   fallBack: string;
+}
+
+export interface surveyNavigationProps {
+  action: "prev" | "next";
+  setAction: (prop: "prev" | "next") => void;
+  navigate: (
+    navigate: NavigateFunction,
+    currentIndex: number,
+    id: string,
+    blockList: string[],
+    action: "prev" | "next"
+  ) => void;
 }

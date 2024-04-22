@@ -16,7 +16,7 @@ import {
 } from "../../Types/survey.types";
 import { Input, InputProps } from "../../components/Input";
 import { useGetCurrentBlock } from "../../Hooks/useSurvey";
-import { useSurveyWorkSpace } from "../../provider";
+import { useSurveyNavigation, useSurveyWorkSpace } from "../../provider";
 import { cn } from "../../lib/utils";
 import {
   AsteriskIcon,
@@ -37,19 +37,22 @@ import { InstagramIcon } from "../../assets/InstagramIcon";
 import { TwitterIcon } from "../../assets/TwitterIcon";
 import { FaceBookIcon } from "../../assets/FaceBookIcon";
 import { WhatsAppIcon } from "../../assets/WhatsAppIcon";
-import PhoneInput from "react-phone-number-input";
+import PhoneInput1, { isValidPhoneNumber } from "react-phone-number-input";
 import flags from "react-phone-number-input/flags";
 import { E164Number } from "libphonenumber-js/core";
 import "react-phone-number-input/style.css";
 import {
   errorMessageForToast,
   generateUUID,
+  getSurveyAnswer,
   imageEdittingStyles,
+  saveAnswerForSurvey,
   shuffleArray,
+  surveyResponseTypes,
 } from "../../Functions";
 import { AxiosError } from "axios";
 import { SurveyWorkSpace } from "../../Functions/surveyApis";
-import { useDebounce } from "@uidotdev/usehooks";
+import { useDebounce, useLocalStorage } from "@uidotdev/usehooks";
 import { Textarea } from "../../components/TextArea";
 import { DatePicker } from "../../components/DatePicker";
 import { useText } from "../../Hooks/text";
@@ -65,7 +68,11 @@ import {
 } from "../../components/DialogModal";
 import { GripVerticalIcon } from "lucide-react";
 import { DropDownComponent } from "../../components/App/DropDown";
-import { app_config, uploaderProps } from "../../Types/components.types";
+import {
+  app_config,
+  localStorageKeys,
+  uploaderProps,
+} from "../../Types/components.types";
 import ImageUploader from "../../components/App/ImageUploader";
 import { Img } from "react-image";
 import { X } from "lucide-react";
@@ -78,9 +85,12 @@ import {
 import DOMPurify from "dompurify";
 import { allStyles } from "../../constant";
 import { Reorder } from "framer-motion";
-import { all } from "mathjs";
+import { useLocation, useNavigate } from "react-router-dom";
+import queryString from "query-string";
+import { toast } from "../../components/use-toaster";
+import { useRegex } from "../../Hooks/regex";
 
-export type mode = "DEVELOPMENT" | "PRODUCTION";
+export type mode = "DEVELOPMENT" | "PRODUCTION" | "PREVIEW";
 
 export const SurveyInput = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
@@ -102,12 +112,60 @@ export const SurveyInput = React.forwardRef<HTMLInputElement, InputProps>(
 // Contacts
 export const EmailBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
+  const surveyId = useSurveyWorkSpace()?.survey?.id ?? "";
+  const { emailVerifier } = useRegex();
+  const [userResponse, setUserResponse] = useState("");
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
+
+  const onOKClick = () => {
+    if (b?.is_required && !userResponse) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    if (b?.email?.check_email && !emailVerifier(userResponse)) {
+      return toast({
+        title: "Error",
+        description: "Please use a valid email address before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.id ?? "",
+      [userResponse],
+      surveyId,
+      responses,
+      setResponses
+    );
+  };
+
+  useEffect(() => {
+    if (!b && mode === "DEVELOPMENT") {
+      return;
+    }
+
+    const userResponse = getSurveyAnswer(b?.id ?? "");
+
+    setUserResponse(userResponse?.response[0] ?? "");
+  }, [b]);
 
   return (
     <div className="w-full flex flex-col gap-2">
       <SurveyQuestions question={b?.question!} label={b?.label!} mode={mode} />
-      <SurveyInput placeholder="name@email.com" />
-      <SurveyOKButton onClick={() => {}} />
+      <SurveyInput
+        value={userResponse}
+        onChange={(e) => setUserResponse(e.target.value)}
+        placeholder="name@email.com"
+      />
+      <SurveyOKButton mode={mode} onClick={onOKClick} />
     </div>
   );
 };
@@ -115,6 +173,51 @@ export const EmailBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
 export const PhoneNumberBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
   const [value, setValue] = useState<E164Number>();
+  const surveyId = useSurveyWorkSpace()?.survey?.id ?? "";
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
+
+  const onOKClick = () => {
+    if (b?.is_required && !value) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    if (
+      b?.phone_number?.check_number &&
+      !isValidPhoneNumber(value?.toString() ?? "")
+    ) {
+      return toast({
+        title: "Error",
+        description: "Please use a valid phone-number before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.id ?? "",
+      [value?.toString() ?? ""],
+      surveyId,
+      responses,
+      setResponses
+    );
+  };
+
+  useEffect(() => {
+    if (!b && mode === "DEVELOPMENT") {
+      return;
+    }
+
+    const userResponse = getSurveyAnswer(b?.id ?? "");
+
+    setValue(userResponse?.response[0] ?? "");
+  }, [b]);
 
   return (
     <div className="w-full flex flex-col gap-2">
@@ -127,7 +230,7 @@ export const PhoneNumberBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
         flags={flags}
         className="p-1 w-full border-x-0 border-t-0 border-b-[1.5px] border-b-green-300 mt-4 hover:border-b-green-500"
       />
-      <SurveyOKButton onClick={() => {}} />
+      <SurveyOKButton mode={mode} onClick={onOKClick} />
     </div>
   );
 };
@@ -135,16 +238,54 @@ export const PhoneNumberBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
 // Input Group
 export const LongTextBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
+  const surveyId = useSurveyWorkSpace()?.survey?.id ?? "";
+  const [userResponse, setUserResponse] = useState("");
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
+
+  const onOKClick = () => {
+    if (b?.is_required && !userResponse) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.id ?? "",
+      [userResponse],
+      surveyId,
+      responses,
+      setResponses
+    );
+  };
+
+  useEffect(() => {
+    if (!b && mode === "DEVELOPMENT") {
+      return;
+    }
+
+    const userResponse = getSurveyAnswer(b?.id ?? "");
+
+    setUserResponse(userResponse?.response[0] ?? "");
+  }, [b]);
+
   return (
     <div className="w-full flex flex-col">
       <SurveyQuestions mode={mode} question={b?.question!} label={b?.label!} />
       <Textarea
+        onChange={(e) => setUserResponse(e.target.value)}
+        value={userResponse}
         maxLength={b?.long_text.max_character}
         placeholder={b?.long_text.place_holder ?? "Type a placeholder here.."}
         className="mt-2 placeholder:italic resize-none min-h-0 flex w-full rounded-none border-b-green-300 focus:border-b-green-500 border-t-0 border-x-0 bg-background px-1 py-0 text-sm ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0 placeholder:text-xl focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
       />
       <Description text="Click Enter to break line and click the OK button to submit." />
-      <SurveyOKButton onClick={() => {}} />
+      <SurveyOKButton mode={mode} onClick={onOKClick} />
     </div>
   );
 };
@@ -153,34 +294,113 @@ export const ShortTextBlockStlye: FC<{
   mode: mode;
 }> = ({ mode }) => {
   const b = useGetCurrentBlock();
+  const surveyId = useSurveyWorkSpace()?.survey?.id ?? "";
+  const [userResponse, setUserResponse] = useState("");
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
+
+  const onOKClick = () => {
+    if (b?.is_required && !userResponse) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.id ?? "",
+      [userResponse],
+      surveyId,
+      responses,
+      setResponses
+    );
+  };
+
+  useEffect(() => {
+    if (!b && mode === "DEVELOPMENT") {
+      return;
+    }
+
+    const userResponse = getSurveyAnswer(b?.id ?? "");
+
+    setUserResponse(userResponse?.response[0] ?? "");
+  }, [b]);
 
   return (
     <div className="flex flex-col w-full items-start justify-start gap-1">
       <SurveyQuestions question={b?.question!} label={b?.label!} mode={mode} />
       <SurveyInput
         placeholder={b?.short_text?.place_holder ?? "Enter your data"}
-        value={""}
+        value={userResponse}
+        onChange={(e) => setUserResponse(e.target.value)}
         maxLength={b?.short_text?.max_character}
       />
-      <SurveyOKButton onClick={() => {}} />
+      <SurveyOKButton mode={mode} onClick={onOKClick} />
     </div>
   );
 };
 
 export const NumberBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
+  const surveyID = useSurveyWorkSpace()?.survey?.id ?? "";
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
+
+  const [userResponse, setUserResponse] = useState(0);
+
+  useEffect(() => {
+    if (!b && mode !== "PRODUCTION") {
+      return;
+    }
+
+    const userResponse = getSurveyAnswer(b?.id + "");
+
+    setUserResponse(
+      typeof Number(userResponse?.response[0]) === "number"
+        ? Number(userResponse?.response[0])
+        : 0
+    );
+  }, [b]);
 
   return (
     <div className="w-full flex flex-col gap-2">
       <SurveyQuestions question={b?.question!} label={b?.label!} mode={mode} />
       <SurveyInput
-        min={b?.number.min as number}
-        max={b?.number.max as number}
+        value={userResponse}
+        onChange={(e) => setUserResponse(e.target.valueAsNumber)}
+        min={b?.number?.min as number}
+        max={b?.number?.max as number}
         disabled={mode === "DEVELOPMENT"}
         placeholder="Enter a number."
         type="number"
       />
-      <SurveyOKButton onClick={() => {}} />
+      <SurveyOKButton
+        mode={mode}
+        onClick={() => {
+          if (b?.is_required && Boolean(userResponse)) {
+            return toast({
+              title: "Error",
+              description:
+                "This question is required, therefore it has to be answered before proceeding.",
+              variant: "destructive",
+            });
+          }
+
+          saveAnswerForSurvey(
+            b?.id ?? "",
+            [userResponse + ""],
+            surveyID,
+            responses,
+            setResponses
+          );
+        }}
+      />
     </div>
   );
 };
@@ -188,6 +408,7 @@ export const NumberBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
 // Media Group
 export const PictureBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
+  const [userResponse, setUserResponse] = useState<string[]>([]);
   /* The above code snippet is using TypeScript with React. It is destructuring values from the
   `useSurveyWorkSpace` hook, including `survey`, `survey_blocks`, `setSurveyBlocks`,
   `setAutoSaveUiProps`, and `surveyDesign`. These values are likely being used to manage and
@@ -200,8 +421,17 @@ export const PictureBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
     surveyDesign,
   } = useSurveyWorkSpace();
   const action = new SurveyWorkSpace(survey?.id ?? "");
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
 
+  // This is for the development
   const handleAddImage = async () => {
+    if (mode === "PREVIEW") {
+      return;
+    }
+
     /* The above code snippet is performing the following tasks: */
     const newImage: PictureChoiceImages = {
       id: generateUUID(),
@@ -288,6 +518,47 @@ export const PictureBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
     }
   };
 
+  // This is for production
+  const _ = (imageID: string) => {
+    const image = userResponse?.find((id) => id === imageID);
+
+    if (image) {
+      setUserResponse((prev) => prev.filter((id) => id !== imageID));
+      return;
+    }
+    setUserResponse((prev) =>
+      b?.picture_choice?.multiple_selection ? [...prev, imageID] : [imageID]
+    );
+  };
+
+  const onOKClick = () => {
+    if (b?.is_required && !Boolean(userResponse.length)) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.id ?? "",
+      userResponse,
+      survey?.id ?? "",
+      responses,
+      setResponses
+    );
+  };
+
+  useEffect(() => {
+    if (!b && mode !== "DEVELOPMENT") {
+      return;
+    }
+
+    const userResponse = getSurveyAnswer(b?.id + "");
+    setUserResponse(userResponse?.response ?? []);
+  }, [b]);
+
   const addImageButton = (
     <div
       title="Add A New Choice"
@@ -302,27 +573,31 @@ export const PictureBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
   );
 
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div className="flex flex-col gap-2 w-full justify-center h-full">
       <SurveyQuestions mode={mode} label={b?.label!} question={b?.question!} />
       <div
         className={cn(
-          "grid w-full gap-2",
-          b?.picture_choice.super_size ? "grid-cols-2" : "grid-cols-4"
+          "grid w-full gap-2 h-[50%] overflow-auto",
+          b?.picture_choice?.super_size
+            ? "md:grid-cols-2 grid-cols-1"
+            : "md:grid-cols-4 grid-cols-2"
         )}
       >
-        {b?.picture_choice.images.length
-          ? b?.picture_choice.images.map((image, i) => (
-              <PictureViews
-                key={image.id}
-                pictures={image}
-                index={i}
-                mode={mode}
-              />
+        {b?.picture_choice?.images?.length
+          ? b?.picture_choice?.images?.map((image, i) => (
+              <div className="" onClick={() => _(image.id)} key={image.id}>
+                <PictureViews
+                  isSelected={userResponse.includes(image.id)}
+                  pictures={image}
+                  index={i}
+                  mode={mode}
+                />
+              </div>
             ))
           : ""}
         {mode === "DEVELOPMENT" && addImageButton}
       </div>
-      <SurveyOKButton onClick={() => {}} />
+      <SurveyOKButton mode={mode} onClick={onOKClick} />
     </div>
   );
 };
@@ -340,24 +615,30 @@ export const DropdownBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
     surveyDesign,
   } = useSurveyWorkSpace();
   const action = new SurveyWorkSpace(survey?.id ?? "");
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
+  const [userResponse, setUserResponse] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!b?.dropdown.options.length) {
+    if (!b?.dropdown?.options) {
       // setDropDownOptions(b?.dropdown.options)
       return;
     }
 
     setDropDownOptions(b.dropdown.options);
     setValue(b.dropdown.options.map((option) => option.body).join(","));
+    setUserResponse(getSurveyAnswer(b?.id)?.response ?? []);
 
     return () => {
       setDropDownOptions([]);
       setValue("");
     };
-  }, [b?.dropdown.options]);
+  }, [b?.dropdown?.options]);
 
   useEffect(() => {
-    if (!b?.dropdown.alphabetically) {
+    if (!b?.dropdown?.alphabetically) {
       return;
     }
 
@@ -376,7 +657,7 @@ export const DropdownBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
     }));
 
     setDropDownOptions(data);
-  }, [b?.dropdown.alphabetically]);
+  }, [b?.dropdown?.alphabetically]);
 
   const convertOptionsToArray = async () => {
     const option = value.split(/[,.]/);
@@ -434,13 +715,14 @@ export const DropdownBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
     <div className="w-full flex flex-col gap-2">
       <SurveyQuestions question={b?.question!} label={b?.label!} mode={mode} />
       <DropDownComponent
-        dropDownStyle={allStyles.border[surveyDesign?.button ?? "GREEN"]}
-        allowMultipleSelection={b?.dropdown.multiple_selection}
+        allowMultipleSelection={b?.dropdown?.multiple_selection}
         placeHolder="Select your choice."
-        className="w-[400px]"
+        className="w-[400px] h-[4rem]"
         extraClassName="w-[350px] h-[10rem]"
         dropDownOptions={dropDownOptions.map((option) => option.body)}
-        dropDownHeader="Select options"
+        color={surveyDesign?.button}
+        list={userResponse}
+        setList={setUserResponse}
       />
       {mode === "DEVELOPMENT" && (
         <AddOptions
@@ -448,16 +730,36 @@ export const DropdownBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
           value={value}
           setValue={setValue}
           header="Add DropDown Options"
-          description="Start to add all the options you want the user to choose from seperate your options with Comma(,) or Period(.)."
+          description="Start to add all the options you want the user to choose from separate your options with Comma(,) or Period(.)."
           convertToOptions={convertOptionsToArray}
-          choices={b?.dropdown.options.map((option) => option.body)}
+          choices={b?.dropdown?.options.map((option) => option.body)}
         >
-          <Button className="p-0" variant="link">
+          <Button className="p-0 text-gray-400" variant="link">
             Add Dropdown Options
           </Button>
         </AddOptions>
       )}
-      <SurveyOKButton onClick={() => {}} />
+      <SurveyOKButton
+        mode={mode}
+        onClick={() => {
+          if (b?.is_required && !Boolean(userResponse?.length)) {
+            return toast({
+              title: "Error",
+              description:
+                "This question is required, therefore it has to be answered before proceeding.",
+              variant: "destructive",
+            });
+          }
+
+          saveAnswerForSurvey(
+            b?.id ?? "",
+            userResponse,
+            survey?.id ?? "",
+            responses,
+            setResponses
+          );
+        }}
+      />
     </div>
   );
 };
@@ -473,13 +775,31 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   } = useSurveyWorkSpace();
   const action = new SurveyWorkSpace(survey?.id ?? "");
   const { getLetter } = useText();
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
 
   const [value, setValue] = useState("");
+
+  const [userSelection, setUserSelection] = useState<string[]>([]);
 
   const buttonClass = "flex justify-start";
   const [userChoice, setUserChoice] = useState<ChoiceOption[]>([]);
 
-  // console.log(surveyDesign);
+  const handleChoiceSelection = (e: string) => {
+    if (mode === "DEVELOPMENT") {
+      return;
+    }
+
+    if (userSelection.includes(e)) {
+      setUserSelection((prev) => prev.filter((r) => r !== e));
+    } else {
+      setUserSelection((prev) =>
+        b?.choices?.multiple_selection ? [...prev, e] : [e]
+      );
+    }
+  };
 
   useEffect(() => {
     const choicesPlaceholder: ChoiceOption[] = [
@@ -516,15 +836,15 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
     ];
 
     setUserChoice(
-      b?.choices.options ?? mode === "DEVELOPMENT" ? choicesPlaceholder : []
+      b?.choices?.options.length && mode === "DEVELOPMENT"
+        ? b.choices.options
+        : choicesPlaceholder
     );
-
-    return () => setUserChoice([]);
-  }, [b]);
+  }, [b?.choices?.options]);
 
   // This handles the shuffling of the list
   useEffect(() => {
-    if (!b?.choices.randomize) {
+    if (!b?.choices?.randomize) {
       setUserChoice(b?.choices?.options as ChoiceOption[]);
       return;
     }
@@ -534,17 +854,23 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
     setUserChoice(randomChoice);
 
     return () => setUserChoice([]);
-  }, [b?.choices.randomize]);
+  }, [b?.choices?.randomize]);
 
   useEffect(() => {
-    if (!b?.choices.options.length) {
+    if (!b?.choices?.options?.length) {
       return;
     }
 
     setValue(b.choices.options.map((option) => option.option).join(","));
 
+    const responses = getSurveyAnswer(b?.id ?? "");
+
+    if (responses) {
+      setUserSelection(responses.response);
+    }
+
     return () => setValue("");
-  }, [b?.choices.options]);
+  }, [b?.choices?.options]);
 
   // Convert the option user types to an array.
   const convertOptionsToArray = async () => {
@@ -615,6 +941,7 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       });
     }
   };
+
   const choicesOptions = (
     <Reorder.Group
       onReorder={() => {}}
@@ -622,7 +949,7 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       axis="y"
       className={cn(
         "flex flex-col gap-2 w-full",
-        b?.choices.vertical_alignment ? "flex-row flex-wrap" : "flex-col"
+        b?.choices?.vertical_alignment ? "flex-row flex-wrap" : "flex-col"
       )}
     >
       {userChoice?.map((d, i) => (
@@ -655,13 +982,11 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
               className="absolute right-1 hidden group-hover:block transition-all ease-linear cursor-move"
             />
           </Button>
-          {mode === "DEVELOPMENT" && (
-            <Trash2Icon
-              onClick={() => deleteOption(d.id)}
-              className=" hidden text-red-400 cursor-pointer hover:text-red-600 group-hover:block"
-              size={17}
-            />
-          )}
+          <Trash2Icon
+            onClick={() => deleteOption(d.id)}
+            className=" hidden text-red-400 cursor-pointer hover:text-red-600 group-hover:block"
+            size={17}
+          />
         </Reorder.Item>
       ))}
     </Reorder.Group>
@@ -670,7 +995,36 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   return (
     <div className="flex flex-col gap-2 w-full">
       <SurveyQuestions mode={mode} question={b?.question!} label={b?.label!} />
-      {choicesOptions}
+      {mode === "DEVELOPMENT"
+        ? choicesOptions
+        : userChoice?.map((choice, i) => (
+            <Button
+              key={i}
+              variant="outline"
+              onClick={() => handleChoiceSelection(choice.option)}
+              className={cn(
+                "flex items-center gap-2 md:w-1/2 w-full p-0 px-[2px] relative transition-all ease-in delay-75",
+                buttonClass,
+                allStyles.border[surveyDesign?.button ?? "GREEN"],
+                userSelection.includes(choice.option) &&
+                  allStyles.light_background_color[
+                    surveyDesign?.button ?? "GREEN"
+                  ]
+              )}
+            >
+              <Button
+                className={cn(
+                  "",
+                  allStyles.button[surveyDesign?.button ?? "GREEN"],
+                  allStyles.button_text[surveyDesign?.button_text ?? "WHITE"]
+                )}
+                size="sm"
+              >
+                {getLetter(i)}
+              </Button>
+              {choice.option}
+            </Button>
+          ))}
       {mode === "DEVELOPMENT" && (
         <AddOptions
           convertToOptions={convertOptionsToArray}
@@ -679,12 +1033,32 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
           value={value}
           setValue={setValue}
         >
-          <Button className="p-0" variant="link">
+          <Button className="p-0 text-gray-400" variant="link">
             Add Choices
           </Button>
         </AddOptions>
       )}
-      <SurveyOKButton onClick={() => {}} />
+      <SurveyOKButton
+        mode={mode}
+        onClick={() => {
+          if (b?.is_required && !Boolean(userSelection.length)) {
+            return toast({
+              title: "Error",
+              description:
+                "This question is required, therefore it has to be answered before proceeding.",
+              variant: "destructive",
+            });
+          }
+
+          saveAnswerForSurvey(
+            b?.id ?? "",
+            userSelection,
+            survey?.id ?? "",
+            responses,
+            setResponses
+          );
+        }}
+      />
     </div>
   );
 };
@@ -693,23 +1067,65 @@ export const RatingsBlockStyle: FC<{
   mode: mode;
 }> = ({ mode }) => {
   const b = useGetCurrentBlock();
-  const { surveyDesign } = useSurveyWorkSpace();
+  const { surveyDesign, survey } = useSurveyWorkSpace();
+  const [rating, setRating] = useState<number>(0);
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
 
-  const handleSelectRating = (_: number) => {};
+  const handleSelectRating = (rate: number) => {
+    setRating(rate);
+  };
+
+  useEffect(() => {
+    if (!b && mode !== "PRODUCTION") {
+      return;
+    }
+
+    const userResponse = getSurveyAnswer(b?.id + "");
+
+    setRating(
+      typeof Number(userResponse?.response[0]) === "number"
+        ? Number(userResponse?.response[0])
+        : 0
+    );
+  }, [b]);
 
   return (
-    <div>
+    <div className="flex flex-col gap-2">
       <SurveyQuestions question={b?.question!} label={b?.label!} mode={mode} />
       <div>
         <Rating
           onRatingSelect={handleSelectRating}
           rating_length={b?.ratings?.ratings_length}
           className="mt-3"
-          rating={8}
+          rating={rating}
           size={30}
-          color={allStyles.button_style[surveyDesign?.button ?? "GREEN"]}
+          color={surveyDesign?.button ?? "GREEN"}
         />
       </div>
+      <SurveyOKButton
+        mode={mode}
+        onClick={() => {
+          if (b?.is_required && !Boolean(rating)) {
+            return toast({
+              title: "Error",
+              description:
+                "This question is required, therefore it has to be answered before proceeding.",
+              variant: "destructive",
+            });
+          }
+
+          saveAnswerForSurvey(
+            b?.id ?? "",
+            [rating + ""],
+            survey?.id ?? "",
+            responses,
+            setResponses
+          );
+        }}
+      />
     </div>
   );
 };
@@ -720,6 +1136,42 @@ export const YesNoBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
 
   const buttons = ["YES", "NO"];
 
+  const surveyId = useSurveyWorkSpace()?.survey?.id ?? "";
+  const [userResponse, setUserResponse] = useState("");
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
+
+  const onOKClick = () => {
+    if (b?.is_required && !userResponse) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.id ?? "",
+      [userResponse],
+      surveyId,
+      responses,
+      setResponses
+    );
+  };
+
+  useEffect(() => {
+    if (!b && mode === "DEVELOPMENT") {
+      return;
+    }
+
+    const userResponse = getSurveyAnswer(b?.id ?? "");
+
+    setUserResponse(userResponse?.response[0] ?? "");
+  }, [b]);
+
   return (
     <div className="flex flex-col gap-1 w-full">
       <SurveyQuestions question={b?.question!} label={b?.label!} mode={mode} />
@@ -727,9 +1179,14 @@ export const YesNoBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
         {buttons.map((button, index) => (
           <Button
             key={index}
+            onClick={() => setUserResponse(button)}
             className={cn(
               "w-full rounded-sm flex items-start justify-start",
-              allStyles.button[surveyDesign?.button ?? "GREEN"],
+              userResponse === button
+                ? allStyles?.dark_background_color[
+                    surveyDesign?.button ?? "GREEN"
+                  ]
+                : allStyles.button[surveyDesign?.button ?? "GREEN"],
               allStyles.button_text[surveyDesign?.button_text ?? "WHITE"]
             )}
             variant="outline"
@@ -738,7 +1195,7 @@ export const YesNoBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
           </Button>
         ))}
       </div>
-      <SurveyOKButton onClick={() => {}} />
+      <SurveyOKButton mode={mode} onClick={onOKClick} />
     </div>
   );
 };
@@ -746,17 +1203,44 @@ export const YesNoBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
 // Date Group
 export const DateBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
+  const { surveyDesign, survey } = useSurveyWorkSpace();
   const [date, setDate] = useState<Date>();
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
+
+  useEffect(() => {
+    if (!b) {
+      return;
+    }
+
+    const userResponse = getSurveyAnswer(b?.date?.id + "" ?? "");
+
+    setDate(userResponse ? new Date(userResponse.response[0]) : undefined);
+  }, [b]);
+
   return (
     <div className="flex w-full flex-col gap-2">
       <SurveyQuestions mode={mode} question={b?.question!} label={b?.label!} />
       <DatePicker
-        format={b?.date.format ?? "PPP"}
+        format={b?.date?.format ?? "PPP"}
         date={date}
         setDate={setDate}
-        className="border-green-400 hover:bg-green-100"
+        className={cn(allStyles.border[surveyDesign?.color ?? "GREEN"])}
       />
-      <SurveyOKButton onClick={() => {}} />
+      <SurveyOKButton
+        mode={mode}
+        onClick={() =>
+          saveAnswerForSurvey(
+            b?.date?.id + "",
+            [date?.toUTCString() ?? ""],
+            survey?.id ?? "",
+            responses,
+            setResponses
+          )
+        }
+      />
     </div>
   );
 };
@@ -768,7 +1252,7 @@ export const TimeBlockStyle: FC<{}> = () => {
 // End Screen
 export const EndScreenBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
-  const { surveyDesign } = useSurveyWorkSpace();
+  const { surveyDesign, survey, setAutoSaveUiProps } = useSurveyWorkSpace();
   const socialMediaIcons: Record<socialMediaTypes, any> = {
     email: <MailIcon size={35} />,
     facebook: <FaceBookIcon size={35} />,
@@ -777,18 +1261,69 @@ export const EndScreenBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
     twitter: <TwitterIcon size={35} />,
     whatsapp: <WhatsAppIcon size={35} />,
   };
+  const [endScreenHeader, setEndScreenHeader] = useState("");
+  const delayEndScreenHeader = useDebounce(endScreenHeader, 3000);
 
-  // const handleEndScreenHeaderChange = (_: Editor) => {};
+  const action = new SurveyWorkSpace(survey?.id ?? "");
+
+  useEffect(() => {
+    if (
+      b?.end_screen.message === delayEndScreenHeader ||
+      !delayEndScreenHeader
+    ) {
+      return;
+    }
+
+    const handleChange = async () => {
+      try {
+        setAutoSaveUiProps({
+          is_visible: true,
+          message: "Saving your progress please wait...",
+          status: "loading",
+        });
+        await action.modifyBlock(b?.end_screen.id ?? "", "EndScreen", {
+          message: delayEndScreenHeader,
+        });
+        setAutoSaveUiProps({
+          is_visible: true,
+          message: app_config.AppName + " has auto-save your progress.",
+          status: "success",
+        });
+      } catch (error) {
+        setAutoSaveUiProps({
+          is_visible: true,
+          message: errorMessageForToast(
+            error as AxiosError<{ message: string }>
+          ),
+          status: "failed",
+        });
+      }
+    };
+
+    handleChange();
+  }, [delayEndScreenHeader]);
+
+  useEffect(() => {
+    if (!b?.end_screen) {
+      return;
+    }
+
+    const { message } = b.end_screen;
+    setEndScreenHeader(message);
+
+    return () => setEndScreenHeader("");
+  }, [b?.end_screen]);
 
   return (
     <div className="w-full flex items-center justify-center flex-col gap-3">
       {mode === "DEVELOPMENT" ? (
         <Input
-          value={b?.end_screen.message}
+          value={endScreenHeader}
+          onChange={(e) => setEndScreenHeader(e.target.value)}
           className="flex w-full text-center bg-transparent flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
         />
       ) : (
-        <h1>{b?.end_screen.message}</h1>
+        <h1>{b?.end_screen?.message}</h1>
       )}
 
       <div className="w-full flex items-center gap-2 justify-center">
@@ -822,11 +1357,16 @@ export const WelcomeScreenBlockStyle: FC<{
   mode: mode;
 }> = ({ mode }) => {
   const b = useGetCurrentBlock();
-  const { survey, surveyDesign, setAutoSaveUiProps } = useSurveyWorkSpace();
+  const { survey, surveyDesign, setAutoSaveUiProps, survey_blocks } =
+    useSurveyWorkSpace();
+  const navigate = useNavigate();
+  const { navigate: n } = useSurveyNavigation();
   const action = new SurveyWorkSpace(survey?.id ?? "");
   const [header, setHeader] = useState("");
 
   const delayHeader = useDebounce(header, 3000);
+  const blockList = survey_blocks?.map((sb) => sb.id);
+  const currentIndex = blockList?.indexOf(b?.id ?? "");
 
   useEffect(() => {
     if (!b?.welcome_screen) {
@@ -839,7 +1379,7 @@ export const WelcomeScreenBlockStyle: FC<{
   }, [b?.welcome_screen]);
 
   useEffect(() => {
-    if (b?.welcome_screen.message === delayHeader || !delayHeader) {
+    if (b?.welcome_screen?.message === delayHeader || !delayHeader) {
       return;
     }
 
@@ -872,6 +1412,10 @@ export const WelcomeScreenBlockStyle: FC<{
     handleChange();
   }, [delayHeader]);
 
+  const handleStartSurvey = () => {
+    n(navigate, currentIndex ?? 0, survey?.id || "", blockList || [], "next");
+  };
+
   return (
     <div
       className={cn(
@@ -886,10 +1430,11 @@ export const WelcomeScreenBlockStyle: FC<{
           className="flex w-full text-center flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 bg-transparent ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
         />
       ) : (
-        b?.welcome_screen.message && <h1>{b?.welcome_screen.message}</h1>
+        b?.welcome_screen?.message && <h1>{b?.welcome_screen?.message}</h1>
       )}
       {b?.welcome_screen?.custom_html && (
         <div
+          className="text-center"
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(b?.welcome_screen?.custom_html),
           }}
@@ -898,6 +1443,7 @@ export const WelcomeScreenBlockStyle: FC<{
       {b?.welcome_screen?.have_continue_button && (
         <Button
           disabled={mode === "DEVELOPMENT"}
+          onClick={handleStartSurvey}
           className={cn(
             "rounded-sm mt-2",
             allStyles.button[surveyDesign?.button ?? "GREEN"]
@@ -912,7 +1458,8 @@ export const WelcomeScreenBlockStyle: FC<{
           <div className="flex items-center gap-1">
             <Clock10Icon size={12} />
             <p className="text-[12px]">
-              Takes {mode === "DEVELOPMENT" ? "X" : "1"} minutes
+              Takes {mode === "DEVELOPMENT" ? "X" : survey?.submission_time}{" "}
+              minutes
             </p>
           </div>
         )}
@@ -930,32 +1477,43 @@ export const WelcomeScreenBlockStyle: FC<{
 // Other Groups
 export const RedirectURLBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
+  const { surveyDesign } = useSurveyWorkSpace();
   return (
     <div className="flex flex-col gap-3 items-center w-full">
-      <h1>{b?.redirect_with_url.message ?? "Redirect With URL"}</h1>
-      {b?.redirect_with_url.custom_html && (
+      <h1>{b?.redirect_with_url?.message ?? "Redirect With URL"}</h1>
+      {b?.redirect_with_url?.custom_html && (
         <div
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(
-              b?.redirect_with_url.custom_html as string,
+              b?.redirect_with_url?.custom_html as string,
               { USE_PROFILES: { html: true } }
             ),
           }}
         />
       )}
-      {b?.redirect_with_url.click_option && (
-        <Button disabled={mode === "DEVELOPMENT"} variant="base" size="sm">
+      {b?.redirect_with_url?.click_option && (
+        <Button
+          disabled={mode === "DEVELOPMENT"}
+          className={cn(
+            allStyles.button[surveyDesign?.button ?? "GREEN"],
+            "text-white"
+          )}
+          size="sm"
+        >
           {b.redirect_with_url?.button_text}
         </Button>
       )}
     </div>
   );
 };
+
 export const QuestionGroupBlockStyle: FC<{}> = () => {
   return <div>Redirect</div>;
 };
+
 export const WebsiteBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
+  const { surveyDesign } = useSurveyWorkSpace();
   return (
     <div className="flex flex-col gap-2 w-full">
       <SurveyQuestions
@@ -965,10 +1523,13 @@ export const WebsiteBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       />
       <Input
         disabled={mode === "DEVELOPMENT"}
-        className="flex h-10 w-full rounded-none border-b-green-300 focus:border-b-green-500 border-t-0 border-x-0 bg-background px-1 py-2 text-sm ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0  focus-visible:ring-ring placeholder:text-lg focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+        className={cn(
+          "flex h-10 w-full rounded-none border-t-0 border-x-0 bg-background px-1 py-2 text-sm ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0  focus-visible:ring-ring placeholder:text-lg focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50",
+          allStyles.border[surveyDesign?.color ?? "GREEN"]
+        )}
         placeholder="http://"
       />
-      <SurveyOKButton onClick={() => {}} />
+      <SurveyOKButton mode={mode} onClick={() => {}} />
     </div>
   );
 };
@@ -978,6 +1539,7 @@ export const PictureViews: FC<{
   pictures: PictureChoiceImages;
   className?: string;
   index: number;
+  isSelected?: boolean;
 }> = ({
   mode,
   pictures: {
@@ -999,6 +1561,7 @@ export const PictureViews: FC<{
   },
   className,
   index,
+  isSelected,
 }) => {
   const { getLetter } = useText();
   const {
@@ -1036,6 +1599,8 @@ export const PictureViews: FC<{
       y: 1,
     },
   });
+
+  console.log(isSelected);
 
   const handleRemoveImage = async () => {
     setAutoSaveUiProps({
@@ -1391,14 +1956,17 @@ export const PictureViews: FC<{
   const imageView: Record<mode, any> = {
     DEVELOPMENT,
     PRODUCTION,
+    PREVIEW: PRODUCTION,
   };
 
   return (
     <div
       className={cn(
-        "h-[10rem] w-full flex flex-col gap-1 border group relative cursor-pointer rounded-sm p-1",
+        "h-[10rem] w-full flex flex-col gap-1 border group relative cursor-pointer rounded-sm p-2",
         className,
-        allStyles.light_background_color[surveyDesign?.button ?? "GREEN"]
+        isSelected
+          ? allStyles.dark_background_color[surveyDesign?.button ?? "GREEN"]
+          : allStyles.light_background_color[surveyDesign?.button ?? "GREEN"]
       )}
     >
       <div className="h-[85%] w-full rounded-sm">{imageView[mode]}</div>
@@ -1471,7 +2039,7 @@ export const SurveyQuestions: FC<{
   };
 
   const delayHeaderChange = useDebounce(b?.question, 3000);
-  const delayLabelChange = useDebounce(b?.question, 3000);
+  const delayLabelChange = useDebounce(b?.label, 3000);
 
   useEffect(() => {
     if (!b) return;
@@ -1541,7 +2109,7 @@ export const SurveyQuestions: FC<{
             className="flex w-full flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 bg-transparent ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
           />
         ) : (
-          question && <h1>{question}</h1>
+          question && <h1 className="break-words">{question}</h1>
         )}
       </div>
       {mode === "DEVELOPMENT" ? (
@@ -1559,11 +2127,52 @@ export const SurveyQuestions: FC<{
   );
 };
 
-export const SurveyOKButton: FC<{ onClick: () => void }> = ({}) => {
-  const { surveyDesign } = useSurveyWorkSpace();
+export const SurveyOKButton: FC<{ onClick: () => void; mode: mode }> = ({
+  mode,
+  onClick,
+}) => {
+  const { surveyDesign, survey_blocks, survey } = useSurveyWorkSpace();
+  const { navigate: surveyNavigator } = useSurveyNavigation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const b = useGetCurrentBlock();
+
+  const qs = queryString.parse(location.search, { parseBooleans: true }) as {
+    block: string;
+  };
+
+  const blockList = survey_blocks?.map((block) => block.id) ?? [];
+  const currentIndex = blockList.indexOf(qs.block ?? "");
+
+  const handleClick = () => {
+    onClick();
+
+    if (mode === "DEVELOPMENT") {
+      return;
+    }
+
+    if (b?.is_required && !getSurveyAnswer(b?.id + "")?.response.length) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    // After everything
+    surveyNavigator(
+      navigate,
+      currentIndex,
+      survey?.id ?? "",
+      blockList,
+      "next"
+    );
+  };
 
   return (
     <Button
+      onClick={handleClick}
       className={cn(
         "h-7 px-3 w-fit flex items-center gap-1 rounded-sm",
         allStyles.button[surveyDesign?.button ?? "GREEN"],

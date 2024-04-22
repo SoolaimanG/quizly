@@ -6,6 +6,7 @@ import PatternFive from "../assets/PatternFive.svg";
 import PatternSix from "../assets/PatternSix.svg";
 import PatternSeven from "../assets/PatternSeven.svg";
 import { background_pattern } from "../Types/survey.types";
+import { integratedApps } from "../Functions/surveyApis";
 
 export const allStyles = {
   font_size: {
@@ -104,4 +105,16 @@ export const backgroundPatterns: { id: background_pattern; image: string }[] = [
     id: "Non",
     image: PatternSeven,
   },
+];
+
+export const apps: integratedApps[] = ["google_drive", "excel"];
+
+export const appAccess = [
+  "Admin Console",
+  "User Accounts",
+  "Permissions",
+  "Storage Allocation",
+  "Security",
+  "Collaboration Tools",
+  "Mobile Access",
 ];

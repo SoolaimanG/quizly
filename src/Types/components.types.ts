@@ -2,6 +2,7 @@ import { Editor } from "@tiptap/react";
 import { Variants } from "framer-motion";
 import React, { RefObject, SetStateAction } from "react";
 import { featureWaitListProps } from "../components/App/ComingSoon";
+import { mode } from "../Pages/CreateSurvey/AllSurveyBlocks";
 
 //Combo-Box Type
 export interface combo_box_type<T> {
@@ -119,7 +120,7 @@ export interface rating_props {
   rating_length?: number;
   size?: number;
   onRatingSelect: (i: number) => void;
-  color?: string;
+  color?: "GREEN" | "YELLOW" | "BLUE";
   setRating?: React.Dispatch<SetStateAction<number>>;
 }
 
@@ -324,9 +325,13 @@ export enum app_config {
   my_communities = "/quizly/my-communities/",
   community = "/quizly/community/",
   survey_workspace = "/quizly/survey/create/",
-  connect_survey = "/quizly/survey/connect/",
-  share_survey = "/quizly/survey/share/",
+  connect_survey = "/quizly/survey/create/",
+  share_survey = "/quizly/survey/share/#share",
   survey_result = "/quizly/survey/result/",
+  connect_apps = "/quizly/connected-apps/",
+  preview_survey = "/quizly/survey/preview/",
+  survey = "/survey/",
+  surveyUserID = "surveyUserId",
 }
 
 export type onboardingProps =
@@ -414,6 +419,7 @@ export enum localStorageKeys {
   anonymous_id = "anonymousID",
   questions_answered = "questionsAnswered",
   questionUUIDs = "questionuuids",
+  surveyResponses = "surveyResponses",
 }
 
 export interface questionAnsweredProps {
@@ -600,4 +606,32 @@ export interface comingSoonProps {
   setJoinWaitList: (prop: boolean) => void;
   setIsVisible: (prop: boolean) => void;
   setType: (prop: featureWaitListProps) => void;
+}
+
+export type publishDetails = {
+  surveyLink: string;
+  publishDate: string;
+  isFirstPublish: boolean;
+};
+
+export interface publicationTypes {
+  openPublishModal: boolean;
+  recipients: string;
+  isLoading: boolean;
+  error: string | null;
+  isSuccess: boolean;
+  publishDetails: publishDetails | null;
+
+  // Actions Here
+  setOpenPublishModal: (prop: boolean) => void;
+  setRecipients: (prop: string) => void;
+  setPublishDetails: (props: publishDetails) => void;
+  setIsSuccess: (prop: boolean) => void;
+  onClick: (
+    prop: "quiz" | "survey",
+    id: string,
+    password: string,
+    mode: mode,
+    recipients?: string[]
+  ) => void;
 }

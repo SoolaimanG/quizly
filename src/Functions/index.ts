@@ -2,7 +2,9 @@ import {
   IStudent,
   ITeacher,
   IUser,
+  app_config,
   emailJSParams,
+  localStorageKeys,
 } from "../Types/components.types";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
@@ -10,7 +12,10 @@ import { toast } from "../components/use-toaster";
 import { v4 as uuidV4 } from "uuid";
 import { SurveyWorkSpace } from "./surveyApis";
 import { AutoSaveUi, BlockToolProps } from "../Types/survey.types";
-import { CSSProperties } from "react";
+import { CSSProperties, SetStateAction } from "react";
+import queryString from "query-string";
+import { NavigateFunction } from "react-router-dom";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 export const sendEmailToDeveloper = async ({
   firstName,
@@ -374,4 +379,87 @@ export const imageEdittingStyles = ({
   };
 
   return style;
+};
+
+export const setBlockIdInURL = (
+  id: string,
+  blockID: string,
+  navigate: NavigateFunction,
+  opend?: boolean
+) => {
+  const qs = queryString.stringify({
+    id,
+    block: blockID,
+    opend,
+  });
+
+  navigate(`?${qs}`);
+};
+
+export const createSurveyUserId = () => {
+  const user_id = Cookies.get(app_config.surveyUserID);
+
+  const new_user_id = generateUUID();
+
+  if (!user_id) {
+    Cookies.set(app_config.surveyUserID, new_user_id);
+    return new_user_id;
+  }
+
+  return user_id;
+};
+
+export type surveyResponseTypes = {
+  response: string[];
+  survey: string;
+  block: string;
+};
+
+export const saveAnswerForSurvey = async (
+  block: string,
+  response: string[],
+  survey: string,
+  responses: surveyResponseTypes[],
+  setResponses: React.Dispatch<SetStateAction<surveyResponseTypes[]>>
+) => {
+  try {
+    const findResponse = responses?.find((res) => res.block === block);
+
+    if (findResponse) {
+      const modifiedResponses = responses?.map((res) => {
+        return res.block === block
+          ? { ...res, block, survey, response }
+          : { ...res };
+      });
+      setResponses(modifiedResponses);
+      return;
+    }
+
+    console.log("Passed");
+
+    const payload: surveyResponseTypes = {
+      block,
+      response,
+      survey,
+    };
+
+    setResponses([...responses, payload]);
+
+    // Check if user has answered the question
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: String(error),
+      variant: "destructive",
+    });
+  }
+};
+
+export const getSurveyAnswer = (block: string) => {
+  const responses = localStorage.getItem(localStorageKeys.surveyResponses);
+  const parseData = JSON.parse(responses || "[]") as surveyResponseTypes[];
+
+  const response = parseData.find((res) => res.block === block);
+
+  return response;
 };

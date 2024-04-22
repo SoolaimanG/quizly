@@ -16,6 +16,8 @@ import CommunityLayout from "./Pages/Community/CommunityPages/CommunityLayout";
 import Quizzes from "./Pages/Quizzes/Quizzes";
 import Create from "./Pages/CreateSurvey/Create";
 import WorkSpace from "./Pages/CreateSurvey/WorkSpace";
+import ConnectingApps from "./Pages/IntegratedApps/connectingApps";
+import PreviewSurvey from "./Pages/CreateSurvey/PreviewSurvey";
 
 function App() {
   const { setIsDarkMode } = useZStore();
@@ -38,7 +40,7 @@ function App() {
       <Routes>
         <Route path={app_config.landing_page} element={<LandingPage />} />
 
-        {/* COMMMUNITIES */}
+        {/*-------------- COMMMUNITIES */}
         <Route
           path={app_config.community + ":id"}
           element={<CommunityLayout path="Home" />}
@@ -65,7 +67,7 @@ function App() {
         />
         <Route path={app_config.quizzes} element={<Quizzes />} />
 
-        {/* AUTHENTICATIONS */}
+        {/*------------ AUTHENTICATIONS */}
         <Route
           path={app_config.confrimEmail + ":token"}
           element={<AuthLayout path="ConfirmEmail" />}
@@ -84,11 +86,11 @@ function App() {
           path={app_config.onboarding_page}
         />
 
-        {/* QUIZZES */}
+        {/*-------------- QUIZZES */}
         <Route path={app_config.explore_page} element={<Explore />} />
         <Route path={app_config.quiz + ":id"} element={<Quiz />} />
 
-        {/* CREATE SURVEYS */}
+        {/*-------------- CREATE SURVEYS */}
         <Route
           element={<ProtectedRoute element={<Create />} />}
           path={app_config.create_survey}
@@ -96,6 +98,26 @@ function App() {
         <Route
           element={<ProtectedRoute element={<WorkSpace />} />}
           path={app_config.survey_workspace}
+        />
+        <Route
+          element={<ProtectedRoute element={<WorkSpace />} />}
+          path={app_config.survey_workspace}
+        />
+        <Route
+          element={<ProtectedRoute element={<ConnectingApps />} />}
+          path={app_config.connect_apps}
+        />
+        <Route
+          element={
+            <ProtectedRoute element={<PreviewSurvey mode="PREVIEW" />} />
+          }
+          path={app_config.preview_survey + ":id"}
+        />
+        <Route
+          element={
+            <ProtectedRoute element={<PreviewSurvey mode="PRODUCTION" />} />
+          }
+          path={app_config.survey + ":id"}
         />
       </Routes>
     </AppProvider>

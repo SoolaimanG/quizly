@@ -21,6 +21,7 @@ import { Card, CardContent } from "../../components/Card";
 import Footer from "../Comps/Footer";
 import { AxiosError } from "axios";
 import { Img } from "react-image";
+import { useDocumentTitle } from "@uidotdev/usehooks";
 
 const content = Object.freeze({
   subHeader: "Prepared to tackle exciting challenges?",
@@ -39,6 +40,8 @@ const Explore = () => {
   const { user } = useZStore();
   const { isAuthenticated } = useAuthentication();
 
+  useDocumentTitle(app_config.AppName + " | Explore");
+
   const { isLoading, data, error } = useQuery<{ data: ICategory[] }>({
     queryKey: ["subject_category", isAuthenticated],
     queryFn: fetchCategory,
@@ -55,8 +58,6 @@ const Explore = () => {
   const handleSearch = (q: string) => {
     console.log(q);
   };
-
-  console.log(quizList.data);
 
   useEffect(() => {
     quizList.data && setQuizzes(quizList.data?.data);

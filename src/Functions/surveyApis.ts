@@ -1,3 +1,4 @@
+import { AxiosRequestConfig } from "axios";
 import {
   BlockToolProps,
   ChoiceOption,
@@ -10,6 +11,10 @@ import {
 import { api } from "./api";
 import Cookies from "js-cookie";
 import queryString from "query-string";
+import { mode } from "../Pages/CreateSurvey/AllSurveyBlocks";
+import { publishDetails } from "../Types/components.types";
+
+export type integratedApps = "google_drive" | "excel";
 
 export class SurveyWorkSpace {
   survey_id: string;
@@ -68,9 +73,13 @@ export class SurveyWorkSpace {
 
     return response.data;
   }
-  async get_survey_details(id: string) {
+  async get_survey_details(id: string, user_id?: string) {
     const response = await api.get(
-      this.survey_workspace + "/survey-blocks/" + id + "/",
+      this.survey_workspace +
+        "/survey-blocks/" +
+        id +
+        "/?surveyUserId=" +
+        user_id,
       {
         headers: {
           Authorization: "Bearer " + this.access_token,
@@ -331,6 +340,7 @@ export class SurveyWorkSpace {
   }) {
     const formData = new FormData();
     formData.append("block_id", block_id);
+    formData.append("survey_id", this.survey_id);
     formData.append("block_type", block_type);
     formData.append("id", id);
     formData.append("url", url);
@@ -447,5 +457,43 @@ export class SurveyWorkSpace {
     );
 
     return response.data;
+  }
+
+  async publishSurvey(password: string, mode: mode, recipients?: string[]) {
+    const response = await api.post(
+      this.survey_workspace + "/publish-survey/" + this.survey_id + "/",
+      {
+        password,
+        mode,
+        recipients,
+      },
+      {
+        headers: {
+          Authorization: "Bearer " + this.access_token,
+        },
+      }
+    );
+    const res: publishDetails = response.data;
+    return res;
+  }
+}
+
+export class ConnectApps {
+  survey_workspace = "/api/v1/surveys";
+  access_token = Cookies.get("access_token") ?? "";
+
+  async connect_app(type: integratedApps) {
+    const config: AxiosRequestConfig<{}> = {
+      headers: {
+        Authorization: "Bearer " + this.access_token,
+      },
+    };
+
+    const response = api.post(
+      this.survey_workspace + "/connect-apps/" + type + "/",
+      {},
+      { ...config }
+    );
+    return (await response).data;
   }
 }

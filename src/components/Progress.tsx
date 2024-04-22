@@ -8,7 +8,7 @@ const Progress = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & {
     bgColor?: string;
   }
->(({ className, value, bgColor, ...props }, ref) => (
+>(({ className, value, bgColor, max, ...props }, ref) => (
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
@@ -19,7 +19,9 @@ const Progress = React.forwardRef<
   >
     <ProgressPrimitive.Indicator
       className={cn("h-full w-full flex-1 bg-primary transition-all", bgColor)}
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+      style={{
+        transform: `translateX(-${100 - (Number(value) / Number(max)) * 100}%)`,
+      }}
     />
   </ProgressPrimitive.Root>
 ));

@@ -89,6 +89,7 @@ import {
 } from "../../components/Drawer";
 import EmptyState from "../../components/App/EmptyState";
 import Image from "../../assets/logicBlocks.svg";
+import { toast } from "../../components/use-toaster";
 
 const _data: combo_box_type<BlockToolProps>[] = [
   {
@@ -317,7 +318,6 @@ export const SurveyQuestions: FC<{}> = () => {
       </div>
       <hr className="mt-2 w-full" />
       <div className="mt-3">
-        <h1>Settings</h1>
         <Views className="mt-5" />
       </div>
     </div>
@@ -1107,6 +1107,7 @@ export const SurveySettings: FC<{}> = () => {
     setSurvey,
   } = useSurveyWorkSpace();
   const [date, setDate] = useState<Date | undefined>();
+  const [password, setPassword] = useState("");
   const action = new SurveyWorkSpace(survey?.id ?? "");
   const [surveyName, setSurveyName] = useState("");
   const delaySurveyName = useDebounce(surveyName, 3000);
@@ -1140,6 +1141,57 @@ export const SurveySettings: FC<{}> = () => {
       type: "set_close_message",
     },
   ];
+  const [isCopied, setIsCopied] = useState(false);
+
+  const surveyPath = import.meta.env.VITE_QUIZLY_HOST + "/survey/" + survey?.id;
+
+  const handleCopy = () => {
+    if (survey?.status === "DEVELOPMENT") {
+      return;
+    }
+
+    navigator.clipboard.writeText(surveyPath).then(() => {
+      setIsCopied(true);
+      toast({
+        title: "Success",
+        description: "Your link has been copied",
+      });
+    });
+  };
+
+  const changeSurveyStatus = async () => {
+    if (!password) {
+      return setAutoSaveUiProps({
+        is_visible: true,
+        message: "Input your password before changing the survey status.",
+        status: "failed",
+      });
+    }
+
+    if (survey?.status === "DEVELOPMENT") {
+      return setAutoSaveUiProps({
+        is_visible: true,
+        message: "This survey is already in DEVELOPMENT",
+        status: "failed",
+      });
+    }
+
+    try {
+      await action.publishSurvey(password, "DEVELOPMENT");
+      survey && setSurvey({ ...survey, status: "DEVELOPMENT" });
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: survey?.name + " status has been changed.",
+        status: "success",
+      });
+    } catch (error) {
+      setAutoSaveUiProps({
+        is_visible: true,
+        message: errorMessageForToast(error as AxiosError<{ message: string }>),
+        status: "failed",
+      });
+    }
+  };
 
   const handleSave = async () => {
     const payload: Partial<ISurveySettings> = {
@@ -1336,7 +1388,7 @@ export const SurveySettings: FC<{}> = () => {
     return () => setSurveyName("");
   }, [survey]);
   return (
-    <div className="mt-5 flex flex-col gap-5 w-full">
+    <div className="mt-5 pb-16 flex flex-col gap-5 w-full">
       <Dialog>
         <DialogTrigger className="w-full flex items-center justify-between">
           <h1 className="hover:text-green-500">Access & Schedule</h1>
@@ -1442,11 +1494,33 @@ export const SurveySettings: FC<{}> = () => {
         />
       </div>
       <Input
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
+        type="password"
+        className="h-[3rem]"
+      />
+      <div className="w-full flex items-center justify-between">
+        <Label>Back To DEVELOPMENT</Label>
+        <Switch
+          checked={survey?.status === "PRODUCTION"}
+          onCheckedChange={changeSurveyStatus}
+        />
+      </div>
+      <Input
         value={surveyName}
         onChange={(e) => setSurveyName(e.target.value)}
         placeholder="Change Survey Name"
         className="w-full h-[3rem]"
       />
+      <Button
+        disabled={survey?.status === "DEVELOPMENT"}
+        onClick={handleCopy}
+        variant="base"
+        className="w-full h-[3rem]"
+      >
+        {isCopied ? "Link Copied" : "Copy Survey Link"}
+      </Button>
       <DeleteSurvey
         className="w-full"
         participants={survey?.response_count ?? 0}

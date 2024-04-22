@@ -169,3 +169,8 @@ html {
   font-style: normal;
   font-variation-settings: "slnt" 0;
 }
+
+/* --------->Swiper JS<--------- */
+.swiper-pagination-bullet-active {
+  background: #22c55e !important;
+}

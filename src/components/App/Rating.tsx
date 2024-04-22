@@ -8,8 +8,8 @@ const Rating = ({
   className,
   rating_length = 5,
   size = 17,
-  onRatingSelect,
   color,
+  onRatingSelect,
 }: rating_props) => {
   const content = [
     "Terrible",
@@ -44,6 +44,21 @@ const Rating = ({
     "Perfect",
   ];
 
+  const colorCode = {
+    GREEN: {
+      fill: "#22c55e",
+      text: "text-green-500",
+    },
+    BLUE: {
+      fill: "#3b82f6",
+      text: "text-blue-500",
+    },
+    YELLOW: {
+      fill: "#eab308",
+      text: "text-yellow-500",
+    },
+  };
+
   return (
     <div className={cn("flex cursor-pointer items-center gap-1", className)}>
       {Array.from({ length: rating_length }, (_, i) => (
@@ -51,9 +66,10 @@ const Rating = ({
           key={i}
           element={
             <Star
-              onClick={() => onRatingSelect(i)}
+              onClick={() => onRatingSelect(i + 1)}
               size={size}
-              className={cn(i < rating && "text-green-500", color)}
+              className={cn(colorCode[color ?? "GREEN"]?.text)}
+              fill={i < rating ? colorCode[color ?? "GREEN"]?.fill : ""}
             />
           }
           content={content[i]}

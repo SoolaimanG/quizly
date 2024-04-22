@@ -26,7 +26,7 @@ const Logo = ({
         style: {
           italic: "italic font-semibold",
           normal: "text-normal",
-          bold: "",
+          bold: "font-bold",
         },
       },
     }

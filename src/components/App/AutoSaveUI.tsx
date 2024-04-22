@@ -90,7 +90,7 @@ export const AutoSaveUI: FC<{
                     <X />
                   </Button>
                 }
-                content="Cancel your request."
+                content="Close."
               />
             </div>
           </div>

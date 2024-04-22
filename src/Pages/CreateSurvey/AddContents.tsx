@@ -83,10 +83,7 @@ export const AddContents: FC<{ className?: string }> = ({ className }) => {
           initial={{ opacity: 0, width: "0%" }}
           animate={{ opacity: 1, width: "35%" }}
           exit={{ opacity: 0, width: "0%" }}
-          className={cn(
-            "dark:bg-slate-950 bg-white p-2 h-screen overflow-auto",
-            className
-          )}
+          className={cn("dark:bg-slate-950 bg-white p-2 h-full", className)}
         >
           <header className="flex items-center border-gray-100 pb-2 dark:border-slate-700 border-b justify-between">
             <Description text="Add Content" className="text-lg" />
@@ -102,7 +99,7 @@ export const AddContents: FC<{ className?: string }> = ({ className }) => {
             </OpenAddBlocksModal>
           </header>
           {survey_blocks?.length ? (
-            <section className="w-full flex mt-5 flex-col gap-2">
+            <section className="w-full h-full overflow-auto flex mt-5 flex-col gap-2">
               {survey_blocks?.map((block, index) => {
                 const sub_block = {
                   Choices: block.choices,

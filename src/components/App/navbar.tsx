@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { motion } from "framer-motion";
-import Darkmode from "../Darkmode";
+import { DarkMode } from "../Darkmode";
 import { Link } from "react-router-dom";
 import { useAuthentication } from "../../Hooks";
 import { useZStore } from "../../provider";
@@ -76,7 +76,7 @@ const Navbar = () => {
       </Link>
       {navbar_link_render}
       <div className="flex items-center gap-2">
-        <Darkmode />
+        <DarkMode />
         <Link to={isAuthenticated ? "quizly/profile" : app_config.login_page}>
           {!isAuthenticated ? (
             <Button
@@ -160,7 +160,7 @@ const Navbar = () => {
             </div>
           </div>
           <div className="flex mt-5 items-center gap-2">
-            <Darkmode />
+            <DarkMode />
             <p>Toggle between light and dark mode</p>
           </div>
         </SheetContent>

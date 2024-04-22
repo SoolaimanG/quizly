@@ -28,7 +28,7 @@ import { ContentTools } from "./ContentTools";
 import { useQuery } from "@tanstack/react-query";
 import PageLoader from "../../components/Loaders/PageLoader";
 import Error from "../Comps/Error";
-import { errorMessageForToast, toggle_modes } from "../../Functions";
+import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
 import { SurveyWorkSpace } from "../../Functions/surveyApis";
 import { useEffect } from "react";
@@ -40,10 +40,7 @@ import {
   ISurveySettings,
 } from "../../Types/survey.types";
 import { useText } from "../../Hooks/text";
-import { useDocumentTitle, useLocalStorage } from "@uidotdev/usehooks";
-import { SunIcon } from "lucide-react";
-import { MoonIcon } from "lucide-react";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { useDocumentTitle } from "@uidotdev/usehooks";
 import { app_config } from "../../Types/components.types";
 import { AutoSaveUI } from "../../components/App/AutoSaveUI";
 import useKeyboardShortcut from "use-keyboard-shortcut";
@@ -57,6 +54,11 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "../../components/Alert";
 import { Block } from "./Block";
 import { BlockNotFound } from "./BlockNotFound";
+import { IntegrateApps } from "../IntegratedApps";
+import { PublishBtn } from "../../components/App/PublishBtn";
+import { SurveyNotFound } from "./SurveyNotFound";
+import { SurveyPublishSuccess } from "./SurveyPublishSuccess";
+import { ShareSurvey } from "./ShareSurvey";
 
 const WorkSpace = () => {
   const location = useLocation();
@@ -85,24 +87,17 @@ const WorkSpace = () => {
   const qs = queryString.parse(location.search, { parseBooleans: true }) as {
     id: string;
     block: string;
+    connect?: boolean;
     opend: boolean;
   };
 
-  const { is_darkmode, setIsDarkMode, setOpenSettings, openSettings } =
-    useZStore();
-  const [theme, saveTheme] = useLocalStorage<"dark" | "light" | null>(
-    "theme",
-    "dark"
-  );
+  const { setOpenSettings, openSettings } = useZStore();
 
   const smallDeviceTools = [
     {
       id: 1,
       display_text: "Back",
-      onClick: () =>
-        navigate(
-          app_config.survey_workspace + `?id=${qs.id}&opend=${qs.opend}`
-        ),
+      onClick: () => navigate(app_config.survey_workspace + `?id=${qs.id}`),
       icon: <ChevronLeft size={17} />,
       variant: "ghost",
     },
@@ -125,7 +120,7 @@ const WorkSpace = () => {
     };
   }>({
     queryKey: ["survey", qs.id],
-    queryFn: () => survey.get_survey_details(qs.id),
+    queryFn: () => survey.get_survey_details(qs?.id),
     enabled: Boolean(qs.id),
   });
 
@@ -182,39 +177,7 @@ const WorkSpace = () => {
     errorMessage.toLowerCase() ===
     "No surveys matches the given query.".toLowerCase()
   )
-    return (
-      <div>
-        <Navbar
-          title="404"
-          middleContent={<></>}
-          lastContent={
-            <div className="flex items-center gap-2">
-              <Button
-                className="rounded-full"
-                onClick={() =>
-                  toggle_modes({ theme, saveTheme, setIsDarkMode })
-                }
-                size="icon"
-                variant="secondary"
-              >
-                {is_darkmode ? <SunIcon size={18} /> : <MoonIcon size={18} />}
-              </Button>
-              <ManageAccount />
-            </div>
-          }
-        />
-        <div className="w-full h-screen flex flex-col gap-3 items-center justify-center">
-          <h1 className="text-4xl text-center">
-            404 - Looks like you are lost.
-          </h1>
-          <Description text="Maybe this page used to exist or you spelled something wrong." />
-          <Description text="Chances are there you spelled something wrong, so you can double check the URL." />
-          <Button asChild className="hover:bg-primary " variant="base">
-            <Link to={app_config.create_survey + "?list=grid"}>Back Home</Link>
-          </Button>
-        </div>
-      </div>
-    );
+    return <SurveyNotFound />;
 
   if (error)
     return (
@@ -226,12 +189,14 @@ const WorkSpace = () => {
     );
 
   return (
-    <div className="bg-gray-50 dark:bg-slate-900 overflow-hidden h-screen w-screen relative">
+    <div className="bg-gray-50 dark:bg-slate-900 pt-10 overflow-hidden h-screen w-screen relative">
+      {/* ------------MODALS----------- */}
+      <SurveyPublishSuccess />
+      <IntegrateApps />
+      <ShareSurvey />
+
       {/* This will be use to open settings on mobile devices */}
       <Drawer open={openSettings} onOpenChange={setOpenSettings}>
-        <DrawerTrigger className="hover:bg-slate-700 mt-2 text-left transition-all ease-linear w-full p-1 rounded-md">
-          Settings
-        </DrawerTrigger>
         <DrawerContent className="w-full h-[30rem]">
           <WorkSpaceSettings width="100%" />
         </DrawerContent>
@@ -274,14 +239,18 @@ const WorkSpace = () => {
                 </PopoverTrigger>
               </Popover>
             </div>
-            <Hint
-              element={<Button variant="base">Publish</Button>}
-              content="Make live"
-            />
+            <PublishBtn extraChildren={<></>} note="" publishComplete>
+              <Hint
+                element={<Button variant="base">Publish</Button>}
+                content="Make live"
+              />
+            </PublishBtn>
             <Hint
               element={
-                <Button variant="secondary" size="icon">
-                  <EyeIcon size={17} />
+                <Button asChild variant="secondary" size="icon">
+                  <Link to={app_config.preview_survey + s?.id}>
+                    <EyeIcon size={17} />
+                  </Link>
                 </Button>
               }
               content="Preview your progress"
@@ -299,7 +268,7 @@ const WorkSpace = () => {
       </div>
       {/* This are component on desktop devices */}
       <div className="w-full h-full flex pt-8 md:pt-0">
-        <AddContents className="h-full pt-[2.7rem] hidden md:block" />
+        <AddContents className="pt-[2.7rem] overflow-y-auto hidden md:block" />
         <MySpace className="md:block hidden p-3" />
         <WorkSpaceSettings className="h-full pt-[2.7rem] hidden md:block" />
 
@@ -362,7 +331,7 @@ const WorkSpace = () => {
                             <Link
                               to={
                                 app_config.survey_workspace +
-                                `?block=${block.id}&id=${qs.id}&opend=${qs.opend}`
+                                `?block=${block.id}&id=${qs.id}`
                               }
                             >
                               View Block

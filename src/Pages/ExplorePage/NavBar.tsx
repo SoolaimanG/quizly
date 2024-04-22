@@ -15,7 +15,7 @@ import { useZStore } from "../../provider";
 import { Link } from "react-router-dom";
 import { PenLine } from "lucide-react";
 import { Lightbulb } from "lucide-react";
-import Darkmode from "../../components/Darkmode";
+import { DarkMode } from "../../components/Darkmode";
 import { Label } from "../../components/Label";
 import { Alert, AlertDescription, AlertTitle } from "../../components/Alert";
 import VerifyEmail from "../../components/App/VerifyEmail";
@@ -125,7 +125,7 @@ const NavBar = ({
                   </Button>
                 ))}
                 <div className="flex items-center gap-1 mt-5">
-                  <Darkmode />{" "}
+                  <DarkMode />{" "}
                   <Label>Toggle between darkmode and light mode.</Label>
                 </div>
               </div>

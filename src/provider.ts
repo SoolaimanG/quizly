@@ -7,12 +7,21 @@ import {
   Zstate,
   app_config,
   comingSoonProps,
+  publicationTypes,
+  publishDetails,
 } from "./Types/components.types";
 import { CommunityStoreProps } from "./Types/community.types";
 import {
   SurveyWorkSpaceAction,
   SurveyWorkSpaceState,
+  surveyNavigationProps,
 } from "./Types/survey.types";
+import { errorMessageForToast, setBlockIdInURL } from "./Functions";
+import { AxiosError } from "axios";
+import { SurveyWorkSpace } from "./Functions/surveyApis";
+import { toast } from "./components/use-toaster";
+import { string } from "mathjs";
+import { useNavigate } from "react-router-dom";
 
 export const useZStore = create<Zstate & Zaction>()((set) => ({
   is_darkmode: false,
@@ -314,5 +323,115 @@ export const useComingSoonProps = create<comingSoonProps>((set) => ({
       ...state,
       type,
     }));
+  },
+}));
+
+export const usePublications = create<publicationTypes>((set) => ({
+  openPublishModal: false,
+  recipients: "",
+  isLoading: false,
+  error: null,
+  isSuccess: false,
+  publishDetails: null,
+  setOpenPublishModal(prop) {
+    set((state) => ({
+      ...state,
+      openPublishModal: prop,
+    }));
+  },
+  setRecipients(prop) {
+    set((state) => ({
+      ...state,
+      recipients: prop,
+    }));
+  },
+  setPublishDetails(props) {
+    set((state) => ({
+      ...state,
+      publishDetails: props,
+    }));
+  },
+  setIsSuccess(prop) {
+    set((state) => ({
+      ...state,
+      isSuccess: prop,
+    }));
+  },
+  // @ts-ignore
+  async onClick(prop, id, password, mode, recipients) {
+    const action = new SurveyWorkSpace(id);
+    try {
+      set((state) => ({
+        ...state,
+        isLoading: true,
+      }));
+
+      let response;
+      if (prop === "survey") {
+        response = await action.publishSurvey(password, mode, recipients);
+        set((state) => ({
+          ...state,
+          isSuccess: true,
+        }));
+      }
+
+      if (prop === "quiz") {
+        // Add logic for quiz
+      }
+
+      set((state) => ({
+        ...state,
+        isLoading: false,
+      }));
+
+      return response as publishDetails;
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: errorMessageForToast(
+          error as AxiosError<{ message: string }>
+        ),
+        variant: "destructive",
+      });
+    } finally {
+      set((state) => ({
+        ...state,
+        isLoading: false,
+      }));
+    }
+  },
+}));
+
+export const useSurveyNavigation = create<surveyNavigationProps>((_) => ({
+  surveyId: "",
+  action: "next",
+  setAction(prop) {
+    _((state) => ({
+      ...state,
+      action: prop,
+    }));
+  },
+  navigate(navigate, currentIndex, id, blockList, action) {
+    if (currentIndex === -1 || typeof currentIndex === "undefined") {
+      return toast({
+        title: "Error",
+        description:
+          "This is where this survey block ends. you can go ahead and submit the survey now.",
+        variant: "destructive",
+      });
+    }
+    // If the current block is the last block don't navigate again
+    if (action === "next" && blockList.length - 1 === currentIndex) {
+      return;
+    }
+
+    const nextBlock =
+      action === "next"
+        ? blockList?.[currentIndex + 1]
+        : action === "prev"
+        ? blockList?.[currentIndex - 1]
+        : "";
+
+    setBlockIdInURL(id, nextBlock ?? "", navigate, false);
   },
 }));
