@@ -1,4 +1,4 @@
-import { FC, SetStateAction, useEffect } from "react";
+import { FC, SetStateAction, useEffect, useState } from "react";
 import { cn } from "../../lib/utils";
 import { Button } from "../../components/Button";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
@@ -10,13 +10,14 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import queryString from "query-string";
 import { getSurveyAnswer } from "../../Functions";
 import { toast } from "../../components/use-toaster";
+import { endFunction, operatorTypes } from "../../Types/survey.types";
 
 export const SurveyNavigation: FC<{
   className?: string;
   setIsLastBlock: React.Dispatch<SetStateAction<boolean>>;
 }> = ({ className, setIsLastBlock }) => {
   const { id } = useParams() as { id: string };
-  const { surveyDesign, survey_blocks } = useSurveyWorkSpace();
+  const { surveyDesign, survey_blocks, surveyLogics } = useSurveyWorkSpace();
   const navigate = useNavigate();
   const location = useLocation();
   const { navigate: navigateToBlock, setAction } = useSurveyNavigation();
@@ -28,6 +29,42 @@ export const SurveyNavigation: FC<{
   const blockList = survey_blocks?.map((block) => block.id) ?? [];
   const currentID = useGetCurrentBlock()?.id ?? blockList?.[0] ?? "";
   const currentBlockIndex = blockList?.indexOf(currentID);
+  const userResponse = getSurveyAnswer(blockID ?? "");
+  const [logicData, setLogicData] = useState({
+    disableBtn: 0,
+    goTo: "",
+  });
+
+  useEffect(() => {
+    const currentLogic = surveyLogics?.find((logic) => logic.field === blockID);
+
+    if (!currentLogic) {
+      return;
+    }
+
+    const { fallBack, endFunction, endValue, value, operator } = currentLogic;
+
+    const actionTypes: Record<operatorTypes, any> = {
+      eq: userResponse?.response[0] === value,
+      gt: Number(userResponse?.response[0]) > Number(value),
+      includes: userResponse?.response.includes(value as string),
+      lt: Number(userResponse?.response[0]) < Number(value),
+      ne: userResponse?.response[0] !== value,
+      not_include: !userResponse?.response.includes(value as string),
+    };
+
+    const fallAction: Record<endFunction, any> = {
+      disable_btn: setLogicData({ ...logicData, disableBtn: Number(endValue) }),
+      goto: setLogicData({ ...logicData, goTo: fallBack }),
+    };
+
+    if (!actionTypes[operator]) {
+      fallAction[endFunction];
+      return;
+    }
+
+    return () => setLogicData({ disableBtn: 0, goTo: "" });
+  }, [userResponse?.response]);
 
   useEffect(() => {
     setIsLastBlock(blockList?.[blockList?.length - 1] === qs.block);

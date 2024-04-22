@@ -3,6 +3,7 @@ import React, {
   FC,
   SetStateAction,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import {
@@ -37,7 +38,7 @@ import { InstagramIcon } from "../../assets/InstagramIcon";
 import { TwitterIcon } from "../../assets/TwitterIcon";
 import { FaceBookIcon } from "../../assets/FaceBookIcon";
 import { WhatsAppIcon } from "../../assets/WhatsAppIcon";
-import PhoneInput1, { isValidPhoneNumber } from "react-phone-number-input";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import flags from "react-phone-number-input/flags";
 import { E164Number } from "libphonenumber-js/core";
 import "react-phone-number-input/style.css";
@@ -85,7 +86,7 @@ import {
 import DOMPurify from "dompurify";
 import { allStyles } from "../../constant";
 import { Reorder } from "framer-motion";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import queryString from "query-string";
 import { toast } from "../../components/use-toaster";
 import { useRegex } from "../../Hooks/regex";
@@ -1478,6 +1479,20 @@ export const WelcomeScreenBlockStyle: FC<{
 export const RedirectURLBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
   const { surveyDesign } = useSurveyWorkSpace();
+  const ref = useRef<HTMLAnchorElement | null>(null);
+
+  useEffect(() => {
+    if (!b?.redirect_with_url) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      ref.current?.click();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [b?.redirect_with_url]);
+
   return (
     <div className="flex flex-col gap-3 items-center w-full">
       <h1>{b?.redirect_with_url?.message ?? "Redirect With URL"}</h1>
@@ -1493,6 +1508,7 @@ export const RedirectURLBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       )}
       {b?.redirect_with_url?.click_option && (
         <Button
+          asChild
           disabled={mode === "DEVELOPMENT"}
           className={cn(
             allStyles.button[surveyDesign?.button ?? "GREEN"],
@@ -1500,7 +1516,9 @@ export const RedirectURLBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
           )}
           size="sm"
         >
-          {b.redirect_with_url?.button_text}
+          <Link ref={ref} to={b?.redirect_with_url?.url}>
+            {b.redirect_with_url?.button_text}
+          </Link>
         </Button>
       )}
     </div>
