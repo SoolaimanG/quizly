@@ -46,6 +46,7 @@ import {
   errorMessageForToast,
   generateUUID,
   getSurveyAnswer,
+  handleLogic,
   imageEdittingStyles,
   saveAnswerForSurvey,
   shuffleArray,
@@ -166,7 +167,13 @@ export const EmailBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
         onChange={(e) => setUserResponse(e.target.value)}
         placeholder="name@email.com"
       />
-      <SurveyOKButton mode={mode} onClick={onOKClick} />
+      <SurveyOKButton
+        mode={mode}
+        onClick={() => {
+          onOKClick();
+          return [userResponse];
+        }}
+      />
     </div>
   );
 };
@@ -231,7 +238,13 @@ export const PhoneNumberBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
         flags={flags}
         className="p-1 w-full border-x-0 border-t-0 border-b-[1.5px] border-b-green-300 mt-4 hover:border-b-green-500"
       />
-      <SurveyOKButton mode={mode} onClick={onOKClick} />
+      <SurveyOKButton
+        mode={mode}
+        onClick={() => {
+          onOKClick();
+          return [value?.toString() || ""];
+        }}
+      />
     </div>
   );
 };
@@ -286,7 +299,13 @@ export const LongTextBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
         className="mt-2 placeholder:italic resize-none min-h-0 flex w-full rounded-none border-b-green-300 focus:border-b-green-500 border-t-0 border-x-0 bg-background px-1 py-0 text-sm ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0 placeholder:text-xl focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
       />
       <Description text="Click Enter to break line and click the OK button to submit." />
-      <SurveyOKButton mode={mode} onClick={onOKClick} />
+      <SurveyOKButton
+        mode={mode}
+        onClick={() => {
+          onOKClick();
+          return [userResponse];
+        }}
+      />
     </div>
   );
 };
@@ -340,7 +359,13 @@ export const ShortTextBlockStlye: FC<{
         onChange={(e) => setUserResponse(e.target.value)}
         maxLength={b?.short_text?.max_character}
       />
-      <SurveyOKButton mode={mode} onClick={onOKClick} />
+      <SurveyOKButton
+        mode={mode}
+        onClick={() => {
+          onOKClick();
+          return [userResponse];
+        }}
+      />
     </div>
   );
 };
@@ -354,6 +379,25 @@ export const NumberBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
   );
 
   const [userResponse, setUserResponse] = useState(0);
+
+  const onOKClick = () => {
+    if (b?.is_required && Boolean(userResponse)) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.id ?? "",
+      [userResponse + ""],
+      surveyID,
+      responses,
+      setResponses
+    );
+  };
 
   useEffect(() => {
     if (!b && mode !== "PRODUCTION") {
@@ -384,22 +428,9 @@ export const NumberBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
       <SurveyOKButton
         mode={mode}
         onClick={() => {
-          if (b?.is_required && Boolean(userResponse)) {
-            return toast({
-              title: "Error",
-              description:
-                "This question is required, therefore it has to be answered before proceeding.",
-              variant: "destructive",
-            });
-          }
+          onOKClick();
 
-          saveAnswerForSurvey(
-            b?.id ?? "",
-            [userResponse + ""],
-            surveyID,
-            responses,
-            setResponses
-          );
+          return [userResponse + ""];
         }}
       />
     </div>
@@ -598,7 +629,13 @@ export const PictureBlockStlye: FC<{ mode: mode }> = ({ mode }) => {
           : ""}
         {mode === "DEVELOPMENT" && addImageButton}
       </div>
-      <SurveyOKButton mode={mode} onClick={onOKClick} />
+      <SurveyOKButton
+        mode={mode}
+        onClick={() => {
+          onOKClick();
+          return userResponse;
+        }}
+      />
     </div>
   );
 };
@@ -621,6 +658,25 @@ export const DropdownBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
     []
   );
   const [userResponse, setUserResponse] = useState<string[]>([]);
+
+  const onOKClick = () => {
+    if (b?.is_required && !Boolean(userResponse?.length)) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.id ?? "",
+      userResponse,
+      survey?.id ?? "",
+      responses,
+      setResponses
+    );
+  };
 
   useEffect(() => {
     if (!b?.dropdown?.options) {
@@ -743,22 +799,8 @@ export const DropdownBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       <SurveyOKButton
         mode={mode}
         onClick={() => {
-          if (b?.is_required && !Boolean(userResponse?.length)) {
-            return toast({
-              title: "Error",
-              description:
-                "This question is required, therefore it has to be answered before proceeding.",
-              variant: "destructive",
-            });
-          }
-
-          saveAnswerForSurvey(
-            b?.id ?? "",
-            userResponse,
-            survey?.id ?? "",
-            responses,
-            setResponses
-          );
+          onOKClick();
+          return userResponse;
         }}
       />
     </div>
@@ -787,6 +829,25 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
 
   const buttonClass = "flex justify-start";
   const [userChoice, setUserChoice] = useState<ChoiceOption[]>([]);
+
+  const onOKClick = () => {
+    if (b?.is_required && !Boolean(userSelection.length)) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.id ?? "",
+      userSelection,
+      survey?.id ?? "",
+      responses,
+      setResponses
+    );
+  };
 
   const handleChoiceSelection = (e: string) => {
     if (mode === "DEVELOPMENT") {
@@ -836,11 +897,11 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       },
     ];
 
-    setUserChoice(
-      b?.choices?.options.length && mode === "DEVELOPMENT"
-        ? b.choices.options
-        : choicesPlaceholder
-    );
+    if (mode !== "DEVELOPMENT") {
+      return;
+    }
+
+    setUserChoice(b?.choices?.options || choicesPlaceholder);
   }, [b?.choices?.options]);
 
   // This handles the shuffling of the list
@@ -1042,22 +1103,8 @@ export const ChoicesBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       <SurveyOKButton
         mode={mode}
         onClick={() => {
-          if (b?.is_required && !Boolean(userSelection.length)) {
-            return toast({
-              title: "Error",
-              description:
-                "This question is required, therefore it has to be answered before proceeding.",
-              variant: "destructive",
-            });
-          }
-
-          saveAnswerForSurvey(
-            b?.id ?? "",
-            userSelection,
-            survey?.id ?? "",
-            responses,
-            setResponses
-          );
+          onOKClick();
+          return userSelection;
         }}
       />
     </div>
@@ -1077,6 +1124,25 @@ export const RatingsBlockStyle: FC<{
 
   const handleSelectRating = (rate: number) => {
     setRating(rate);
+  };
+
+  const onOKClick = () => {
+    if (b?.is_required && !Boolean(rating)) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.id ?? "",
+      [rating + ""],
+      survey?.id ?? "",
+      responses,
+      setResponses
+    );
   };
 
   useEffect(() => {
@@ -1109,22 +1175,8 @@ export const RatingsBlockStyle: FC<{
       <SurveyOKButton
         mode={mode}
         onClick={() => {
-          if (b?.is_required && !Boolean(rating)) {
-            return toast({
-              title: "Error",
-              description:
-                "This question is required, therefore it has to be answered before proceeding.",
-              variant: "destructive",
-            });
-          }
-
-          saveAnswerForSurvey(
-            b?.id ?? "",
-            [rating + ""],
-            survey?.id ?? "",
-            responses,
-            setResponses
-          );
+          onOKClick();
+          return [rating + ""];
         }}
       />
     </div>
@@ -1196,7 +1248,13 @@ export const YesNoBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
           </Button>
         ))}
       </div>
-      <SurveyOKButton mode={mode} onClick={onOKClick} />
+      <SurveyOKButton
+        mode={mode}
+        onClick={() => {
+          onOKClick();
+          return [userResponse];
+        }}
+      />
     </div>
   );
 };
@@ -1210,6 +1268,25 @@ export const DateBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
     localStorageKeys.surveyResponses,
     []
   );
+
+  const onOKClick = () => {
+    if (b?.is_required && !date) {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.date?.id + "",
+      [date?.toUTCString() ?? ""],
+      survey?.id ?? "",
+      responses,
+      setResponses
+    );
+  };
 
   useEffect(() => {
     if (!b) {
@@ -1232,15 +1309,10 @@ export const DateBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
       />
       <SurveyOKButton
         mode={mode}
-        onClick={() =>
-          saveAnswerForSurvey(
-            b?.date?.id + "",
-            [date?.toUTCString() ?? ""],
-            survey?.id ?? "",
-            responses,
-            setResponses
-          )
-        }
+        onClick={() => {
+          onOKClick();
+          return [date?.toUTCString() ?? ""];
+        }}
       />
     </div>
   );
@@ -1414,7 +1486,7 @@ export const WelcomeScreenBlockStyle: FC<{
   }, [delayHeader]);
 
   const handleStartSurvey = () => {
-    n(navigate, currentIndex ?? 0, survey?.id || "", blockList || [], "next");
+    n(navigate, currentIndex ?? 0, blockList || [], "next");
   };
 
   return (
@@ -1531,7 +1603,32 @@ export const QuestionGroupBlockStyle: FC<{}> = () => {
 
 export const WebsiteBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
   const b = useGetCurrentBlock();
-  const { surveyDesign } = useSurveyWorkSpace();
+  const { survey } = useSurveyWorkSpace();
+  const [responses, setResponses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
+  const [userResponse, setUserResponse] = useState("");
+
+  const onOKClick = () => {
+    if (b?.is_required && "") {
+      return toast({
+        title: "Error",
+        description:
+          "This question is required, therefore it has to be answered before proceeding.",
+        variant: "destructive",
+      });
+    }
+
+    saveAnswerForSurvey(
+      b?.id || "",
+      [userResponse],
+      survey?.id || "",
+      responses,
+      setResponses
+    );
+  };
+
   return (
     <div className="flex flex-col gap-2 w-full">
       <SurveyQuestions
@@ -1539,15 +1636,19 @@ export const WebsiteBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
         question={b?.question ?? ""}
         mode={mode}
       />
-      <Input
+      <SurveyInput
+        value={userResponse}
+        onChange={(e) => setUserResponse(e.target.value)}
         disabled={mode === "DEVELOPMENT"}
-        className={cn(
-          "flex h-10 w-full rounded-none border-t-0 border-x-0 bg-background px-1 py-2 text-sm ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none border-b-2 focus-visible:ring-0  focus-visible:ring-ring placeholder:text-lg focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50",
-          allStyles.border[surveyDesign?.color ?? "GREEN"]
-        )}
         placeholder="http://"
       />
-      <SurveyOKButton mode={mode} onClick={() => {}} />
+      <SurveyOKButton
+        mode={mode}
+        onClick={() => {
+          onOKClick();
+          return [userResponse];
+        }}
+      />
     </div>
   );
 };
@@ -2145,12 +2246,17 @@ export const SurveyQuestions: FC<{
   );
 };
 
-export const SurveyOKButton: FC<{ onClick: () => void; mode: mode }> = ({
+export const SurveyOKButton: FC<{ onClick: () => string[]; mode: mode }> = ({
   mode,
-  onClick,
+  onClick: _,
 }) => {
-  const { surveyDesign, survey_blocks, survey } = useSurveyWorkSpace();
-  const { navigate: surveyNavigator } = useSurveyNavigation();
+  const { surveyDesign, survey_blocks, survey, surveyLogics } =
+    useSurveyWorkSpace();
+  const {
+    navigate: surveyNavigator,
+    setDisableBtnTimer,
+    disableBtnTimer,
+  } = useSurveyNavigation();
   const navigate = useNavigate();
   const location = useLocation();
   const b = useGetCurrentBlock();
@@ -2159,13 +2265,43 @@ export const SurveyOKButton: FC<{ onClick: () => void; mode: mode }> = ({
     block: string;
   };
 
+  useEffect(() => {
+    if (!disableBtnTimer) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setDisableBtnTimer(0);
+    }, disableBtnTimer * 1000);
+
+    return () => clearTimeout(timer);
+  }, [disableBtnTimer]);
+
   const blockList = survey_blocks?.map((block) => block.id) ?? [];
   const currentIndex = blockList.indexOf(qs.block ?? "");
 
-  const handleClick = () => {
-    onClick();
-
+  const handleClick = async () => {
     if (mode === "DEVELOPMENT") {
+      return;
+    }
+    const userResponse = _();
+
+    const payload: surveyResponseTypes = {
+      response: userResponse,
+      survey: survey?.id || "",
+      block: b?.id || "",
+    };
+
+    const logic = await handleLogic(surveyLogics, payload, b?.id + "");
+
+    setDisableBtnTimer(logic?.disableBtn || 0);
+
+    if (logic?.disableBtn) {
+      return;
+    }
+
+    if (logic?.goTo) {
+      navigate(`?block=${logic.goTo}`);
       return;
     }
 
@@ -2179,17 +2315,12 @@ export const SurveyOKButton: FC<{ onClick: () => void; mode: mode }> = ({
     }
 
     // After everything
-    surveyNavigator(
-      navigate,
-      currentIndex,
-      survey?.id ?? "",
-      blockList,
-      "next"
-    );
+    surveyNavigator(navigate, currentIndex, blockList, "next");
   };
 
   return (
     <Button
+      disabled={Boolean(disableBtnTimer)}
       onClick={handleClick}
       className={cn(
         "h-7 px-3 w-fit flex items-center gap-1 rounded-sm",

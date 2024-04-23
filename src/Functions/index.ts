@@ -11,11 +11,16 @@ import Cookies from "js-cookie";
 import { toast } from "../components/use-toaster";
 import { v4 as uuidV4 } from "uuid";
 import { SurveyWorkSpace } from "./surveyApis";
-import { AutoSaveUi, BlockToolProps } from "../Types/survey.types";
+import {
+  AutoSaveUi,
+  BlockToolProps,
+  ICustomLogicConditions,
+  endFunction,
+  operatorTypes,
+} from "../Types/survey.types";
 import { CSSProperties, SetStateAction } from "react";
 import queryString from "query-string";
 import { NavigateFunction } from "react-router-dom";
-import { useLocalStorage } from "@uidotdev/usehooks";
 
 export const sendEmailToDeveloper = async ({
   firstName,
@@ -241,7 +246,9 @@ export const readAloud = async ({
 // };
 
 export const isObjectEmpty = (obj?: object) => {
-  if (!obj) return false;
+  if (!obj) {
+    return false;
+  }
   return Object.keys(obj).length === 0;
 };
 // Function to toggle between dark and light modes
@@ -270,8 +277,7 @@ export const toggle_modes = ({
 };
 
 export const generateUUID = () => {
-  const uuid = uuidV4();
-  return uuid;
+  return uuidV4();
 };
 
 export const shuffleArray = <T>(array: T[]) => {
@@ -382,15 +388,11 @@ export const imageEdittingStyles = ({
 };
 
 export const setBlockIdInURL = (
-  id: string,
   blockID: string,
-  navigate: NavigateFunction,
-  opend?: boolean
+  navigate: NavigateFunction
 ) => {
   const qs = queryString.stringify({
-    id,
     block: blockID,
-    opend,
   });
 
   navigate(`?${qs}`);
@@ -462,4 +464,46 @@ export const getSurveyAnswer = (block: string) => {
   const response = parseData.find((res) => res.block === block);
 
   return response;
+};
+
+export const handleLogic = async (
+  surveyLogics: ICustomLogicConditions[],
+  userResponse: surveyResponseTypes,
+  blockId: string
+) => {
+  const currentLogic = surveyLogics?.find((logic) => logic.field === blockId);
+  const response = userResponse.response.map((res) => res.toLowerCase());
+
+  let actionData = {
+    disableBtn: 0,
+    goTo: "",
+  };
+
+  if (!currentLogic) {
+    return;
+  }
+
+  const { fallBack, endFunction, endValue, value, operator } = currentLogic;
+
+  const actionTypes: Record<operatorTypes, any> = {
+    eq: response[0].toLowerCase() === value.toString().toLowerCase(),
+    gt: Number(userResponse?.response[0]) > Number(value),
+    includes: response.includes((value as string).toLowerCase()),
+    lt: Number(userResponse?.response[0]) < Number(value),
+    ne:
+      userResponse?.response[0].toLowerCase() !==
+      value.toString().toLowerCase(),
+    not_include: !response.includes((value as string).toLowerCase()),
+  };
+
+  const fallAction: Record<endFunction, any> = {
+    disable_btn: () => (actionData["disableBtn"] = Number(endValue)),
+    goto: () => (actionData["goTo"] = fallBack),
+  };
+
+  if (actionTypes[operator]) {
+    fallAction[endFunction]();
+  }
+
+  return actionData;
 };

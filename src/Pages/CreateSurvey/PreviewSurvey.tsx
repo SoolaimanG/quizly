@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { SurveyNotFound } from "./SurveyNotFound";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { SurveyWorkSpace } from "../../Functions/surveyApis";
 import {
   BlockToolProps,
@@ -10,19 +10,17 @@ import {
   ISurveyBlocks,
   ISurveyDesign,
   ISurveySettings,
-  endFunction,
-  operatorTypes,
 } from "../../Types/survey.types";
 import PageLoader from "../../components/Loaders/PageLoader";
 import Error from "../Comps/Error";
 import {
   createSurveyUserId,
   errorMessageForToast,
-  setBlockIdInURL,
+  surveyResponseTypes,
 } from "../../Functions";
 import { AxiosError } from "axios";
 import { Navbar } from "./Navbar";
-import { useDocumentTitle } from "@uidotdev/usehooks";
+import { useDocumentTitle, useLocalStorage } from "@uidotdev/usehooks";
 import Logo from "../../components/Logo";
 import { DarkMode } from "../../components/Darkmode";
 import { motion, AnimatePresence } from "framer-motion";
@@ -60,14 +58,30 @@ import { cn } from "../../lib/utils";
 import { Badge } from "../../components/Badge";
 import { Button } from "../../components/Button";
 import { LogOutIcon, Moon, Sun } from "lucide-react";
-import { app_config } from "../../Types/components.types";
+import { app_config, localStorageKeys } from "../../Types/components.types";
 import Hint from "../../components/Hint";
 import { Progress } from "../../components/Progress";
+import Cookies from "js-cookie";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/DialogModal";
+import { toast } from "../../components/use-toaster";
 
 export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
   const { id } = useParams() as { id: string };
   const b = useGetCurrentBlock();
   const action = new SurveyWorkSpace(id);
+  const [responses] = useLocalStorage<surveyResponseTypes[]>(
+    localStorageKeys.surveyResponses,
+    []
+  );
+  const userID = Cookies.get("surveyUserId") || "";
+  console.log(userID);
   const [isLastBlock, setIsLastBlock] = useState(false);
   const { action: actionType } = useSurveyNavigation();
   const { is_darkmode } = useZStore();
@@ -78,7 +92,9 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
     setSurvey,
     surveyDesign,
     surveySettings,
+    addAllLogics,
   } = useSurveyWorkSpace();
+  const [openModal, setOpenModal] = useState(false);
   const { isLoading, data, error, refetch } = useQuery<{
     data: {
       survey_details: ISurvey;
@@ -92,8 +108,22 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
     queryFn: () => action.get_survey_details(id, createSurveyUserId()),
   });
 
-  const navigate = useNavigate();
-  const [_, setDisableBTN] = useState(false);
+  const { isPending, isSuccess, mutate } = useMutation({
+    mutationKey: [data?.data.survey_details.id],
+    mutationFn: () => action.submitSurvey(responses, userID),
+    onSuccess: () => {
+      setOpenModal(true);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: errorMessageForToast(
+          error as AxiosError<{ message: string }>
+        ),
+        variant: "destructive",
+      });
+    },
+  });
 
   const backgroundImage = backgroundPatterns.find(
     (bp) => bp.id === surveyDesign?.background_pattern
@@ -122,6 +152,7 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
     setSurveyDesign(data.data.design);
     setSurveySettings(data.data.setting);
     setSurvey(data.data.survey_details);
+    addAllLogics(data.data.logics);
   }, [data]);
 
   const view: Record<BlockToolProps, any> = {
@@ -147,63 +178,6 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
   const navBarClassName = "backdrop-blur-md w-full border border-b-[1.3px]";
 
   const View = view[b?.block_type as BlockToolProps] ?? WelcomeScreenBlockStyle;
-
-  // Executing Custom Logics For The Survey.
-  useEffect(() => {
-    if (
-      !data?.data.logics.length ||
-      ["DEVELOPMENT", "PREVIEW"].includes(mode)
-    ) {
-      return;
-    }
-
-    const logic = data.data.logics.find((logic) => logic.field === b?.id);
-
-    if (!logic || logic.field === b?.id) {
-      return;
-    }
-
-    const {
-      value: userResponse,
-      endFunction: finalFunctionType,
-      endValue: expectedUserResponse,
-      fallBack,
-      operator,
-    } = logic;
-
-    const condition: Record<operatorTypes, boolean> = {
-      eq: userResponse === expectedUserResponse,
-      gt: userResponse > expectedUserResponse,
-      includes: expectedUserResponse
-        .toLowerCase()
-        .split(" ")
-        .includes(userResponse + ""),
-      lt: userResponse < expectedUserResponse,
-      ne: userResponse !== expectedUserResponse,
-      not_include: !expectedUserResponse
-        .toLowerCase()
-        .split(" ")
-        .includes(userResponse + ""),
-    };
-
-    const availableFunctions: Record<endFunction, () => void> = {
-      goto: () =>
-        setBlockIdInURL(
-          data.data.survey_details.id ?? "",
-          fallBack,
-          navigate,
-          false
-        ),
-      disable_btn: () => setDisableBTN(!condition[operator]),
-    };
-
-    if (!condition[operator]) {
-      // Execute custom logics here
-      availableFunctions[finalFunctionType]();
-    } else {
-      setDisableBTN(false);
-    }
-  }, [data?.data.logics]);
 
   if (
     id.length < 10 ||
@@ -284,6 +258,25 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
 
   return (
     <div className="w-full h-screen relative">
+      <Dialog open={openModal} onOpenChange={(e) => setOpenModal(e)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-green-500">Successful</DialogTitle>
+            <DialogHeader>
+              Thank you for your time and valuable feedback. Your responses have
+              been recorded.
+            </DialogHeader>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <DialogClose asChild>
+              <Button variant="outline">Close</Button>
+            </DialogClose>
+            <Button asChild variant="base">
+              <Link to={app_config.create_survey}>Create Survey</Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Navbar
         className={navBarClassName}
         firstContent={<Logo color show_word size="sm" className="w-fit" />}
@@ -375,6 +368,8 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
             <SurveyNavigation className="" setIsLastBlock={setIsLastBlock} />
             {isLastBlock && (
               <Button
+                onClick={() => mutate()}
+                disabled={isPending || isSuccess}
                 size="sm"
                 className={cn(
                   "w-full rounded-sm",

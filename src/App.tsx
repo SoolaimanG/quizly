@@ -114,9 +114,7 @@ function App() {
           path={app_config.preview_survey + ":id"}
         />
         <Route
-          element={
-            <ProtectedRoute element={<PreviewSurvey mode="PRODUCTION" />} />
-          }
+          element={<PreviewSurvey mode="PRODUCTION" />}
           path={app_config.survey + ":id"}
         />
       </Routes>

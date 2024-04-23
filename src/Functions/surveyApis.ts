@@ -13,6 +13,7 @@ import Cookies from "js-cookie";
 import queryString from "query-string";
 import { mode } from "../Pages/CreateSurvey/AllSurveyBlocks";
 import { publishDetails } from "../Types/components.types";
+import { surveyResponseTypes } from ".";
 
 export type integratedApps = "google_drive" | "excel";
 
@@ -475,6 +476,15 @@ export class SurveyWorkSpace {
     );
     const res: publishDetails = response.data;
     return res;
+  }
+
+  async submitSurvey(userResponses: surveyResponseTypes[], userID: string) {
+    const response = await api.post(
+      this.survey_workspace + "/survey-response/" + this.survey_id + "/",
+      { userResponses, userID }
+    );
+
+    return response.data;
   }
 }
 

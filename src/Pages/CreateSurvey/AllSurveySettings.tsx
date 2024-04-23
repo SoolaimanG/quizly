@@ -770,7 +770,7 @@ export const Logics: FC<{}> = () => {
     },
     buttonTrigger: (
       <Button variant="base" className="w-full">
-        Add Custom Logics
+        {surveyLogics.length ? "View Your Logic (s)" : "Add Custom Logics"}
       </Button>
     ),
     header: {

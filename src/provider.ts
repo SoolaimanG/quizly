@@ -1,3 +1,4 @@
+import { surveyResponseTypes } from "./Functions/index";
 import { create } from "zustand";
 import {
   IUser,
@@ -11,17 +12,20 @@ import {
   publishDetails,
 } from "./Types/components.types";
 import { CommunityStoreProps } from "./Types/community.types";
+import { ICustomLogicConditions } from "./Types/survey.types";
 import {
   SurveyWorkSpaceAction,
   SurveyWorkSpaceState,
   surveyNavigationProps,
 } from "./Types/survey.types";
-import { errorMessageForToast, setBlockIdInURL } from "./Functions";
+import {
+  errorMessageForToast,
+  handleLogic,
+  setBlockIdInURL,
+} from "./Functions";
 import { AxiosError } from "axios";
 import { SurveyWorkSpace } from "./Functions/surveyApis";
 import { toast } from "./components/use-toaster";
-import { string } from "mathjs";
-import { useNavigate } from "react-router-dom";
 
 export const useZStore = create<Zstate & Zaction>()((set) => ({
   is_darkmode: false,
@@ -405,13 +409,27 @@ export const usePublications = create<publicationTypes>((set) => ({
 export const useSurveyNavigation = create<surveyNavigationProps>((_) => ({
   surveyId: "",
   action: "next",
+  disableBtnTimer: 0,
+  setDisableBtnTimer(prop) {
+    _((state) => ({
+      ...state,
+      disableBtnTimer: prop,
+    }));
+  },
   setAction(prop) {
     _((state) => ({
       ...state,
       action: prop,
     }));
   },
-  navigate(navigate, currentIndex, id, blockList, action) {
+  async navigate(
+    navigate,
+    currentIndex,
+    blockList,
+    action,
+    surveyLogics?: ICustomLogicConditions[],
+    userResponse?: surveyResponseTypes
+  ) {
     if (currentIndex === -1 || typeof currentIndex === "undefined") {
       return toast({
         title: "Error",
@@ -420,10 +438,23 @@ export const useSurveyNavigation = create<surveyNavigationProps>((_) => ({
         variant: "destructive",
       });
     }
+
     // If the current block is the last block don't navigate again
     if (action === "next" && blockList.length - 1 === currentIndex) {
       return;
     }
+
+    const payload: surveyResponseTypes = {
+      response: [],
+      survey: "",
+      block: "",
+    };
+
+    const data = await handleLogic(
+      surveyLogics || [],
+      userResponse || payload,
+      blockList[currentIndex]
+    );
 
     const nextBlock =
       action === "next"
@@ -432,6 +463,8 @@ export const useSurveyNavigation = create<surveyNavigationProps>((_) => ({
         ? blockList?.[currentIndex - 1]
         : "";
 
-    setBlockIdInURL(id, nextBlock ?? "", navigate, false);
+    const path = action === "next" ? data?.goTo || nextBlock : nextBlock + "";
+
+    setBlockIdInURL(path, navigate);
   },
 }));
