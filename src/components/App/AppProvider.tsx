@@ -14,7 +14,6 @@ import Login from "../../Pages/Login";
 import { Button } from "../Button";
 import { X } from "lucide-react";
 import Hint from "../Hint";
-import VerifyEmail from "./VerifyEmail";
 import { useAuthentication } from "../../Hooks";
 import { useQuery } from "@tanstack/react-query";
 import { getUser } from "../../Functions/APIqueries";
@@ -29,16 +28,10 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "../Drawer";
-
-const content = Object.freeze({
-  description:
-    "we have to make sure your email is valid and verify please giving you access to this action.",
-  header: "Email Verification Is Required",
-});
+import { EmailVerificationModal } from "./EmailVerificationModal";
+import { TutorOnboarding } from "./TutorOnboarding";
 
 const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useZStore();
-
   const {
     setIsDarkMode,
     loginAttempt,
@@ -62,8 +55,9 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuthentication();
   const { setUser } = useZStore();
   const { data, error } = useQuery<{ data: IUser }>({
-    queryKey: ["current_user"],
+    queryKey: ["current_user", isAuthenticated],
     queryFn: () => getUser(),
+    enabled: isAuthenticated,
   });
 
   // This toggle dark modes and light mode.
@@ -140,59 +134,16 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </Drawer>
     );
 
-  const verify_email_pop =
-    Number(width) > 770 ? (
-      <AlertDialog
-        onOpenChange={() =>
-          setEmailVerificationRequired(!emailVerificationRequired)
-        }
-        open={emailVerificationRequired}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{content.header}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {content.description}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <VerifyEmail show_input user_email={user?.email as string} />
-          <AlertDialogFooter>
-            <AlertDialogCancel>Close</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ) : (
-      <Drawer>
-        <DrawerContent className="py-6">
-          <DrawerHeader className="flex flex-col gap-2">
-            <DrawerTitle>{content.header}</DrawerTitle>
-            <DrawerDescription>{content.description}</DrawerDescription>
-            <DrawerClose>
-              <Hint
-                element={
-                  <Button
-                    className=" absolute mt-3 mr-3 top-0 right-0"
-                    variant={"ghost"}
-                    size={"icon"}
-                  >
-                    <X />
-                  </Button>
-                }
-                content="Close"
-              />
-            </DrawerClose>
-          </DrawerHeader>
-          <VerifyEmail show_input user_email={user?.email as string} />
-        </DrawerContent>
-      </Drawer>
-    );
-
   return (
     <React.Fragment>
       {authPopup}
 
       {/* A modal to tell users to verify their email address */}
-      {verify_email_pop}
+      <EmailVerificationModal />
+      {/* A Modal for users to complete their sign-up process */}
+      <CompleteSignUp />
+      {/* Modal to complete signup for tutor account */}
+      <TutorOnboarding />
 
       {/* A modal for coming soon features */}
       {isVisible && (
@@ -208,9 +159,6 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           }}
         />
       )}
-
-      {/* A Modal for users to complete their sign-up process */}
-      <CompleteSignUp />
 
       {children}
     </React.Fragment>

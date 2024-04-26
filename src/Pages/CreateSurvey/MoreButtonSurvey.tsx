@@ -29,12 +29,15 @@ export const MoreButtonSurvey: FC<{
   const handleNavigation = (path: string) => {
     navigate(path + "?id=" + id);
   };
+  const path = import.meta.env.VITE_QUIZLY_HOST + "/survey/" + id;
   const handleShare = () => {
-    if (navigator.canShare()) return;
+    if (navigator.canShare()) {
+      return;
+    }
     navigator.share({
       title: name,
       text: "Share " + name,
-      url: "",
+      url: path,
     });
   };
   return (
@@ -74,7 +77,12 @@ export const MoreButtonSurvey: FC<{
                       });
                       return;
                     }
-                    handleNavigation("");
+                    navigator.clipboard.writeText(path).then(() =>
+                      toast({
+                        title: "Success",
+                        description: "Link copied successfully",
+                      })
+                    );
                   }}
                 >
                   Copy Link
@@ -101,7 +109,9 @@ export const MoreButtonSurvey: FC<{
               <CommandSeparator />
               <CommandGroup heading="Settings">
                 <Button
-                  onClick={() => handleNavigation(app_config.survey_result)}
+                  onClick={() =>
+                    handleNavigation(app_config.survey_result + id)
+                  }
                   variant="ghost"
                   className="w-full h-9 flex items-start justify-start"
                 >

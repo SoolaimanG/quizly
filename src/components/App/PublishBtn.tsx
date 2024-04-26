@@ -22,6 +22,7 @@ import { capitalize_first_letter, errorMessageForToast } from "../../Functions";
 import { Badge } from "../Badge";
 import { toast } from "../use-toaster";
 import { AxiosError } from "axios";
+import { SurveyWorkSpace } from "../../Functions/surveyApis";
 
 export type publishBtnTypes = {
   children: ReactElement;
@@ -41,25 +42,22 @@ export const PublishBtn: FC<publishBtnTypes> = ({
     openPublishModal,
     isLoading,
     setOpenPublishModal,
-    onClick,
     setIsSuccess,
   } = usePublications();
   const { survey, setSurvey } = useSurveyWorkSpace();
+  const action = new SurveyWorkSpace(survey?.id || "");
   const [date, setDate] = useState<Date | undefined>();
   const [password, setPassword] = useState("");
 
   const handlePublication = async () => {
     try {
-      // setStatus('loading')
-
-      onClick(
-        publicationType,
-        publicationType === "survey" ? survey?.id || "" : "",
+      await action.publishSurvey(
         password,
         "PRODUCTION",
         recipients.split(/[,.]/)
       );
       survey && setSurvey({ ...survey, status: "PRODUCTION" });
+      setPassword("");
       setIsSuccess(true);
     } catch (error) {
       toast({

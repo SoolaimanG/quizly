@@ -80,12 +80,7 @@ export class SurveyWorkSpace {
         "/survey-blocks/" +
         id +
         "/?surveyUserId=" +
-        user_id,
-      {
-        headers: {
-          Authorization: "Bearer " + this.access_token,
-        },
-      }
+        user_id
     );
     return response.data;
   }

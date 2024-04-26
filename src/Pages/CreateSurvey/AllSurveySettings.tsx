@@ -237,7 +237,9 @@ export const SurveyQuestions: FC<{}> = () => {
         (v) => v.toLowerCase() === value.toLowerCase()
       );
 
-      if (!av) return;
+      if (!av) {
+        return;
+      }
 
       const index = _block_type.indexOf(av);
 

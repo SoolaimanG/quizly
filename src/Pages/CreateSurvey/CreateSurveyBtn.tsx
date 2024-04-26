@@ -21,19 +21,21 @@ import { app_config } from "../../Types/components.types";
 import { SurveyWorkSpace } from "../../Functions/surveyApis";
 import { toast } from "../../components/use-toaster";
 import { AxiosError } from "axios";
+import { useZStore } from "../../provider";
 
 export const CreateSurveyBtn: FC<{ children: ReactElement }> = ({
   children,
 }) => {
   const navigate = useNavigate();
-  const survey = new SurveyWorkSpace();
+  const survey = new SurveyWorkSpace("");
+  const { setEmailVerificationRequired } = useZStore();
 
   const handleClick = async (type: "import" | "scratch") => {
     const id = generateUUID();
     const opend = true;
 
     if (type === "import") {
-      navigate("");
+      return;
     } else {
       try {
         await survey.createSurvey({
@@ -46,6 +48,10 @@ export const CreateSurveyBtn: FC<{ children: ReactElement }> = ({
         });
         navigate(app_config.survey_workspace + "?" + stratch);
       } catch (error) {
+        setEmailVerificationRequired(
+          //@ts-ignore
+          error?.response?.data?.data?.error === "email-verification-required"
+        );
         toast({
           title: "Error",
           description: errorMessageForToast(

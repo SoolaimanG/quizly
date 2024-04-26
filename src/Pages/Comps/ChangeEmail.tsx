@@ -1,35 +1,38 @@
-import { useLocalStorage } from "@uidotdev/usehooks";
-import OnboardingNav from "../../components/App/OnboardingNav";
+import { OnboardingNav } from "../../components/App/OnboardingNav";
 import { Input } from "../../components/Input";
 import { Label } from "../../components/Label";
 import { content } from "../Onboarding";
-import { IUser, onboardingProps } from "../../Types/components.types";
-import { edit_profile } from "../../Functions";
-import React, { useEffect, useState } from "react";
+import { IUser, app_config } from "../../Types/components.types";
+import { FC, useEffect, useState } from "react";
 import { toast } from "../../components/use-toaster";
 import { useRegex } from "../../Hooks/regex";
-import { Button } from "../../components/Button";
+import { useZStore } from "../../provider";
+import { useNavigate } from "react-router-dom";
+import { requestEmailVerification } from "../../Functions/APIqueries";
+import { errorMessageForToast } from "../../Functions";
+import { AxiosError } from "axios";
 
-const SecondView: React.FC<{ user: IUser | null }> = ({ user }) => {
+export const ChangeEmail: FC<{}> = () => {
+  const { user, setUser } = useZStore();
   const { emailVerifier } = useRegex();
-  const [___, setView] = useLocalStorage<onboardingProps>(
-    "view",
-    "DefaultView"
-  );
-  const [states, setStates] = useState({
-    error: false,
-  });
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState<Partial<IUser>>({
     email: "",
   });
 
   useEffect(() => {
-    setFormData({ email: user?.email });
+    user && setFormData({ email: user.email });
+    return () => setFormData({ email: "" });
   }, [user]);
 
   const submitForm = async () => {
-    if (!emailVerifier(formData.email as string)) {
+    if (user?.email_verified) {
+      navigate(app_config.change_account_type);
+      return;
+    }
+
+    if (!emailVerifier(formData.email!)) {
       toast({
         title: "Error",
         description: "Use a valid email",
@@ -39,17 +42,20 @@ const SecondView: React.FC<{ user: IUser | null }> = ({ user }) => {
     }
 
     try {
-      await edit_profile(formData);
+      await requestEmailVerification(formData.email!);
+      user && setUser({ ...user, email: formData?.email! });
       toast({
         title: "Verification Requested",
-        description: "An instructions has been sent to the email provided",
+        description:
+          "An instructions has been sent to the email provided and your email has been updated to the one you provided.",
       });
-      setView("ThirdView");
+      navigate(app_config.change_account_type);
     } catch (error) {
-      setStates({ error: true });
       toast({
         title: "Error",
-        description: String(error),
+        description: errorMessageForToast(
+          error as AxiosError<{ message: string }>
+        ),
         variant: "destructive",
       });
     }
@@ -72,26 +78,14 @@ const SecondView: React.FC<{ user: IUser | null }> = ({ user }) => {
             placeholder="Johndoe@gmail.com"
           />
         </Label>
-        {states.error && (
-          <Button
-            onClick={() => setView("ThirdView")}
-            variant={"destructive"}
-            className="w-full text-white h-[3rem]"
-          >
-            Proceed
-          </Button>
-        )}
       </div>
       <div className="mt-10">
         <OnboardingNav
           func={submitForm}
-          tooltip="Goto Next"
-          havePrev
-          prevNav="FirstView"
+          tooltip="Go to account-selection"
+          prevNav="ACCOUNT-TYPE"
         />
       </div>
     </div>
   );
 };
-
-export default SecondView;

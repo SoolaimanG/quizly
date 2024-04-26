@@ -33,6 +33,7 @@ const ConnectingApps = () => {
 
   const isConnected = Boolean(qs.code && qs.scopes && qs.state);
 
+  //   This will serve as a connecting indicator if the client is connecting to the server.
   useEffect(() => {
     if (!isConnected || data.connectingAnimation === 4) {
       setData({
@@ -60,6 +61,7 @@ const ConnectingApps = () => {
     icon: "p-1 rounded-full bg-green-500 text-green-200",
   };
 
+  //   This is the icon that shows if the client is connecting to the server.
   const connectingSign = (
     <div className="flex items-center gap-2">
       {[...Array(4)].map((_, i) => (

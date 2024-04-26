@@ -10,6 +10,8 @@ import Error from "../../Pages/Comps/Error";
 import PageLoader from "../Loaders/PageLoader";
 import { toast } from "../use-toaster";
 import { cn } from "../../lib/utils";
+import { errorMessageForToast } from "../../Functions";
+import { AxiosError } from "axios";
 
 export const SelectCategory: React.FC<selectionToolsProps> = ({
   categories,
@@ -43,7 +45,15 @@ export const SelectCategory: React.FC<selectionToolsProps> = ({
 
   if (isLoading) return <PageLoader text="Loading Categories..." size={50} />;
 
-  if (error) return <Error retry_function={() => refetch()} />;
+  if (error)
+    return (
+      <Error
+        retry_function={refetch}
+        errorMessage={errorMessageForToast(
+          error as AxiosError<{ message: string }>
+        )}
+      />
+    );
 
   return (
     <div className={cn("w-full gap-2 gap-y-4 grid grid-cols-2", className)}>

@@ -1,15 +1,17 @@
-import { useLocalStorage } from "@uidotdev/usehooks";
 import { edit_profile } from "../../Functions";
-import OnboardingNav from "../../components/App/OnboardingNav";
+import { OnboardingNav } from "../../components/App/OnboardingNav";
 import { Input } from "../../components/Input";
 import { Label } from "../../components/Label";
 import { content } from "../Onboarding";
-import { IUser, onboardingProps } from "../../Types/components.types";
+import { IUser, app_config } from "../../Types/components.types";
 import React, { useEffect, useState } from "react";
 import { toast } from "../../components/use-toaster";
+import { useZStore } from "../../provider";
+import { useNavigate } from "react-router-dom";
 
-const FirstView: React.FC<{ user: IUser | null }> = ({ user }) => {
-  const [__, setView] = useLocalStorage<onboardingProps>("view", "DefaultView");
+export const ChangeName = () => {
+  const { user, setUser } = useZStore();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<Partial<IUser>>({
     first_name: "",
     last_name: "",
@@ -22,7 +24,13 @@ const FirstView: React.FC<{ user: IUser | null }> = ({ user }) => {
   };
 
   useEffect(() => {
+    if (!user) {
+      return;
+    }
+
     setFormData({ first_name: user?.first_name, last_name: user?.last_name });
+
+    return () => setFormData({ ...formData, first_name: "", last_name: "" });
   }, [user]);
 
   const submit_form = async () => {
@@ -36,9 +44,10 @@ const FirstView: React.FC<{ user: IUser | null }> = ({ user }) => {
 
     try {
       await edit_profile(formData);
-      setView("SecondView");
+      const { first_name, last_name } = formData;
+      user && setUser({ ...user, first_name, last_name });
+      navigate(app_config.change_email);
     } catch (error) {
-      console.error(error);
       toast({
         title: "Error",
         description: String(error),
@@ -49,7 +58,7 @@ const FirstView: React.FC<{ user: IUser | null }> = ({ user }) => {
 
   return (
     <div className="w-full">
-      <div className="flex flex-col gap-2">
+      <form onSubmit={submit_form} className="flex flex-col gap-2">
         <h1 className="text-3xl text-green-500">Identification</h1>
         <p>{content.firstView}</p>
         <Label className="flex mt-3 flex-col gap-2">
@@ -72,17 +81,13 @@ const FirstView: React.FC<{ user: IUser | null }> = ({ user }) => {
             placeholder="Doe"
           />
         </Label>
-      </div>
+      </form>
       <div className="mt-10">
         <OnboardingNav
           func={submit_form}
-          prevNav="DefaultView"
-          havePrev
-          tooltip="Next"
+          tooltip="Proceed to your change your email."
         />
       </div>
     </div>
   );
 };
-
-export default FirstView;

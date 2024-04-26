@@ -1,4 +1,4 @@
-import { questionUIStateProps } from "./../Types/components.types";
+import { questionUIStateProps, subjects } from "./../Types/components.types";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import Cookies from "js-cookie";
 import {
@@ -19,9 +19,28 @@ const api = import.meta.env.VITE_QUIZLY_API_HOST;
 const community_api = api + "/api/v1/community/";
 
 export const fetchCategory = async () => {
-  const res = await axios.get(api + "/api/v1/subject-categories/");
+  const res = await axios.get(api + "/api/v1/categories/");
 
   return res.data;
+};
+
+export const getStudentDetails = async () => {
+  const response = await axios.get(api + "/api/v1/student/", {
+    headers: { Authorization: "Bearer " + access_token },
+  });
+  return response.data;
+};
+
+export const setUserSubjectPrefrence = async (favourites: subjects[]) => {
+  const response = await axios.post(
+    api + "/api/v1/categories/",
+    {
+      favourites,
+    },
+    { headers: { Authorization: "Bearer " + access_token } }
+  );
+
+  return response.data;
 };
 
 export const getQuizzesForUser = async (len?: number) => {
@@ -42,6 +61,37 @@ export const getUser = async (param?: string) => {
   });
 
   return res.data;
+};
+
+export const getTutorDetails = async () => {
+  const response = await axios.get(api + "/api/v1/tutor/", {
+    headers: {
+      Authorization: "Bearer " + access_token,
+    },
+  });
+
+  return response.data;
+};
+
+export const editTutorProfile = async (tutor_data: Partial<ITeacher>) => {
+  const response = await axios.patch(
+    api + "/api/v1/tutor/",
+    { ...tutor_data },
+    { headers: { Authorization: "Bearer " + access_token } }
+  );
+  return response.data;
+};
+
+export const requestEmailVerification = async (email: string) => {
+  const response = await axios.post(
+    api + "/api/v1/auth/verify-email/",
+    {
+      email,
+    },
+    { headers: { Authorization: "Bearer " + access_token } }
+  );
+
+  return response.data;
 };
 
 export const getTrendingQuiz = async (

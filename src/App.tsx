@@ -81,9 +81,31 @@ function App() {
           element={<AuthLayout path="ForgetPassword" />}
         />
         <Route element={<ProtectedRoute element={<>Home</>} />} path="/home" />
+
+        {/* Onboarding Pages */}
         <Route
-          element={<ProtectedRoute element={<Onboarding />} />}
-          path={app_config.onboarding_page}
+          element={
+            <ProtectedRoute element={<Onboarding view="CHANGE-NAME" />} />
+          }
+          path={app_config.change_name}
+        />
+        <Route
+          element={
+            <ProtectedRoute element={<Onboarding view="CHANGE-EMAIL" />} />
+          }
+          path={app_config.change_email}
+        />
+        <Route
+          element={
+            <ProtectedRoute element={<Onboarding view="ACCOUNT-TYPE" />} />
+          }
+          path={app_config.change_account_type}
+        />
+        <Route
+          element={
+            <ProtectedRoute element={<Onboarding view="SELECT-CATEGORIES" />} />
+          }
+          path={app_config.select_categories}
         />
 
         {/*-------------- QUIZZES */}

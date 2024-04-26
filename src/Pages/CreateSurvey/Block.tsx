@@ -96,7 +96,7 @@ export const Block: FC<{ mode: mode }> = ({ mode }) => {
     <Card
       style={backgroundStyles}
       className={cn(
-        "p-0 w-full h-[25rem] overflow-auto",
+        "p-0 w-full h-full overflow-auto",
         allStyles.border_radius[surveyDesign?.border_radius ?? "MEDIUM"],
         allStyles.font_family[surveyDesign?.font_family ?? "SYSTEM"],
         allStyles.background_color[surveyDesign?.background_color ?? "WHITE"]

@@ -93,7 +93,7 @@ import { toast } from "../../components/use-toaster";
 import { useRegex } from "../../Hooks/regex";
 
 export type mode = "DEVELOPMENT" | "PRODUCTION" | "PREVIEW";
-
+//
 export const SurveyInput = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     const { surveyDesign } = useSurveyWorkSpace();
@@ -1341,7 +1341,7 @@ export const EndScreenBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
 
   useEffect(() => {
     if (
-      b?.end_screen.message === delayEndScreenHeader ||
+      b?.end_screen?.message === delayEndScreenHeader ||
       !delayEndScreenHeader
     ) {
       return;
@@ -1383,9 +1383,7 @@ export const EndScreenBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
 
     const { message } = b.end_screen;
     setEndScreenHeader(message);
-
-    return () => setEndScreenHeader("");
-  }, [b?.end_screen]);
+  }, [b?.end_screen?.message]);
 
   return (
     <div className="w-full flex items-center justify-center flex-col gap-3">
@@ -1393,10 +1391,12 @@ export const EndScreenBlockStyle: FC<{ mode: mode }> = ({ mode }) => {
         <Input
           value={endScreenHeader}
           onChange={(e) => setEndScreenHeader(e.target.value)}
-          className="flex w-full text-center bg-transparent flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex md:w-[75%] w-[90%] text-center break-words bg-transparent flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
         />
       ) : (
-        <h1>{b?.end_screen?.message}</h1>
+        <h1 className="w-[90%] md:w-[75%] break-words text-center">
+          {b?.end_screen?.message}
+        </h1>
       )}
 
       <div className="w-full flex items-center gap-2 justify-center">
@@ -2145,31 +2145,36 @@ export const SurveyQuestions: FC<{
   const { survey, survey_blocks, setSurveyBlocks, setAutoSaveUiProps } =
     useSurveyWorkSpace();
   const action = new SurveyWorkSpace(survey?.id ?? "");
-
-  const [isFirstMount, setIsFirstMount] = useState(true);
+  const [data, setData] = useState({
+    question: "",
+    label: "",
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const data = survey_blocks?.map((block) => {
-      return block.id === b?.id ? { ...block, [name]: value } : { ...block };
-    }) as ISurveyBlocks[];
-
-    setSurveyBlocks(data);
+    setData({ ...data, [name]: value });
   };
 
-  const delayHeaderChange = useDebounce(b?.question, 3000);
-  const delayLabelChange = useDebounce(b?.label, 3000);
+  const delayQuestion = useDebounce(data.question, 3000);
+  const delayLabel = useDebounce(data.label, 3000);
 
   useEffect(() => {
-    if (!b) return;
-
-    if (delayHeaderChange && delayLabelChange) {
-      setIsFirstMount(false);
+    if (!b) {
+      return;
     }
+
+    const { question, label } = b;
+
+    setData({ question, label });
+
+    return () => setData({ ...data, question: "", label: "" });
   }, [b]);
 
   useEffect(() => {
-    if (isFirstMount) {
+    if (
+      (data.label === b?.label || !data.label) &&
+      ((data.question && b?.question) || !data.question)
+    ) {
       return;
     }
 
@@ -2179,8 +2184,15 @@ export const SurveyQuestions: FC<{
       status: "loading",
     });
 
+    const { question, label } = data;
+
+    const d = survey_blocks?.map((block) => {
+      return block.id === b?.id ? { ...block, question, label } : { ...block };
+    }) as ISurveyBlocks[];
+
     // API LOGIC HERE!
     const handleSaving = async () => {
+      setSurveyBlocks(d);
       try {
         await action.modifyBlock(
           0,
@@ -2190,8 +2202,8 @@ export const SurveyQuestions: FC<{
           b?.is_visible,
           b?.id,
           "header_or_label",
-          delayHeaderChange,
-          delayLabelChange
+          data.question,
+          data.label
         );
 
         setAutoSaveUiProps({
@@ -2211,9 +2223,7 @@ export const SurveyQuestions: FC<{
     };
 
     handleSaving();
-
-    return () => setIsFirstMount(true);
-  }, [delayHeaderChange, delayLabelChange]);
+  }, [delayQuestion, delayLabel]);
 
   return (
     <div className="w-full">
@@ -2223,7 +2233,7 @@ export const SurveyQuestions: FC<{
           <Input
             name="question"
             onChange={handleChange}
-            value={b?.question}
+            value={data.question}
             placeholder="This a Question placeholder!!"
             className="flex w-full flex-grow font-semibold rounded-none h-auto text-xl px-0 py-0 border-y-0 border-x-0 bg-transparent ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
           />
@@ -2235,7 +2245,7 @@ export const SurveyQuestions: FC<{
         <Input
           name="label"
           onChange={handleChange}
-          value={b?.label}
+          value={data.label}
           placeholder="This a Label placeholder!!"
           className="flex w-full flex-grow italic text-sm rounded-none h-auto px-0 py-0 border-y-0 border-x-0 bg-transparent ring-offset-background file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
         />

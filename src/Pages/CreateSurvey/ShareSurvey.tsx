@@ -1,6 +1,6 @@
 import { useWindowSize } from "@uidotdev/usehooks";
 import queryString from "query-string";
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -119,7 +119,9 @@ export const ShareSurvey: FC<{}> = ({}) => {
         <Dialog open={qs.share} onOpenChange={(e) => closeModal(e)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{ModalUI.header.title}</DialogTitle>
+              <DialogTitle className="text-green-500">
+                {ModalUI.header.title}
+              </DialogTitle>
               <DialogDescription>
                 {ModalUI.header.description}
               </DialogDescription>
@@ -134,7 +136,12 @@ export const ShareSurvey: FC<{}> = ({}) => {
             </div>
             <DialogFooter>
               <DialogClose>
-                <Copy text={surveyPath} variant="base" className="w-full" />
+                <Copy
+                  disable={survey?.status === "DEVELOPMENT"}
+                  text={surveyPath}
+                  variant="base"
+                  className="w-full"
+                />
               </DialogClose>
             </DialogFooter>
           </DialogContent>
@@ -142,7 +149,7 @@ export const ShareSurvey: FC<{}> = ({}) => {
       ) : (
         <Drawer open={qs.share} onOpenChange={(e) => closeModal(e)}>
           <DrawerContent>
-            <DrawerHeader>
+            <DrawerHeader className="text-green-500">
               <DrawerTitle>{ModalUI.header.title}</DrawerTitle>
               <DrawerDescription>
                 {ModalUI.header.description}
@@ -158,7 +165,12 @@ export const ShareSurvey: FC<{}> = ({}) => {
             </div>
             <DrawerFooter>
               <DrawerClose>
-                <Copy text={surveyPath} variant="base" className="w-full" />
+                <Copy
+                  disable={survey?.status === "DEVELOPMENT"}
+                  text={surveyPath}
+                  variant="base"
+                  className="w-full"
+                />
               </DrawerClose>
             </DrawerFooter>
           </DrawerContent>

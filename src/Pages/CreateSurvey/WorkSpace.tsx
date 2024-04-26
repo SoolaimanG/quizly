@@ -44,7 +44,7 @@ import { useDocumentTitle } from "@uidotdev/usehooks";
 import { app_config } from "../../Types/components.types";
 import { AutoSaveUI } from "../../components/App/AutoSaveUI";
 import useKeyboardShortcut from "use-keyboard-shortcut";
-import { Drawer, DrawerContent, DrawerTrigger } from "../../components/Drawer";
+import { Drawer, DrawerContent } from "../../components/Drawer";
 import {
   Card,
   CardContent,
@@ -64,6 +64,7 @@ const WorkSpace = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { truncateWord } = useText();
+  const { user } = useZStore();
   const {
     survey: s,
     setSurvey,
@@ -120,8 +121,8 @@ const WorkSpace = () => {
     };
   }>({
     queryKey: ["survey", qs.id],
-    queryFn: () => survey.get_survey_details(qs?.id),
-    enabled: Boolean(qs.id),
+    queryFn: () => survey.get_survey_details(qs?.id, user?.id || ""),
+    enabled: Boolean(user?.id),
   });
 
   useDocumentTitle("Workspace" + " | " + data?.data.survey_details.name);

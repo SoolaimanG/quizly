@@ -1,7 +1,6 @@
 import { AlertDialog } from "@radix-ui/react-alert-dialog";
 import { FC, useEffect, useState } from "react";
 import {
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -10,13 +9,12 @@ import {
   AlertDialogTitle,
 } from "../../components/AlertModal";
 import { LottieSuccess } from "../../components/App/LottieSucces";
-import { Button } from "../../components/Button";
 import { usePublications, useSurveyWorkSpace } from "../../provider";
-import { toast } from "../../components/use-toaster";
+import { Copy } from "../../components/Copy";
 
 export const SurveyPublishSuccess: FC<{}> = () => {
   const [isCopied, setIsCopied] = useState(false);
-  const surveyID = useSurveyWorkSpace().survey?.id;
+  const survey = useSurveyWorkSpace()?.survey;
   const { isSuccess, setIsSuccess } = usePublications();
 
   useEffect(() => {
@@ -31,20 +29,7 @@ export const SurveyPublishSuccess: FC<{}> = () => {
     return () => clearTimeout(timer);
   }, [isCopied]);
 
-  const surveyPath = import.meta.env.VITE_QUIZLY_HOST + "/survey/" + surveyID;
-
-  const handleCopy = () => {
-    navigator.clipboard
-      .writeText(surveyPath)
-      .then(() => setIsCopied(true))
-      .then(() =>
-        toast({
-          title: "Success",
-          description:
-            "Your link has been copied successfully to your clipboard",
-        })
-      );
-  };
+  const surveyPath = import.meta.env.VITE_QUIZLY_HOST + "/survey/" + survey?.id;
 
   return (
     <AlertDialog open={isSuccess} onOpenChange={setIsSuccess}>
@@ -69,11 +54,18 @@ export const SurveyPublishSuccess: FC<{}> = () => {
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel>Close</AlertDialogCancel>
-          <Button asChild onClick={handleCopy} variant="base">
-            <AlertDialogAction>
-              {isCopied ? "Link Copied" : "Copy Link"}
-            </AlertDialogAction>
-          </Button>
+          {/* <Button asChild onClick={handleCopy} variant="base"> */}
+
+          <div onClick={() => setIsSuccess(false)}>
+            <Copy
+              variant="base"
+              text={surveyPath}
+              disable={survey?.status === "DEVELOPMENT"}
+            />
+          </div>
+          {/* {isCopied ? "Link Copied" : "Copy Link"} */}
+
+          {/* </Button> */}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -72,19 +72,34 @@ export const capitalize_first_letter = (word?: string) => {
 };
 
 export const edit_profile = async (
-  user_data: Partial<IUser | ITeacher | IStudent>
+  user_data: Partial<IUser>,
+  profile_image?: File
 ) => {
   try {
     const access_token = Cookies.get("access_token");
+    const formData = new FormData();
+
+    formData.append("account_type", user_data.account_type || "");
+    formData.append("age", user_data.age + "");
+    formData.append("auth_provider", user_data.auth_provider || "");
+    formData.append("bio", user_data.bio || "");
+    formData.append("email", user_data.email || "");
+    formData.append("first_name", user_data.first_name || "");
+    formData.append("last_name", user_data.last_name || "");
+    formData.append("profile_image", profile_image || "");
+    formData.append("signup_complete", user_data.signup_complete + "");
+    formData.append("points", user_data.points + "");
+    formData.append("first_time_login", user_data.first_time_login + "");
 
     const res = await axios.patch(
       import.meta.env.VITE_QUIZLY_API_HOST + "/api/v1/user/",
       {
-        ...user_data,
+        formData,
       },
       {
         headers: {
           Authorization: "Bearer " + access_token,
+          "Content-Type": "multipart/form-data",
         },
       }
     );

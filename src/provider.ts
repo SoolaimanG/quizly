@@ -18,13 +18,7 @@ import {
   SurveyWorkSpaceState,
   surveyNavigationProps,
 } from "./Types/survey.types";
-import {
-  errorMessageForToast,
-  handleLogic,
-  setBlockIdInURL,
-} from "./Functions";
-import { AxiosError } from "axios";
-import { SurveyWorkSpace } from "./Functions/surveyApis";
+import { handleLogic, setBlockIdInURL } from "./Functions";
 import { toast } from "./components/use-toaster";
 
 export const useZStore = create<Zstate & Zaction>()((set) => ({
@@ -36,6 +30,7 @@ export const useZStore = create<Zstate & Zaction>()((set) => ({
     open: false,
     fallbackUrl: "/",
   },
+  openTutorOnboardingModal: false,
   openSettings: false,
   setIsDarkMode: (prop) => set((state) => ({ ...state, is_darkmode: prop })),
   setLoginAttempt(prop) {
@@ -76,6 +71,12 @@ export const useZStore = create<Zstate & Zaction>()((set) => ({
     set((state) => ({
       ...state,
       openSettings: prop,
+    }));
+  },
+  setTutorOnboardingModal(prop) {
+    set((state) => ({
+      ...state,
+      openTutorOnboardingModal: prop,
     }));
   },
 }));
@@ -360,49 +361,6 @@ export const usePublications = create<publicationTypes>((set) => ({
       ...state,
       isSuccess: prop,
     }));
-  },
-  // @ts-ignore
-  async onClick(prop, id, password, mode, recipients) {
-    const action = new SurveyWorkSpace(id);
-    try {
-      set((state) => ({
-        ...state,
-        isLoading: true,
-      }));
-
-      let response;
-      if (prop === "survey") {
-        response = await action.publishSurvey(password, mode, recipients);
-        set((state) => ({
-          ...state,
-          isSuccess: true,
-        }));
-      }
-
-      if (prop === "quiz") {
-        // Add logic for quiz
-      }
-
-      set((state) => ({
-        ...state,
-        isLoading: false,
-      }));
-
-      return response as publishDetails;
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: errorMessageForToast(
-          error as AxiosError<{ message: string }>
-        ),
-        variant: "destructive",
-      });
-    } finally {
-      set((state) => ({
-        ...state,
-        isLoading: false,
-      }));
-    }
   },
 }));
 

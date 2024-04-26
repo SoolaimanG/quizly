@@ -82,6 +82,7 @@ export interface Zstate {
     open: boolean;
     fallbackUrl: string;
   };
+  openTutorOnboardingModal: boolean;
 }
 
 export interface Zaction {
@@ -102,6 +103,7 @@ export interface Zaction {
     fallbackUrl: string;
   }) => void;
   setOpenSettings: (prop: boolean) => void;
+  setTutorOnboardingModal: (prop: boolean) => void;
 }
 
 //Glassmorphism Props
@@ -277,7 +279,7 @@ export type ICategory = {
 };
 
 export interface IStudent {
-  favourites: subjects[];
+  favourites: ICategory[];
   logs: ILogs[];
   user: IUser;
   streaks_count: number;
@@ -287,15 +289,17 @@ export interface IStudent {
   my_teachers: ITeacher[];
 }
 
+export type educationalLevel = "masters" | "doctorate" | "bachelor";
+
 export interface ITeacher {
   user: IUser;
   rating: number;
   student: IStudent[];
   quizzes: IQuiz[];
   specializations: ICategory[];
-  educational_level: "masters" | "doctorate" | "bachelor";
+  educational_level: educationalLevel;
   phone_num: string;
-  whatsapp_link: URL;
+  whatsapp_link: string;
   address: string;
 }
 
@@ -309,8 +313,11 @@ export interface ILogs {
 export enum app_config {
   AppName = "Quizly",
   landing_page = "/",
-  onboarding_page = "/quizly/onboarding",
-  login_page = "/auth/login",
+  change_email = "/quizly/onboarding/change-email/",
+  change_name = "/quizly/onboarding/change-name/",
+  change_account_type = "/quizly/onboarding/change-account-type",
+  select_categories = "/quizly/onboarding/select-categories/",
+  login_page = "/auth/login/",
   explore_page = "/quizly/explore",
   forgetPassword = "/auth/forget-password",
   confrimEmail = "/auth/confirm-email/",
@@ -627,11 +634,4 @@ export interface publicationTypes {
   setRecipients: (prop: string) => void;
   setPublishDetails: (props: publishDetails) => void;
   setIsSuccess: (prop: boolean) => void;
-  onClick: (
-    prop: "quiz" | "survey",
-    id: string,
-    password: string,
-    mode: mode,
-    recipients?: string[]
-  ) => void;
 }

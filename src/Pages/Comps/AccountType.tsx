@@ -1,14 +1,17 @@
-import { useEffect, useState } from "react";
-import OnboardingNav from "../../components/App/OnboardingNav";
+import { FC, useEffect, useState } from "react";
+import { OnboardingNav } from "../../components/App/OnboardingNav";
 import { Input } from "../../components/Input";
 import { Label } from "../../components/Label";
 import { content } from "../Onboarding";
 import { Textarea } from "../../components/TextArea";
 import { CheckCircle2, Circle, GraduationCap, User } from "lucide-react";
-import { useLocalStorage } from "@uidotdev/usehooks";
-import { IUser, onboardingProps } from "../../Types/components.types";
+import { IUser, app_config } from "../../Types/components.types";
 import { edit_profile } from "../../Functions";
 import { toast } from "../../components/use-toaster";
+import { useZStore } from "../../provider";
+import { useNavigate } from "react-router-dom";
+import { Description } from "../ExplorePage/QuickQuiz";
+import { cn } from "../../lib/utils";
 
 const accountTypeContent = [
   {
@@ -25,8 +28,10 @@ const accountTypeContent = [
   },
 ];
 
-const ThirdView: React.FC<{ user: IUser | null }> = ({ user }) => {
-  const [__, setView] = useLocalStorage<onboardingProps>("view", "DefaultView");
+export const AccountType: FC<{}> = () => {
+  const { user } = useZStore();
+  const navigate = useNavigate();
+  const labelClassName = "flex flex-col gap-2 mt-3 text-xm";
   const [formData, setFormData] = useState<Partial<IUser>>({
     age: 10,
     bio: "",
@@ -34,11 +39,17 @@ const ThirdView: React.FC<{ user: IUser | null }> = ({ user }) => {
   });
 
   useEffect(() => {
+    if (!user) {
+      return;
+    }
+    const { age, account_type, bio } = user;
     setFormData({
-      age: user?.age,
-      account_type: user?.account_type,
-      bio: user?.bio,
+      age,
+      account_type,
+      bio,
     });
+
+    return () => setFormData({ age: undefined, account_type: "S", bio: "" });
   }, [user]);
 
   const handleChange = (
@@ -51,9 +62,8 @@ const ThirdView: React.FC<{ user: IUser | null }> = ({ user }) => {
   const submit_form = async () => {
     try {
       await edit_profile(formData);
-      setView("FourthView");
+      navigate(app_config.select_categories);
     } catch (error) {
-      console.error(error);
       toast({
         title: "Error",
         description: String(error),
@@ -64,11 +74,11 @@ const ThirdView: React.FC<{ user: IUser | null }> = ({ user }) => {
 
   return (
     <div>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col">
         <h1 className="text-xl text-green-500">{content.thirdView}</h1>
-        <p>{content.thirdDesc}</p>
+        <Description text={content.thirdDesc} />
       </div>
-      <Label htmlFor="age" className="flex flex-col gap-2 mt-3 text-lg">
+      <Label htmlFor="age" className={labelClassName}>
         How old are you?
         <Input
           id="age"
@@ -81,7 +91,7 @@ const ThirdView: React.FC<{ user: IUser | null }> = ({ user }) => {
           max={60}
         />
       </Label>
-      <Label className="flex flex-col gap-2 mt-3 text-lg" htmlFor="bio">
+      <Label className={labelClassName} htmlFor="bio">
         Enter your bio
         <Textarea
           value={formData.bio}
@@ -89,9 +99,10 @@ const ThirdView: React.FC<{ user: IUser | null }> = ({ user }) => {
           name="bio"
           onChange={handleChange}
           placeholder="Add a bio (Optional)"
+          className="resize-none"
         />
       </Label>
-      <h1 className="mt-3 text-lg">Account Type</h1>
+      <h1 className="mt-3 text-lg text-green-500">Account Type</h1>
       <div className="w-full flex gap-3">
         {accountTypeContent.map((accountType, i) => (
           <div
@@ -102,7 +113,7 @@ const ThirdView: React.FC<{ user: IUser | null }> = ({ user }) => {
                 account_type: accountType.type as "S",
               })
             }
-            className={`w-full overflow-hidden relative cursor-pointer border border-green-200 hover:bg-green-700 hover:text-white transition-all delay-75 ease-linear p-2 rounded-md ${
+            className={`w-full overflow-hidden relative cursor-pointer border group border-green-200 hover:bg-green-700 group-hover:text-white transition-all delay-75 ease-linear p-2 rounded-md ${
               accountType.type === formData.account_type &&
               "bg-green-700 text-white"
             } `}
@@ -118,21 +129,24 @@ const ThirdView: React.FC<{ user: IUser | null }> = ({ user }) => {
               )}
             </div>
 
-            <h1>{accountType.title}</h1>
-            <p>{accountType.desc}</p>
+            <h1 className="group-hover:text-white">{accountType.title}</h1>
+            <Description
+              className={cn(
+                formData.account_type === accountType.type && "text-white",
+                "group-hover:text-white"
+              )}
+              text={accountType.desc}
+            />
           </div>
         ))}
       </div>
       <div className="mt-5">
         <OnboardingNav
           func={submit_form}
-          tooltip="Next"
-          havePrev
-          prevNav="SecondView"
+          tooltip="Start adding your subject categories."
+          prevNav="CHANGE-EMAIL"
         />
       </div>
     </div>
   );
 };
-
-export default ThirdView;

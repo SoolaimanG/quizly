@@ -67,7 +67,7 @@ export const QuickQuiz = () => {
         <div className="flex absolute bottom-4 w-full gap-3">
           <RetakeQuizButton
             to_go={"#start"}
-            quiz_id={data?.data[0].id as string}
+            quiz_id={data?.data[0]?.id as string}
           />
           <Button asChild variant="base" className="w-full h-[3rem]">
             <Link to={app_config.quizzes}>Another Quiz</Link>

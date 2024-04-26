@@ -18,7 +18,7 @@ import { Lightbulb } from "lucide-react";
 import { DarkMode } from "../../components/Darkmode";
 import { Label } from "../../components/Label";
 import { Alert, AlertDescription, AlertTitle } from "../../components/Alert";
-import VerifyEmail from "../../components/App/VerifyEmail";
+import { VerifyEmail } from "../../components/App/VerifyEmail";
 import Logo from "../../components/Logo";
 import Hint from "../../components/Hint";
 import { Swords } from "lucide-react";

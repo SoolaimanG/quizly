@@ -81,7 +81,7 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
     []
   );
   const userID = Cookies.get("surveyUserId") || "";
-  console.log(userID);
+
   const [isLastBlock, setIsLastBlock] = useState(false);
   const { action: actionType } = useSurveyNavigation();
   const { is_darkmode } = useZStore();
@@ -143,6 +143,8 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
     `${data?.data.survey_details.name} ${mode === "PREVIEW" ? "| Preview" : ""}`
   );
 
+  // console.log({ data });
+
   useEffect(() => {
     if (!data) {
       return;
@@ -185,15 +187,15 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
   )
     return <SurveyNotFound />;
 
-  if (!b)
+  if (!b && mode === "PREVIEW")
     return (
       <div>
         <Navbar
           className={navBarClassName}
           firstContent={<Logo color show_word size="sm" className="w-fit" />}
           middleContent={
-            <Badge variant="warning" className="rounded-sm">
-              {"Preview Mode".toUpperCase()}
+            <Badge variant="destructive" className="rounded-sm">
+              {"Block Not Found".toUpperCase()}
             </Badge>
           }
           lastContent={
@@ -212,23 +214,22 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
                   content={is_darkmode ? "Light Mode" : "Dark Mode"}
                 />
               </DarkMode>
-              {mode === "PREVIEW" && (
-                <Hint
-                  element={
-                    <Button asChild variant="destructive" size="icon">
-                      <Link
-                        to={
-                          app_config.survey_workspace +
-                          `?id=${data?.data?.survey_details?.id}`
-                        }
-                      >
-                        <LogOutIcon size={20} />
-                      </Link>
-                    </Button>
-                  }
-                  content="Exit / Leave"
-                />
-              )}
+
+              <Hint
+                element={
+                  <Button asChild variant="destructive" size="icon">
+                    <Link
+                      to={
+                        app_config.survey_workspace +
+                        `?id=${data?.data?.survey_details?.id}`
+                      }
+                    >
+                      <LogOutIcon size={20} />
+                    </Link>
+                  </Button>
+                }
+                content="Exit / Leave"
+              />
             </div>
           }
         />
@@ -240,7 +241,7 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
     return (
       <PageLoader
         size={70}
-        text="Getting surveys please wait..."
+        text="Getting questions please wait..."
         className="h-screen"
       />
     );
@@ -307,7 +308,7 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
                   <Button asChild variant="destructive" size="icon">
                     <Link
                       to={
-                        app_config.survey_workspace + `?id=${id}&block=${b.id}`
+                        app_config.survey_workspace + `?id=${id}&block=${b?.id}`
                       }
                     >
                       <LogOutIcon size={20} />
@@ -328,7 +329,8 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
           className="mt-16 rounded-none h-1 fixed"
           max={data?.data.blocks.length}
           value={
-            (data?.data.blocks.map((block) => block.id).indexOf(b?.id) ?? 0) + 1
+            (data?.data.blocks.map((block) => block.id).indexOf(b?.id || "") ??
+              0) + 1
           }
         />
       )}
@@ -337,7 +339,7 @@ export const PreviewSurvey: FC<{ mode: mode }> = ({ mode }) => {
           initial={{ opacity: 0, y: actionType === "prev" ? -100 : 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: actionType === "next" ? -100 : 100 }}
-          key={b.id}
+          key={b?.id}
           className="md:max-w-3xl m-auto flex flex-col gap-1 pt-20 px-3 md:px-0"
         >
           <Card

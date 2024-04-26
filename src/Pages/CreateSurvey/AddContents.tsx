@@ -197,11 +197,15 @@ export const BlockMoreOptions: FC<{
     const blockIndex =
       survey_blocks?.findIndex((block) => block.id === parser.block) ?? -1;
 
-    if (blockIndex === -1) return;
+    if (blockIndex === -1) {
+      return;
+    }
 
     const block = survey_blocks?.[blockIndex];
 
-    if (!block) return;
+    if (!block) {
+      return;
+    }
 
     try {
       await survey_action.blockAction({
@@ -367,12 +371,13 @@ export const OpenAddBlocksModal: FC<{
       return;
     }
 
-    if (isPending)
+    if (isPending) {
       return toast({
         title: "Error",
         description: "Please wait while the previous request is completed.",
         variant: "destructive",
       });
+    }
 
     startTransition(() => {
       handleAddBlock({

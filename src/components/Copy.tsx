@@ -8,11 +8,13 @@ export const Copy: FC<{
   text: string;
   description?: string;
   variant: "base" | "secondary" | "ghost";
+  disable?: boolean;
 }> = ({
   className,
   text,
   variant = "base",
   description = "Link copied successfully",
+  disable,
 }) => {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -40,6 +42,7 @@ export const Copy: FC<{
 
   return (
     <Button
+      disabled={disable}
       variant={variant}
       onClick={handleCopy}
       className={cn(className, "w-ful")}

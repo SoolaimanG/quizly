@@ -23,8 +23,8 @@ export const QuizStartView = ({ data }: { data: IQuiz }) => {
   const accountDetails = (
     <div className="flex flex-col md:h-[15rem] h-[18rem] gap-5">
       <h3 className="text-lg">About Quiz</h3>
-      <Description text={truncateWord(data.descriptions, textToShow)} />
-      {data.descriptions.length > textToShow && (
+      <Description text={truncateWord(data?.descriptions || "", textToShow)} />
+      {data?.descriptions?.length > textToShow && (
         <Button
           className="p-0 w-fit h-fit"
           onClick={() =>
@@ -92,12 +92,16 @@ export const QuizStartView = ({ data }: { data: IQuiz }) => {
         <div className="w-full flex items-center justify-between">
           <div className="flex gap-2 items-center">
             <Badge variant={"friendly"}>{data?.category}</Badge>
-            {data.time_limit && (
+            {data?.time_limit && (
               <Description text={`Time limit ${data.time_limit}Mins`} />
             )}
           </div>
           <div>
-            <Rating rating={data?.rating} />
+            <Rating
+              rating_length={3}
+              onRatingSelect={() => {}}
+              rating={data?.rating}
+            />
           </div>
         </div>
         <h1>{data?.title}</h1>
@@ -110,6 +114,7 @@ export const QuizStartView = ({ data }: { data: IQuiz }) => {
       </div>
       <div className="w-full flex items-center justify-center gap-2 absolute bottom-4">
         <StartQuizButton
+          onQuizStart={() => {}}
           id={data?.id}
           isAuthenticated={isAuthenticated}
           button_text={
