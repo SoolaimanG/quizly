@@ -3,7 +3,6 @@ import { Button } from "../../components/Button";
 import { content } from "../Onboarding";
 import { toast } from "../../components/use-toaster";
 import {
-  ICategory,
   IStudent,
   ITeacher,
   app_config,
@@ -14,13 +13,13 @@ import { useQuery } from "@tanstack/react-query";
 import PageLoader from "../../components/Loaders/PageLoader";
 import { useAuthentication } from "../../Hooks";
 import { SelectCategory } from "../../components/App/SelectCategory";
-import { Description } from "../ExplorePage/QuickQuiz";
 import {
   getStudentDetails,
   getTutorDetails,
   setUserSubjectPrefrence,
 } from "../../Functions/APIqueries";
 import { useNavigate } from "react-router-dom";
+import { Description } from "../../components/App/Description";
 
 export const SelectCategoryComp: FC<{}> = () => {
   const { setTutorOnboardingModal, user } = useZStore();

@@ -14,7 +14,6 @@ import { Textarea } from "../../components/TextArea";
 import ImageUploader from "../../components/App/ImageUploader";
 import { UploadCloud } from "lucide-react";
 import { Label } from "../../components/Label";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { Switch } from "../../components/Switch";
 import { subjects, uploaderProps } from "../../Types/components.types";
 import { SelectCategory } from "../../components/App/SelectCategory";
@@ -23,6 +22,7 @@ import { Img } from "react-image";
 import { useMethods } from "../../Hooks";
 import { toast } from "../../components/use-toaster";
 import { capitalize_first_letter } from "../../Functions";
+import { Description } from "../../components/App/Description";
 
 const content = Object.freeze({
   description:

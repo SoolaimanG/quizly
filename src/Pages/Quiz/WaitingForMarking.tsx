@@ -1,6 +1,6 @@
 import AnimationJSON from "../../assets/WaitingAnimation.json";
 import Lottie from "lottie-react";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 
 const content =
   "Congratulations on completing the quiz! Your responses will be carefully reviewed, and you'll receive feedback soon.";

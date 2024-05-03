@@ -2,9 +2,8 @@ import { Button } from "../../components/Button";
 import { MessageSquare, Timer, X } from "lucide-react";
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import { Description } from "../ExplorePage/QuickQuiz";
+
 import {
-  IQuiz,
   localStorageKeys,
   quizResultProps,
 } from "../../Types/components.types";
@@ -24,6 +23,8 @@ import { formatDistance } from "date-fns";
 import { useAuthentication } from "../../Hooks";
 import { AxiosError } from "axios";
 import { WaitingForMarking } from "./WaitingForMarking";
+import { IQuiz } from "../../Types/quiz.types";
+import { Description } from "../../components/App/Description";
 
 const content = Object.freeze({
   completionText:

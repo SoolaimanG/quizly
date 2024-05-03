@@ -2,28 +2,28 @@ import { FC, Fragment, useEffect } from "react";
 import {
   ICommunityDetails,
   communityLayoutProps,
-} from "../../../Types/community.types";
-import { CommunityHome } from "../CommunityHome";
-import { CommunityNavbar } from "../CommunityNavbar";
-import { Card, CardContent, CardTitle } from "../../../components/Card";
-import { CommunityDetails, CommunityNavigation } from "../CommunityComponent";
-import { CommunityCard } from "../CommunityCard";
-import Glassmorphism from "../../../components/App/Glassmorphism";
-import { PostOnCommunity } from "../PostOnCommunity";
+} from "../../Types/community.types";
+import { CommunityHome } from "./CommunityHome";
+import { CommunityNavbar } from "./CommunityNavbar";
+import { Card, CardContent, CardTitle } from "../../components/Card";
+import { CommunityDetails, CommunityNavigation } from "./CommunityComponent";
+import { CommunityCard } from "./CommunityCard";
+import Glassmorphism from "../../components/App/Glassmorphism";
+import { PostOnCommunity } from "./PostOnCommunity";
 import { useParams } from "react-router-dom";
-import { CommunityApiCalls } from "../../../Functions/APIqueries";
+import { CommunityApiCalls } from "../../Functions/APIqueries";
 import { useQuery } from "@tanstack/react-query";
-import PageLoader from "../../../components/Loaders/PageLoader";
-import Error from "../../Comps/Error";
-import { errorMessageForToast } from "../../../Functions";
+import PageLoader from "../../components/Loaders/PageLoader";
+import Error from "../Comps/Error";
+import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
-import { useCommunityStore } from "../../../provider";
-import { EditPost } from "../EditPost";
-import { CommunityMembers } from "../CommunityMembers";
-import { CommunityRequests } from "../CommunityRequests";
-import { CommunitySettings } from "../CommunitySettings";
+import { useCommunityStore } from "../../provider";
+import { EditPost } from "./EditPost";
+import { CommunityMembers } from "./CommunityMembers";
+import { CommunityRequests } from "./CommunityRequests";
+import { CommunitySettings } from "./CommunitySettings";
 
-const pathes = {
+const paths = {
   Home: CommunityHome,
   Post: PostOnCommunity,
   Settings: CommunitySettings,
@@ -35,7 +35,7 @@ const pathes = {
 const CommunityLayout: FC<communityLayoutProps> = ({ path }) => {
   const { id } = useParams() as { id: string };
   const { setCommunityDetails } = useCommunityStore();
-  const View = pathes[path];
+  const View = paths[path];
 
   const community = new CommunityApiCalls(id);
 
@@ -77,24 +77,24 @@ const CommunityLayout: FC<communityLayoutProps> = ({ path }) => {
         {/* Right Side */}
         <div className="hidden flex-col md:flex w-[25%] gap-1">
           <Card className="rounded-sm">
-            <CardContent className="p-2">
+            <CardContent className="p-2 rounded-sm">
               <CommunityDetails data={data?.data!} />
             </CardContent>
           </Card>
           <Card className="rounded-sm">
-            <CardContent className="p-2">
+            <CardContent className="p-2 rounded-sm">
               <CardTitle>Pages</CardTitle>
               <CommunityNavigation className="flex-col gap-3" path={path} />
             </CardContent>
           </Card>
         </div>
         {/* Middle Side */}
-        <div className="md:w-[50%] w-full overflow-auto">
+        <div className="md:w-[50%] w-full pb-20 overflow-auto">
           <View id={id} editable={false} />
         </div>
         {/* Left Side */}
         <Card className="rounded-sm w-[25%] md:block hidden h-[88vh]">
-          <CardContent className="p-2 h-full">
+          <CardContent className="p-2 h-full rounded-sm">
             <CommunityCard
               size={6}
               truncate

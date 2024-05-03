@@ -3,7 +3,6 @@ import { IQuiz } from "../../Types/components.types";
 import { Button } from "../Button";
 import Calculator from "./Calculator";
 import { Popover, PopoverContent, PopoverTrigger } from "../Popover";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { Dictionary } from "./Dictionary";
 import { WholeWordIcon } from "lucide-react";
 import { useLocalStorage } from "@uidotdev/usehooks";
@@ -13,6 +12,7 @@ import { useZStore } from "../../provider";
 import { toggle_modes } from "../../Functions";
 import { Command } from "cmdk";
 import { CommandShortcut } from "../Command";
+import { Description } from "./Description";
 
 export const QuizTools: React.FC<
   Pick<IQuiz, "allow_calculator" | "allow_word_search">

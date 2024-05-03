@@ -9,14 +9,15 @@ import {
   DropdownMenuTrigger,
 } from "../Dropdown";
 import { Globe2, LogOut, PenLine, Settings, User, Users } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "../Avatar";
 import Hint from "../Hint";
 import Cookies from "js-cookie";
 import { useZStore } from "../../provider";
 import { Link } from "react-router-dom";
 import { app_config } from "../../Types/components.types";
+import { UserProfilePicture } from "./UserProfilePicture";
+import { FC } from "react";
 
-export const ManageAccount = () => {
+export const ManageAccount: FC<{}> = () => {
   const logout = () => {
     Cookies.remove("access_token");
   };
@@ -25,16 +26,12 @@ export const ManageAccount = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Avatar className="cursor-pointer">
-          <Hint
-            element={
-              <AvatarImage src={user?.profile_image as string} alt="@shadcn" />
-            }
-            content="Manage Account"
-          />
-          <AvatarFallback>{user?.username?.[0]?.toUpperCase()}</AvatarFallback>
-        </Avatar>
+      <DropdownMenuTrigger>
+        <Hint
+          element={<UserProfilePicture />}
+          content="Manage Account"
+          side="bottom"
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>

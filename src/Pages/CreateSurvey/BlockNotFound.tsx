@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { cn } from "../../lib/utils";
 
 export const BlockNotFound: FC<{

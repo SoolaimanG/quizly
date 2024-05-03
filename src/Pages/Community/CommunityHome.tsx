@@ -76,7 +76,7 @@ export const CommunityHome: FC<{ id: string }> = ({ id }) => {
   if (!data?.data.length) return <NoPostYet />;
 
   return (
-    <div className="flex flex-col gap-5 ">
+    <div className="flex flex-col gap-5">
       {data.data.map((community, index) => (
         <CommunityFeed key={index} {...community} />
       ))}

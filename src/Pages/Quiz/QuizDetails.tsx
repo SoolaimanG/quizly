@@ -11,11 +11,11 @@ import {
 } from "lucide-react";
 import { capitalize_first_letter } from "../../Functions";
 import { useQuizStore } from "../../provider";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { cn } from "../../lib/utils";
 import { Card, CardContent, CardDescription } from "../../components/Card";
 import { Button } from "../../components/Button";
 import Hint from "../../components/Hint";
+import { Description } from "../../components/App/Description";
 
 export const QuizDetails = () => {
   const { currentQuizData } = useQuizStore();

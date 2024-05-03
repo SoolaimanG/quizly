@@ -13,7 +13,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../components/Popover";
 
 import { ComboBoxProps } from "../Types/components.types.ts";
-import { Description } from "../Pages/ExplorePage/QuickQuiz.tsx";
+import { Description } from "./App/Description.tsx";
 
 export function Combobox({
   data,

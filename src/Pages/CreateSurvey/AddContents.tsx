@@ -15,7 +15,6 @@ import {
   DialogTrigger,
 } from "../../components/DialogModal";
 import { BlockToolProps, ISurveyBlocks } from "../../Types/survey.types";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { useText } from "../../Hooks/text";
 import { useLocation, useNavigate } from "react-router-dom";
 import queryString from "query-string";
@@ -35,6 +34,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Hint from "../../components/Hint";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { Sheet, SheetContent, SheetTrigger } from "../../components/Sheet";
+import { Description } from "../../components/App/Description";
 
 export const ContactGroup: BlockToolProps[] = ["Email", "PhoneNumber"];
 export const InputGroup: BlockToolProps[] = ["LongText", "ShortText", "Number"];

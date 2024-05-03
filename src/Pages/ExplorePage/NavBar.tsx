@@ -24,7 +24,7 @@ import Hint from "../../components/Hint";
 import { Swords } from "lucide-react";
 import { Input } from "../../components/Input";
 import { UserAvatar } from "../../components/App/userAvatar";
-import { useState } from "react";
+import { FC, useState } from "react";
 
 const _navbarLinks = [
   {
@@ -49,17 +49,11 @@ const _navbarLinks = [
   },
 ];
 
-const NavBar = ({
-  show_search_bar = true,
-  navbarText,
-  isAuthenticated,
-  onSubmit,
-}: {
+export const NavBar: FC<{
   show_search_bar?: boolean;
   navbarText: string;
-  isAuthenticated: boolean;
   onSubmit: (search: string) => void;
-}) => {
+}> = ({ show_search_bar = true, navbarText, onSubmit }) => {
   const { user } = useZStore();
   const [value, setValue] = useState("");
 
@@ -100,32 +94,33 @@ const NavBar = ({
             {/*</SheetTrigger>*/}
             <SheetContent side={"left"}>
               <SheetHeader className="flex flex-col">
-                <SheetTitle className="text-green-500 text-3xl">
+                <SheetTitle className="text-green-500 text-xl">
                   Explore Quizly
                 </SheetTitle>
-                <SheetDescription className="w-full text-left">
-                  {`Explore ${app_config.AppName} and create quizzes`}
+                <SheetDescription className="w-full">
+                  {`Create, Challenge, Get Insight, View Results`}
                 </SheetDescription>
               </SheetHeader>
               <div className="mt-5 flex w-full flex-col gap-3">
                 {_navbarLinks.map((link, i) => (
                   <Button
                     className="w-full flex gap-2 items-center justify-start"
+                    asChild
                     size={"lg"}
                     variant={"outline"}
                     key={i}
                   >
-                    <span className="text-green-500">{link.icon}</span>
                     <Link
-                      className="w-full flex items-center justify-start"
+                      className="w-full flex gap-2 items-center"
                       to={link.path}
                     >
+                      <span className="text-green-500">{link.icon}</span>
                       {link.name}
                     </Link>
                   </Button>
                 ))}
                 <div className="flex items-center gap-1 mt-5">
-                  <DarkMode />{" "}
+                  <DarkMode />
                   <Label>Toggle between darkmode and light mode.</Label>
                 </div>
               </div>
@@ -153,11 +148,9 @@ const NavBar = ({
               </div>
             </SheetContent>
           </Sheet>
-          <UserAvatar isAuthenticated={isAuthenticated} />
+          <UserAvatar />
         </div>
       </div>
     </div>
   );
 };
-
-export default NavBar;

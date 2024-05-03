@@ -26,7 +26,7 @@ import { InstagramIcon } from "lucide-react";
 import { Mail } from "lucide-react";
 import { Share2Icon } from "lucide-react";
 import { Button } from "../../components/Button";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { Copy } from "../../components/Copy";
 import { useSurveyWorkSpace } from "../../provider";
 

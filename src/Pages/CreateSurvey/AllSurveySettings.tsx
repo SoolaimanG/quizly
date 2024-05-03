@@ -40,7 +40,6 @@ import {
 import { AccordionContent } from "../../components/App/Accordion";
 import { Label } from "../../components/Label";
 import { useGetCurrentBlock } from "../../Hooks/useSurvey";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { SurveyWorkSpace } from "../../Functions/surveyApis";
 import { useComingSoonProps, useSurveyWorkSpace } from "../../provider";
 import { errorMessageForToast, generateUUID } from "../../Functions";
@@ -90,6 +89,7 @@ import {
 import EmptyState from "../../components/App/EmptyState";
 import Image from "../../assets/logicBlocks.svg";
 import { toast } from "../../components/use-toaster";
+import { Description } from "../../components/App/Description";
 
 const _data: combo_box_type<BlockToolProps>[] = [
   {

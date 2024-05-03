@@ -25,7 +25,7 @@ import { Input } from "../Input";
 import { useZStore } from "../../provider";
 import { cn } from "../../lib/utils";
 import Lottie from "lottie-react";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
+import { Description } from "./Description";
 import { useQuery } from "@tanstack/react-query";
 import { FeatureWaitList } from "../../Functions/APIqueries";
 import { toast } from "../use-toaster";

@@ -1,8 +1,8 @@
 import { capitalize_first_letter } from "../../Functions";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { dictionaryResultProps } from "../../Types/components.types";
 import { Badge } from "../Badge";
 import { Button } from "../Button";
+import { Description } from "./Description";
 
 export const DictionaryUI: React.FC<dictionaryResultProps> = ({
   meanings,

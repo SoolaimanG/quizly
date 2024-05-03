@@ -30,6 +30,7 @@ import { UndoIcon } from "lucide-react";
 import { Toggle } from "../Toggle";
 import Logo from "../Logo";
 import { cn } from "../../lib/utils";
+
 const MenuBar = () => {
   const { editor } = useCurrentEditor();
 

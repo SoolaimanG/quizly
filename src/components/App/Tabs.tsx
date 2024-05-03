@@ -42,7 +42,7 @@ export const Tabs: React.FC<TabsProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         key={active}
-        className="w-full mt-3"
+        className="w-full mt-2 h-full"
       >
         {elements[header.findIndex((h) => h === active)]}
       </motion.div>

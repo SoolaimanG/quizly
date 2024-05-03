@@ -3,7 +3,7 @@
 import { FC, useTransition } from "react";
 import { cn } from "../../lib/utils";
 import { BlockToolProps } from "../../Types/survey.types";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { ContentTools } from "./ContentTools";
 import { toast } from "../../components/use-toaster";
 import { handleAddBlock } from "../../Functions";

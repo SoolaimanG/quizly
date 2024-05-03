@@ -1,16 +1,16 @@
-import { FC } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../Avatar";
 import { useText } from "../../Hooks/text";
+import { useZStore } from "../../provider";
 
-export const UserProfilePicture: FC<{
-  profile_image?: string;
-  username: string;
-}> = ({ profile_image, username }) => {
+export const UserProfilePicture = () => {
+  const { user } = useZStore();
   const { getFirstLetterAndCapitalize } = useText();
   return (
-    <Avatar>
-      <AvatarImage src={profile_image} />
-      <AvatarFallback>{getFirstLetterAndCapitalize(username)}</AvatarFallback>
+    <Avatar className="cursor-pointer">
+      <AvatarImage src={user?.profile_image} alt="user-profile-image" />
+      <AvatarFallback>
+        {getFirstLetterAndCapitalize(user?.username || "")}
+      </AvatarFallback>
     </Avatar>
   );
 };

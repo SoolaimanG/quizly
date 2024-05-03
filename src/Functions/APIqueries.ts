@@ -43,13 +43,6 @@ export const setUserSubjectPrefrence = async (favourites: subjects[]) => {
   return response.data;
 };
 
-export const getQuizzesForUser = async (len?: number) => {
-  const params = `?len=${len}`;
-  const res = await axios.get(api + "/api/v1/get-quizzes/" + params);
-
-  return res.data;
-};
-
 export const getUser = async (param?: string) => {
   const param_string = param ? `?param=${param}` : "";
 
@@ -89,33 +82,6 @@ export const requestEmailVerification = async (email: string) => {
       email,
     },
     { headers: { Authorization: "Bearer " + access_token } }
-  );
-
-  return response.data;
-};
-
-export const getTrendingQuiz = async (
-  isAuthenticated: boolean,
-  anonymous_id?: string
-) => {
-  const headers =
-    isAuthenticated && access_token
-      ? {
-          Authorization: "Bearer " + access_token,
-        }
-      : {};
-
-  const params = `?anonymous_id=${anonymous_id}`;
-  const response = await axios.get(api + "/api/v1/trending-quiz/" + params, {
-    headers,
-  });
-
-  return response.data;
-};
-
-export const getQuizComments = async (quiz_id: string) => {
-  const response = await axios.get(
-    api + "/api/v1/quiz/comments/" + quiz_id + "/"
   );
 
   return response.data;

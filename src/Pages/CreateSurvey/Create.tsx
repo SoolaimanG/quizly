@@ -8,7 +8,7 @@ import { Navbar } from "./Navbar";
 import { toggle_modes } from "../../Functions";
 import { useLocalStorage, useWindowSize } from "@uidotdev/usehooks";
 import { CreateSurveyBtn } from "./CreateSurveyBtn";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { SurveyListingType } from "./SurveyListingType";
 import { SurveyDetails } from "./SurveyDetails";
 import queryString from "query-string";

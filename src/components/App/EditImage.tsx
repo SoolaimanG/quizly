@@ -12,7 +12,7 @@ import {
 import { Img } from "react-image";
 import { Label } from "../Label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./TabUi";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
+import { Description } from "./Description";
 import { RotateCcw, RotateCw } from "lucide-react";
 import { Button } from "../Button";
 import Hint from "../Hint";

@@ -2,7 +2,7 @@
 
 import { FC } from "react";
 import EmptyState from "../../components/App/EmptyState";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { CreateSurveyBtn } from "./CreateSurveyBtn";
 import { Button } from "../../components/Button";
 import { useInfiniteQuery } from "@tanstack/react-query";

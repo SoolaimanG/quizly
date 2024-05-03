@@ -3,7 +3,6 @@ import { useText } from "../../Hooks/text";
 import { ICommunity } from "../../Types/community.types";
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/Avatar";
 import { Button, buttonVariants } from "../../components/Button";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { ShadowCard } from "../Quiz/QuizResult";
 import React, { FC, useTransition } from "react";
 import { useNumbers } from "../../Hooks/numbers";
@@ -21,13 +20,13 @@ import { errorMessageForToast } from "../../Functions";
 import { useAuthentication, useMethods } from "../../Hooks";
 import { VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/utils";
-import { CardDescription } from "../../components/Card";
 import Hint from "../../components/Hint";
 import { ToastAction } from "../../components/Toast";
 import Error from "../Comps/Error";
 import { CreateCommunity } from "./CreateCommunity";
 import EmptyState from "../../components/App/EmptyState";
 import { AxiosError } from "axios";
+import { Description } from "../../components/App/Description";
 
 export const CommunityCard: FC<{
   title?: string;
@@ -72,17 +71,17 @@ export const CommunityCard: FC<{
   return (
     <div className="mt-2 h-full w-full flex relative flex-col gap-5">
       <div className="flex px-2 items-center justify-between w-full">
-        <CardDescription className="text-xl">{title}</CardDescription>
+        <h1 className="text-xl josefin-sans-font">{title}</h1>
         <CreateCommunity
           button={
             <Hint
-              content="Start Community"
+              content="Start A New Community"
               element={
                 <Button
-                  className="flex items-center hover:text-green-500 text-lg gap-2"
+                  className="flex items-center hover:text-green-500 h-9 text-lg gap-1"
                   variant={"ghost"}
                 >
-                  <PlusSquare size={15} /> {" " + buttonText}
+                  <PlusSquare className="p-0" size={17} /> {" " + buttonText}
                 </Button>
               }
             />
@@ -90,7 +89,10 @@ export const CommunityCard: FC<{
         />
       </div>
       {!data?.data.length ? (
-        <EmptyState state="empty" message="No Community Available Right Now" />
+        <EmptyState
+          state="empty"
+          message="Seems you are already in all the trending communities or no trending community available."
+        />
       ) : (
         data?.data?.map((d) => (
           <ShadowCard
@@ -153,7 +155,9 @@ export const JoinCommunity: React.FC<{
 
   const joinCommunity = async () => {
     try {
-      if (!login_required()) return;
+      if (!login_required()) {
+        return;
+      }
       await join_or_leave_community(community_id, isAuthenticated);
       refetch();
     } catch (error) {

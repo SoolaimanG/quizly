@@ -3,9 +3,9 @@ import ImageTwo from "../../assets/ImgTwo.png";
 import ImageThree from "../../assets/ImgThree.png";
 import ImageFour from "../../assets/undraw_add_notes_re_ln36.svg";
 import { cn } from "../../lib/utils";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { Img } from "react-image";
 import { Loader2 } from "lucide-react";
+import { Description } from "./Description";
 
 const EmptyState = ({
   message,

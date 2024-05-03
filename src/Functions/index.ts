@@ -522,3 +522,19 @@ export const handleLogic = async (
 
   return actionData;
 };
+
+export function getAnonymousID(isAuthenticated: boolean) {
+  if (isAuthenticated) {
+    return;
+  }
+
+  let anonymousID = sessionStorage.getItem("anonymous_id");
+
+  // If anonymous_id is not found in sessionStorage, generate a new one and save it
+  if (!anonymousID) {
+    anonymousID = generateUUID();
+    sessionStorage.setItem("anonymous_id", anonymousID);
+  }
+
+  return anonymousID;
+}

@@ -150,7 +150,10 @@ export const TutorOnboarding: FC<{}> = () => {
   };
 
   return Number(width) > 767 ? (
-    <AlertDialog open onOpenChange={(e) => setTutorOnboardingModal(e)}>
+    <AlertDialog
+      open={openTutorOnboardingModal}
+      onOpenChange={(e) => setTutorOnboardingModal(e)}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="text-green-500">

@@ -1,5 +1,5 @@
 import { Loader, MoveLeft, MoveRight } from "lucide-react";
-import { CalculatorProps, IQuiz } from "../../Types/components.types";
+import { CalculatorProps } from "../../Types/components.types";
 import { Button } from "../Button";
 import {
   Sheet,
@@ -15,7 +15,8 @@ import { useState, useTransition } from "react";
 import { useSearchParams } from "react-router-dom";
 import EmptyState from "./EmptyState";
 import { seriliazeParams } from "../../Functions";
-import { QuizListUI } from "../../Pages/ExplorePage/QuizListUI";
+import { QuizDetailsSneakPeak } from "../../Pages/Quiz/QuizDetailsSneakPeak";
+import { IQuiz } from "../../Types/quiz.types";
 
 const SearchQuiz: React.FC<Pick<CalculatorProps, "button">> = ({ button }) => {
   const [results, _] = useState<IQuiz[]>([]);
@@ -78,7 +79,7 @@ const SearchQuiz: React.FC<Pick<CalculatorProps, "button">> = ({ button }) => {
           ) : results.length >= 1 ? (
             <div className="w-full overflow-auto flex flex-col gap-2">
               {results.map((quiz) => (
-                <QuizListUI isLoading key={quiz.id} data={quiz} type="small" />
+                <QuizDetailsSneakPeak {...quiz} />
               ))}
             </div>
           ) : (

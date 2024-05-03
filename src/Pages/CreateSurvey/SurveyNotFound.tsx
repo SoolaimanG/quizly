@@ -2,7 +2,7 @@ import { Navbar } from "./Navbar";
 import { ManageAccount } from "../../components/App/ManageAccount";
 import { toggle_modes } from "../../Functions";
 import { MoonIcon, SunIcon } from "lucide-react";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { Button } from "../../components/Button";
 import { Link } from "react-router-dom";
 import { app_config } from "../../Types/components.types";

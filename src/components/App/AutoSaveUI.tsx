@@ -3,11 +3,11 @@ import { cn } from "../../lib/utils";
 import { useSurveyWorkSpace } from "../../provider";
 import { Loader2, X } from "lucide-react";
 import { LottieSuccess } from "./LottieSucces";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "../Button";
 import Hint from "../Hint";
 import { useWindowSize } from "@uidotdev/usehooks";
+import { Description } from "./Description";
 
 export const AutoSaveUI: FC<{
   className?: string;

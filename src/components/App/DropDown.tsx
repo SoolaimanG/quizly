@@ -10,11 +10,11 @@ import {
 } from "../../components/Dropdown";
 import { cn } from "../../lib/utils";
 import { Badge } from "../Badge";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { Button } from "../Button";
 import { useSurveyWorkSpace } from "../../provider";
 import { allStyles } from "../../constant";
 import { colorVariant } from "../../Types/survey.types";
+import { Description } from "./Description";
 
 export type dropDownAlign = "center" | "start" | "end";
 

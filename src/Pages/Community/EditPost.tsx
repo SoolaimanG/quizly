@@ -2,7 +2,6 @@ import { FC, useTransition } from "react";
 import { PostOnCommunity } from "./PostOnCommunity";
 import queryString from "query-string";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { Button } from "../../components/Button";
 import { CommunityApiCalls } from "../../Functions/APIqueries";
 import { useCommunityStore } from "../../provider";
@@ -11,6 +10,7 @@ import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
 import { EditIcon, Loader2 } from "lucide-react";
 import { app_config } from "../../Types/components.types";
+import { Description } from "../../components/App/Description";
 
 export const EditPost: FC<{ id: string }> = ({ id }) => {
   const location = useLocation();

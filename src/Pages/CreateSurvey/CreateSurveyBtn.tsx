@@ -12,7 +12,7 @@ import {
   AlertDialogTrigger,
 } from "../../components/AlertModal";
 import { ImportIcon, PlusIcon } from "lucide-react";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { ShadowCard } from "../Quiz/QuizResult";
 import { useNavigate } from "react-router-dom";
 import queryString from "query-string";

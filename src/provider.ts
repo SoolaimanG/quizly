@@ -8,6 +8,7 @@ import {
   Zstate,
   app_config,
   comingSoonProps,
+  explorePageProps,
   publicationTypes,
   publishDetails,
 } from "./Types/components.types";
@@ -424,5 +425,22 @@ export const useSurveyNavigation = create<surveyNavigationProps>((_) => ({
     const path = action === "next" ? data?.goTo || nextBlock : nextBlock + "";
 
     setBlockIdInURL(path, navigate);
+  },
+}));
+
+export const useExplorePageProvider = create<explorePageProps>((set) => ({
+  recommendedQuizzes: [],
+  filterRecommendedQuiz: [],
+  setRecommendedQuizzes(props) {
+    set((state) => ({
+      ...state,
+      recommendedQuizzes: props,
+    }));
+  },
+  setFilterRecommendedQuiz(props) {
+    set((state) => ({
+      ...state,
+      filterRecommendedQuiz: props,
+    }));
   },
 }));

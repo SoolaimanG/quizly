@@ -24,7 +24,7 @@ import { Editor } from "@tiptap/react";
 import { SurveyWorkSpace } from "../../Functions/surveyApis";
 import { AxiosError } from "axios";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import {
   Dialog,
   DialogClose,

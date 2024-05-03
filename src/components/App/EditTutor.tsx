@@ -1,5 +1,4 @@
 import React, { FC, SetStateAction, useEffect, useState } from "react";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { Button } from "../Button";
 import { Label } from "../Label";
 import { Input } from "../Input";
@@ -15,6 +14,7 @@ import ImageUploader from "./ImageUploader";
 import { useZStore } from "../../provider";
 import { Avatar, AvatarFallback, AvatarImage } from "../Avatar";
 import { useText } from "../../Hooks/text";
+import { Description } from "./Description";
 //
 export const EditTutor: FC<{
   className?: string;

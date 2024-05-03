@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { ISurvey } from "../../Types/survey.types";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { Button } from "../../components/Button";
 import { MoreButtonSurvey } from "./MoreButtonSurvey";
 

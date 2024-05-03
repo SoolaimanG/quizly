@@ -6,7 +6,6 @@ import React, {
 } from "react";
 import {
   IQuestion,
-  IQuiz,
   app_config,
   localStorageKeys,
   questionUIStateProps,
@@ -38,7 +37,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../../components/Popover";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { AlertCircle } from "lucide-react";
 import { useLocalStorage, useSessionStorage } from "@uidotdev/usehooks";
 import { toast } from "../../components/use-toaster";
@@ -65,14 +63,9 @@ import {
 } from "../../components/AlertModal";
 import { Textarea } from "../../components/TextArea";
 import { Img } from "react-image";
-
-interface QuizQuestionProps {
-  question_id: string;
-  quiz: IQuiz;
-  haveNavigation?: boolean;
-  displayTimer?: boolean;
-  index?: number;
-}
+import { Description } from "../../components/App/Description";
+import { quizQuestionCompProps } from "../../Types/quiz.types";
+import { IQuiz } from "../../Types/quiz.types";
 
 const QuestionLoader = () => {
   return (
@@ -93,7 +86,7 @@ export const QuizQuestion = forwardRef(
       haveNavigation = true,
       displayTimer = true,
       index,
-    }: QuizQuestionProps,
+    }: quizQuestionCompProps,
     ref: ForwardedRef<HTMLDivElement>
   ) => {
     const { isAuthenticated } = useAuthentication();
@@ -206,16 +199,19 @@ export const QuizQuestion = forwardRef(
     };
 
     const reportQuestionFunction = async () => {
-      if (!issue)
+      if (!issue) {
         return toast({
           title: "Error",
           description: "Please write about the issue you encounter.",
           variant: "destructive",
         });
+      }
 
       login_required();
 
-      if (!login_required()) return;
+      if (!login_required()) {
+        return;
+      }
 
       try {
         const response: { data: {}; message: string } = await reportQuestion({

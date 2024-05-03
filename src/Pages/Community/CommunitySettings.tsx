@@ -16,12 +16,12 @@ import {
 import { AccordionContent } from "../../components/App/Accordion";
 import { SelectCategory } from "../../components/App/SelectCategory";
 import { Switch } from "../../components/Switch";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { CommunityApiCalls } from "../../Functions/APIqueries";
 import { toast } from "../../components/use-toaster";
 import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
+import { Description } from "../../components/App/Description";
 
 export const CommunitySettings: FC<{}> = () => {
   const { user } = useZStore();

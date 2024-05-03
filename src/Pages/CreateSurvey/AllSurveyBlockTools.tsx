@@ -19,7 +19,7 @@ import {
   WavesIcon,
 } from "lucide-react";
 import { FC, ReactElement } from "react";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { cn } from "../../lib/utils";
 
 export const HoverTools: FC<{ children: ReactElement; className?: string }> = ({

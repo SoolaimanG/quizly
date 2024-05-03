@@ -1,31 +1,28 @@
-import {
-  IQuiz,
-  app_config,
-  localStorageKeys,
-} from "../../Types/components.types";
+import { app_config } from "../../Types/components.types";
 import { Button } from "../../components/Button";
-import { ReactElement, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getTrendingQuiz } from "../../Functions/APIqueries";
 import { Link, useLocation } from "react-router-dom";
 import { QuizStartView } from "./QuizStartView";
 import Error from "../Comps/Error";
 
 import queryString from "query-string";
-import { useLocalStorage } from "@uidotdev/usehooks";
-import { cn } from "../../lib/utils";
 import { useAuthentication } from "../../Hooks";
 import { QuizQuestion } from "../Quiz/QuizQuestion";
 import { QuizResult } from "../Quiz/QuizResult";
 import { RetakeQuizButton } from "../../components/App/RetakeQuizButton";
+import { IQuiz } from "../../Types/quiz.types";
+import PageLoader from "../../components/Loaders/PageLoader";
+import { QuizQueries } from "../../Functions/QuizQueries";
 
-export const QuickQuiz = () => {
+export const QuickQuiz: FC<{}> = () => {
   const { isAuthenticated } = useAuthentication();
-  const [anonymous_id] = useLocalStorage<string>(localStorageKeys.anonymous_id);
-  const { isLoading, data, error, refetch } = useQuery<{ data: IQuiz[] }>({
-    queryKey: ["get_trending_quiz"],
-    queryFn: () => getTrendingQuiz(isAuthenticated, anonymous_id ?? ""),
+  const quiz = new QuizQueries(isAuthenticated);
+  const { isLoading, data, error, refetch } = useQuery<{ data: IQuiz }>({
+    queryKey: ["get_quick_quiz"],
+    queryFn: () => quiz.getQuickQuiz(),
     retry: 1,
+    refetchInterval: 30000,
   });
 
   const location = useLocation();
@@ -47,7 +44,8 @@ export const QuickQuiz = () => {
       setQuestionID(queryString.parse(location.search).questionid as string);
   }, [location.search, location.hash]);
 
-  if (isLoading) return "";
+  if (isLoading)
+    return <PageLoader size={50} text="Please wait" className="h-full" />;
 
   if (error)
     return (
@@ -60,17 +58,17 @@ export const QuickQuiz = () => {
 
   //All the views to be render for the quick quiz Starting Page, The Questions Page and Score/Final Page
   const views = {
-    start: <QuizStartView data={data?.data[0] as IQuiz} />,
-    question: <QuizQuestion quiz={data?.data[0]!} question_id={question_id} />,
+    start: <QuizStartView data={data?.data} />,
+    question: <QuizQuestion quiz={data?.data!} question_id={question_id} />,
     result: (
-      <QuizResult {...data?.data[0]}>
+      <QuizResult {...data?.data}>
         <div className="flex absolute bottom-4 w-full gap-3">
           <RetakeQuizButton
             to_go={"#start"}
-            quiz_id={data?.data[0]?.id as string}
+            quiz_id={data?.data?.id as string}
           />
           <Button asChild variant="base" className="w-full h-[3rem]">
-            <Link to={app_config.quizzes}>Another Quiz</Link>
+            <Link to={app_config.more_quizzes}>Another Quiz</Link>
           </Button>
         </div>
       </QuizResult>
@@ -78,7 +76,7 @@ export const QuickQuiz = () => {
   };
 
   return (
-    <>
+    <div className="h-full">
       {/*</div>*/}
       <div className="w-full flex items-center justify-center">
         <Button
@@ -89,23 +87,7 @@ export const QuickQuiz = () => {
           Quick Quiz
         </Button>
       </div>
-      {views[view]}
-    </>
-  );
-};
-
-export const Description = ({
-  text,
-  children,
-  className,
-}: {
-  text?: string;
-  className?: string;
-  children?: ReactElement;
-}) => {
-  return (
-    <div className={cn("text-sm text-muted-foreground", className)}>
-      {text || children || ""}
+      <div className="w-full h-full md:-mt-4 -mt-4">{views[view]}</div>
     </div>
   );
 };

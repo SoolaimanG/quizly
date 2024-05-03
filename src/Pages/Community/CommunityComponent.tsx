@@ -1,5 +1,4 @@
 import { Img } from "react-image";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { JoinCommunity } from "./CommunityCard";
 import { useText } from "../../Hooks/text";
 import { app_config } from "../../Types/components.types";
@@ -103,6 +102,7 @@ import {
   DialogTrigger,
 } from "../../components/DialogModal";
 import { Badge } from "../../components/Badge";
+import { Description } from "../../components/App/Description";
 
 export const CommunityDetails: FC<{
   data: ICommunityDetails;
@@ -111,21 +111,11 @@ export const CommunityDetails: FC<{
 
   const variants: (
     | "default"
-    | "secondary"
     | "destructive"
-    | "outline"
     | "success"
     | "warning"
     | "friendly"
-  )[] = [
-    "secondary",
-    "destructive",
-    "outline",
-    "success",
-    "warning",
-    "friendly",
-    "default",
-  ];
+  )[] = ["destructive", "success", "warning", "friendly", "default"];
 
   const details = [
     {
@@ -153,7 +143,7 @@ export const CommunityDetails: FC<{
           src={data.display_picture}
         />
         <div>
-          <h1>{truncateWord(data.name, 15)}</h1>
+          <h1 className="josefin-sans-font">{truncateWord(data.name, 15)}</h1>
           <Description
             text={`Created by ${capitalize_first_letter(data.created_by)}`}
           />
@@ -162,14 +152,14 @@ export const CommunityDetails: FC<{
       <div className="flex justify-between items-center">
         {details.map((detail, i) => (
           <div key={i} className="flex items-center flex-col">
-            <p>{detail.numbers}</p>
-            <Description text={detail.content} />
+            <h1 className="josefin-sans-font">{detail.numbers}</h1>
+            <Description className="text-lg" text={detail.content} />
           </div>
         ))}
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         {data.allow_categories.map((category, i) => (
-          <Badge key={i} variant={variants[i]}>
+          <Badge className="rounded-sm" key={i} variant={variants[i]}>
             {category.body}
           </Badge>
         ))}
@@ -222,7 +212,7 @@ export const CommunityNavigation: FC<{
       {navigations.map((navigation) => (
         <Link
           className={cn(
-            "flex items-center gap-2 p-2 rounded-md transition-all ease-linear",
+            "flex items-center josefin-sans-font gap-2 p-2 rounded-md transition-all ease-linear",
             !onMobile &&
               path === navigation.name &&
               "bg-green-500 text-white hover:text-white",
@@ -256,7 +246,7 @@ export const CommunityFeed: FC<ICommuntityPost> = ({
   const { getFirstLetterAndCapitalize } = useText();
 
   return (
-    <Card>
+    <Card className="rounded-sm">
       <CardContent className="p-2 rounded-sm flex flex-col gap-2 py-3 w-full">
         {/* Header */}
         <header className="flex items-center justify-between w-full">
@@ -295,6 +285,7 @@ export const CommunityFeed: FC<ICommuntityPost> = ({
         {/* Posts Image */}
         <div className="w-full mt-1">
           <ImageCarosel
+            // swiperClassName="-z-10"
             onElementClick={() => {}}
             slidePerView={images.length > 1 ? 2 : 1}
             images={images.map((i) => i.image)}
@@ -380,7 +371,9 @@ export const PostLike: FC<{ likes: number; id: string }> = ({ likes, id }) => {
   const handleLike = () => {
     login_required();
 
-    if (!login_required("Login to like this post. ❤") || isLoading) return;
+    if (!login_required("Login to like this post. ❤") || isLoading) {
+      return;
+    }
 
     mutate();
   };
@@ -425,7 +418,7 @@ export const PostComments: FC<{ comments_count: number; id: string }> = ({
   });
 
   const [open, setOpen] = useState(false);
-  const [comment, setCommment] = useState("");
+  const [comment, setComment] = useState("");
   const [commentData, setCommentData] = useState<PostCommentsProps[]>([]);
 
   const {
@@ -444,7 +437,9 @@ export const PostComments: FC<{ comments_count: number; id: string }> = ({
     enabled: open,
     initialPageParam: 1,
     getNextPageParam(lastPage, _, lastPageParams) {
-      if (lastPage.data.length === comments_count) return undefined;
+      if (lastPage.data.length === comments_count) {
+        return;
+      }
 
       return (lastPageParams as number) + 1;
     },
@@ -483,15 +478,22 @@ export const PostComments: FC<{ comments_count: number; id: string }> = ({
         exact: true,
       });
     },
+
+    onSuccess() {
+      setComment("");
+    },
   });
 
   const handleAddComment = () => {
     login_required();
 
-    if (!login_required("Login to comment on this post. 📥") || isLoading)
+    if (!login_required("Login to comment on this post. 📥") || isLoading) {
       return;
+    }
 
-    if (!user) return;
+    if (!user) {
+      return;
+    }
 
     const { profile_image, username, id } = user;
 
@@ -523,7 +525,9 @@ export const PostComments: FC<{ comments_count: number; id: string }> = ({
       });
     }
 
-    if (!error) return;
+    if (!error) {
+      return;
+    }
     toast({
       title: "Error",
       description: "Something went wromg with comment " + id,
@@ -551,14 +555,14 @@ export const PostComments: FC<{ comments_count: number; id: string }> = ({
     description: "Read and write something about this post.",
     inputDesktop: (
       <Textarea
-        onChange={(e) => setCommment(e.target.value)}
+        onChange={(e) => setComment(e.target.value)}
         value={comment}
         placeholder="Say Something..."
       />
     ),
     inputMobile: (
       <Input
-        onChange={(e) => setCommment(e.target.value)}
+        onChange={(e) => setComment(e.target.value)}
         value={comment}
         placeholder="Say Something..."
       />
@@ -726,7 +730,9 @@ export const PostMoreIcon: FC<{
   ) => {
     e.preventDefault();
     login_required("You have to login before reporting this post");
-    if (!login_required("You have to login before reporting this post")) return;
+    if (!login_required("You have to login before reporting this post")) {
+      return;
+    }
   };
 
   const deletePost = (
@@ -757,7 +763,7 @@ export const PostMoreIcon: FC<{
           <AlertCircleIcon />
           <AlertDescription>
             Please note that the action you are about to perform is irrevesible!
-            And Quizly will be responsible for any data loss!
+            And {app_config.AppName} will be responsible for any data loss!
           </AlertDescription>
         </Alert>
         <AlertDialogFooter>

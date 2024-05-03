@@ -5,13 +5,13 @@ import { useCounter, useLocalStorage } from "@uidotdev/usehooks";
 import { useQuery } from "@tanstack/react-query";
 import { checkTimer } from "../../Functions/APIqueries";
 import { localStorageKeys, timerProps } from "../../Types/components.types";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { Badge } from "../Badge";
 import { useTimerColor } from "../../Hooks/quizHooks";
 import { toast } from "../use-toaster";
 import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
 import { useAuthentication } from "../../Hooks";
+import { Description } from "./Description";
 
 export const Timer: React.FC<timerProps> = ({
   quiz_id,

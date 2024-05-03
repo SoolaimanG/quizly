@@ -2,7 +2,6 @@ import { Img } from "react-image";
 import { QuickActions } from "./QuickActions";
 import Illustration from "../../assets/undraw_reading_list_re_bk72.svg";
 import { Loader2 } from "lucide-react";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { IQuiz } from "../../Types/components.types";
 import { StartQuizButton } from "../../components/App/StartQuizButton";
 import { AnimatePresence, motion } from "framer-motion";
@@ -12,6 +11,7 @@ import { cn } from "../../lib/utils";
 import { Comments } from "../../components/App/Comments";
 import { useNavigate } from "react-router-dom";
 import { useAuthentication } from "../../Hooks";
+import { Description } from "../../components/App/Description";
 
 export const StartPage: React.FC<{ data: IQuiz }> = ({
   data: { instructions, id, is_completed, has_user_started_quiz },

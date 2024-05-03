@@ -1,7 +1,6 @@
 import { FC } from "react";
 import { NotificationsProps } from "../../Types/components.types";
 import { UserProfilePicture } from "./UserProfilePicture";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { formatDistanceToNow } from "date-fns";
 import { useText } from "../../Hooks/text";
 import { Button } from "../Button";
@@ -15,6 +14,7 @@ import {
   RejectRequestBTN,
 } from "../../Pages/Comps/RequestButtons";
 import { useCommunityStore } from "../../provider";
+import { Description } from "./Description";
 
 export const NotificationUI: FC<NotificationsProps> = ({
   user: { profile_image, username },

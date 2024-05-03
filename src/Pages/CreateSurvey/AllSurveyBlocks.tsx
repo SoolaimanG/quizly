@@ -32,7 +32,6 @@ import {
 } from "lucide-react";
 import { Button } from "../../components/Button";
 import Rating from "../../components/App/Rating";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { TikTokIcon } from "../../assets/TikTokIcon";
 import { InstagramIcon } from "../../assets/InstagramIcon";
 import { TwitterIcon } from "../../assets/TwitterIcon";
@@ -91,6 +90,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import queryString from "query-string";
 import { toast } from "../../components/use-toaster";
 import { useRegex } from "../../Hooks/regex";
+import { Description } from "../../components/App/Description";
 
 export type mode = "DEVELOPMENT" | "PRODUCTION" | "PREVIEW";
 //

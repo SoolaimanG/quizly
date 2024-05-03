@@ -10,8 +10,8 @@ import { edit_profile } from "../../Functions";
 import { toast } from "../../components/use-toaster";
 import { useZStore } from "../../provider";
 import { useNavigate } from "react-router-dom";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { cn } from "../../lib/utils";
+import { Description } from "../../components/App/Description";
 
 const accountTypeContent = [
   {

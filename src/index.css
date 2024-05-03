@@ -64,6 +64,10 @@ html {
   display: none;
 }
 
+.swiper-wrapper {
+  z-index: 0;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

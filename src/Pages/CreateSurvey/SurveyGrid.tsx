@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { ISurvey } from "../../Types/survey.types";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { MoreButtonSurvey } from "./MoreButtonSurvey";
 import { Link } from "react-router-dom";
 import { app_config } from "../../Types/components.types";

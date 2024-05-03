@@ -11,7 +11,6 @@ import {
 import { app_config } from "../../Types/components.types";
 import { Button } from "../Button";
 import { Link } from "react-router-dom";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { useZStore } from "../../provider";
 import { useWindowSize } from "@uidotdev/usehooks";
 import {
@@ -24,6 +23,7 @@ import {
   DrawerTitle,
 } from "../Drawer";
 import { Check } from "lucide-react";
+import { Description } from "./Description";
 
 export const CompleteSignUp: FC<{}> = () => {
   const { width } = useWindowSize();

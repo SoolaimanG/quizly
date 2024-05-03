@@ -1,4 +1,5 @@
 import { NavigateFunction } from "react-router-dom";
+import { surveyResponseTypes } from "../Functions";
 
 export type formType =
   | "contact"
@@ -377,11 +378,14 @@ export interface ICustomLogicConditions {
 export interface surveyNavigationProps {
   action: "prev" | "next";
   setAction: (prop: "prev" | "next") => void;
+  disableBtnTimer: number;
+  setDisableBtnTimer: (prop: number) => void;
   navigate: (
     navigate: NavigateFunction,
     currentIndex: number,
-    id: string,
     blockList: string[],
-    action: "prev" | "next"
+    action: "prev" | "next",
+    surveyLogics?: ICustomLogicConditions[],
+    userResponse?: surveyResponseTypes
   ) => void;
 }

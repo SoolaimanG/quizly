@@ -3,7 +3,6 @@ import LandingPage from "./Pages/LandingPage";
 import ProtectedRoute from "./ProtectedRoute";
 import AppProvider from "./components/App/AppProvider";
 import { Route, Routes } from "react-router-dom";
-// import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import Onboarding from "./Pages/Onboarding";
 import { app_config } from "./Types/components.types";
 import Explore from "./Pages/ExplorePage/Explore";
@@ -12,8 +11,8 @@ import useKeyboardShortcut from "use-keyboard-shortcut";
 import { toggle_modes } from "./Functions";
 import { useZStore } from "./provider";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import CommunityLayout from "./Pages/Community/CommunityPages/CommunityLayout";
-import Quizzes from "./Pages/Quizzes/Quizzes";
+import CommunityLayout from "./Pages/Community/CommunityLayout";
+import MoreQuizzes from "./Pages/Quiz/MoreQuizzes";
 import Create from "./Pages/CreateSurvey/Create";
 import WorkSpace from "./Pages/CreateSurvey/WorkSpace";
 import ConnectingApps from "./Pages/IntegratedApps/connectingApps";
@@ -65,7 +64,7 @@ function App() {
           path={app_config.community + "settings/" + ":id"}
           element={<CommunityLayout path="Settings" />}
         />
-        <Route path={app_config.quizzes} element={<Quizzes />} />
+        <Route path={app_config.more_quizzes} element={<MoreQuizzes />} />
 
         {/*------------ AUTHENTICATIONS */}
         <Route

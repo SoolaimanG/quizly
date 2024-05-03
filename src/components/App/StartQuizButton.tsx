@@ -2,10 +2,7 @@ import { useLocalStorage, useSessionStorage } from "@uidotdev/usehooks";
 import React, { useState, useTransition } from "react";
 import { generateUUID } from "../../Functions";
 import { startQuiz } from "../../Functions/APIqueries";
-import {
-  localStorageKeys,
-  startQuizButtonProps,
-} from "../../Types/components.types";
+import { localStorageKeys } from "../../Types/components.types";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent } from "../DialogModal";
 import { StudentVerification } from "./StudentVerification";
@@ -15,12 +12,15 @@ import { Restricted } from "./Restricted";
 import { Input } from "../Input";
 import { useQuizStore } from "../../provider";
 import { Loader2 } from "lucide-react";
+import { startQuizButtonProps } from "../../Types/quiz.types";
+import { cn } from "../../lib/utils";
 
 export const StartQuizButton: React.FC<startQuizButtonProps> = ({
   id,
   isAuthenticated,
   button_text = "Start Quiz",
   haveExternalFunction,
+  className,
   onQuizStart,
 }) => {
   //---------->HOOKS<--------
@@ -128,7 +128,7 @@ export const StartQuizButton: React.FC<startQuizButtonProps> = ({
       disabled={isPending}
       onClick={start_quiz}
       variant={"base"}
-      className="w-full h-[3rem] flex items-center gap-1"
+      className={cn("w-full h-[3rem] flex items-center gap-1", className)}
     >
       {isPending && <Loader2 className="animate-spin" size={30} />}
       {button_text}

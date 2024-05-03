@@ -12,7 +12,7 @@ import {
 import { Img } from "react-image";
 import RocketImage from "../../assets/rocketIcon.png";
 import { Button } from "../Button";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { DatePicker } from "../DatePicker";
 import { Loader2 } from "lucide-react";
 import { Textarea } from "../TextArea";

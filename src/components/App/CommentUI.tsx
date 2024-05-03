@@ -2,12 +2,12 @@ import { Ref, forwardRef } from "react";
 import { IComment, app_config } from "../../Types/components.types";
 import { Avatar, AvatarFallback, AvatarImage } from "../Avatar";
 import { useText } from "../../Hooks/text";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { capitalize_first_letter } from "../../Functions";
 
 import { LikeQuizComment } from "./LikeQuizComment";
+import { Description } from "./Description";
 
 export const CommentUI = forwardRef(
   (

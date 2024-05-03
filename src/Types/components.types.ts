@@ -3,6 +3,7 @@ import { Variants } from "framer-motion";
 import React, { RefObject, SetStateAction } from "react";
 import { featureWaitListProps } from "../components/App/ComingSoon";
 import { mode } from "../Pages/CreateSurvey/AllSurveyBlocks";
+import { IQuiz } from "./quiz.types";
 
 //Combo-Box Type
 export interface combo_box_type<T> {
@@ -181,38 +182,6 @@ export interface IUser {
 }
 
 //Quizzes created by user props
-export interface IQuiz {
-  access_with_key: boolean;
-  category: subjects;
-  created_at: Date;
-  descriptions: string;
-  difficulty: "easy" | "medium" | "hard";
-  time_limit: number;
-  host: Pick<IUser, "profile_image" | "username" | "id" | "bio"> &
-    Pick<ITeacher, "phone_num">;
-  id: string;
-  participants: Pick<IUser, "profile_image" | "username" | "id">[];
-  requirements: string;
-  subject: string;
-  banner?: string;
-  title: string;
-  rating: number;
-  participants_count: number;
-  total_questions: number;
-  submit_on_leave?: boolean;
-  allow_calculator?: boolean;
-  allow_word_search?: boolean;
-  allow_robot_read?: boolean;
-  instructions?: string;
-  result_display_type?: resultDisplayProps;
-  comments_count: number;
-  has_user_started_quiz: boolean;
-  finish_message?: string;
-  allow_retake?: boolean;
-  allowed_users: string;
-  quiz_completed: boolean;
-  is_completed: boolean;
-}
 
 export type question_type =
   | "true_or_false"
@@ -322,8 +291,8 @@ export enum app_config {
   forgetPassword = "/auth/forget-password",
   confrimEmail = "/auth/confirm-email/",
   create_survey = "/quizly/survey",
-  quizzes = "/quizly/quizzes",
-  quiz = "/quizly/quiz/",
+  more_quizzes = "/quizly/more-quizzes/",
+  quiz = "/quiz/",
   user = "/quizly/user/",
   challenge_friend = "/quizly/challenge-friend",
   communities = "/quizly/communities/",
@@ -403,15 +372,6 @@ export interface startQuizFunctionProps {
   isAuthenticated?: boolean;
   anonymous_id: string;
   access_key?: string;
-}
-
-export interface startQuizButtonProps {
-  id?: string;
-  isAuthenticated: boolean;
-  button_text?: string;
-  haveExternalFunction?: boolean;
-  onQuizStart: () => void;
-  setQuestionIds?: React.Dispatch<SetStateAction<string[]>>;
 }
 
 export interface markQuestionProps {
@@ -634,4 +594,12 @@ export interface publicationTypes {
   setRecipients: (prop: string) => void;
   setPublishDetails: (props: publishDetails) => void;
   setIsSuccess: (prop: boolean) => void;
+}
+
+export interface explorePageProps {
+  // Recommended Quiz
+  recommendedQuizzes: IQuiz[];
+  filterRecommendedQuiz: IQuiz[];
+  setRecommendedQuizzes: (props: IQuiz[]) => void;
+  setFilterRecommendedQuiz: (props: IQuiz[]) => void;
 }

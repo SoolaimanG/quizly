@@ -1,16 +1,17 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useAuthentication } from "../../Hooks";
-import NavBar from "../ExplorePage/NavBar";
-import { getQuizzesForUser } from "../../Functions/APIqueries";
+import { NavBar } from "../ExplorePage/NavBar";
 import EmptyState from "../../components/App/EmptyState";
-import { QuizListUI, QuizLoadingSkeleton } from "../ExplorePage/QuizListUI";
+import { QuizDetailsSneakPeak } from "./QuizDetailsSneakPeak";
 import { useIntersectionObserver } from "@uidotdev/usehooks";
 import { useEffect, useState } from "react";
 import { Combobox } from "../../components/ComboBox";
-import { IQuiz, combo_box_type } from "../../Types/components.types";
+//
+import { combo_box_type } from "../../Types/components.types";
 import { Button } from "../../components/Button";
 import { FilterIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { QuizQueries } from "../../Functions/QuizQueries";
+import { IQuiz } from "../../Types/quiz.types";
 
 const _difficulty: combo_box_type<string>[] = [
   {
@@ -50,19 +51,21 @@ const _rating: combo_box_type<string>[] = [
   },
 ];
 
-const Quizzes = () => {
-  const { isAuthenticated } = useAuthentication();
+const MoreQuizzes = () => {
+  const { getTrendingQuiz } = new QuizQueries();
   const [difficulty, setDifficulty] = useState("");
   const [rating, setRating] = useState("");
-  const [ref, entry] = useIntersectionObserver({ threshold: 0.3 });
+  const [_, entry] = useIntersectionObserver({ threshold: 0.3 });
   const { isLoading, data, fetchNextPage } = useInfiniteQuery<{
     data: IQuiz[];
   }>({
     queryKey: ["get_quizzes"],
-    queryFn: ({ pageParam = 1 }) => getQuizzesForUser(Number(pageParam) * 10),
+    queryFn: () => getTrendingQuiz(false),
     initialPageParam: 1,
     getNextPageParam(_, __, lastPageParams) {
-      if (0 === 0) return undefined;
+      if (0 === 0) {
+        return undefined;
+      }
 
       return (lastPageParams as number) + 1;
     },
@@ -88,7 +91,7 @@ const Quizzes = () => {
             ? quiz.difficulty.toLowerCase() === difficulty.toLowerCase()
             : true
         )
-        .filter((q) => (!rating ? true : q.rating === Number(rating))) ?? []
+        .filter((q) => (rating ? q.rating === Number(rating) : true)) ?? []
     );
   };
 
@@ -103,20 +106,16 @@ const Quizzes = () => {
         quiz?.title?.toLowerCase().includes(q.toLowerCase()) ||
         quiz?.descriptions?.toLowerCase().includes(q.toLowerCase()) ||
         quiz?.difficulty?.toLowerCase().includes(q.toLowerCase()) ||
-        quiz?.category?.toLowerCase().includes(q.toLowerCase()) ||
-        quiz?.subject?.toLowerCase().includes(q.toLowerCase())
+        quiz?.category?.toLowerCase().includes(q.toLowerCase())
+      // ||
+      // quiz?.subject?.toLowerCase().includes(q.toLowerCase())
     );
     setQuizzes(searchQuizzes ?? []);
   };
 
   return (
     <div className="flex flex-col gap-3">
-      <NavBar
-        onSubmit={handleSearch}
-        show_search_bar
-        navbarText="Quizzes"
-        isAuthenticated={isAuthenticated}
-      />
+      <NavBar onSubmit={handleSearch} show_search_bar navbarText="Quizzes" />
       <nav className="w-full flex items-end justify-end px-2 pt-16">
         <div className="flex items-center gap-2">
           <Combobox
@@ -142,13 +141,6 @@ const Quizzes = () => {
         </div>
       </nav>
       <div className="w-full">
-        {isLoading && (
-          <QuizLoadingSkeleton
-            className="grid grid-cols-3 gap-3 w-full"
-            len={10}
-            view="small"
-          />
-        )}
         {!isLoading && !quizzes.length && (
           <EmptyState
             message="No Quiz Matches Your Filter"
@@ -169,15 +161,8 @@ const Quizzes = () => {
           >
             {!isLoading &&
               !!quizzes.length &&
-              quizzes.map((quiz, index) => (
-                <QuizListUI
-                  key={index}
-                  ref={quizzes.length - 2 === index ? ref : undefined}
-                  className="h-fit"
-                  data={quiz}
-                  type="small"
-                  isLoading={false}
-                />
+              quizzes.map((quiz) => (
+                <QuizDetailsSneakPeak key={quiz.id} {...quiz} />
               ))}
           </motion.div>
         </AnimatePresence>
@@ -186,4 +171,4 @@ const Quizzes = () => {
   );
 };
 
-export default Quizzes;
+export default MoreQuizzes;

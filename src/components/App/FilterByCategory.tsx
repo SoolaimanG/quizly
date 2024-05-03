@@ -1,48 +1,80 @@
-import { AxiosError } from "axios";
-import {
-  ICategory,
-  IQuiz,
-  app_config,
-  subjects,
-} from "../../Types/components.types";
+import { ICategory, app_config, subjects } from "../../Types/components.types";
 import { Skeleton } from "../Loaders/Skeleton";
 import { useQuizHook } from "../../Hooks/quizHooks";
 import { Button } from "../Button";
 import qs from "query-string";
 import { useNavigate } from "react-router-dom";
 import { isObjectEmpty } from "../../Functions";
-import { SetStateAction } from "react";
 import { cn } from "../../lib/utils";
+import { useExplorePageProvider } from "../../provider";
+import { useQuery } from "@tanstack/react-query";
+import { fetchCategory } from "../../Functions/APIqueries";
 
-export const FilterByCategory: React.FC<{
-  category?: ICategory[];
-  isLoading: boolean;
-  error?: AxiosError;
-  setData: React.Dispatch<SetStateAction<IQuiz[]>>;
-  list: IQuiz[];
-}> = ({ category, isLoading, setData, list }) => {
+// Incase the category do not load from the server.
+const fallBackCategories: ICategory[] = [
+  {
+    body: "Agriculture",
+  },
+  {
+    body: "Biology",
+  },
+  {
+    body: "Chemistry",
+  },
+  {
+    body: "Computer",
+  },
+  {
+    body: "Economics",
+  },
+  {
+    body: "Electronics",
+  },
+  {
+    body: "English",
+  },
+  {
+    body: "Science",
+  },
+  {
+    body: "Mathematics",
+  },
+  {
+    body: "Physics",
+  },
+];
+
+export const FilterByCategory: React.FC<{}> = () => {
+  const { recommendedQuizzes, setFilterRecommendedQuiz } =
+    useExplorePageProvider();
   const { assignIconToCategory } = useQuizHook();
   const navigate = useNavigate();
 
+  const { isLoading, data } = useQuery<{ data: ICategory[] }>({
+    queryKey: ["category"],
+    queryFn: fetchCategory,
+  });
+
+  // FUNCTIONS
   const filter_by_category = async (category: subjects) => {
     const url = qs.stringifyUrl({
       url: app_config.explore_page + "/",
       query: { category },
     });
 
-    const filtered_data = list.filter(
+    const filtered_data = recommendedQuizzes.filter(
       (q) => q.category.toLowerCase() === category.toLowerCase()
     );
 
-    setData(filtered_data);
+    setFilterRecommendedQuiz(filtered_data);
     navigate(url); //Filter
   };
-
-  //Using this to get the active state by return the value of the query parameter
   const activeTab = () => {
     const category = qs.parseUrl(location.href);
 
-    if (isObjectEmpty(category.query as object)) return "All";
+    if (isObjectEmpty(category.query as object)) {
+      return "All";
+    }
 
     return category.query.category as subjects;
   };
@@ -52,7 +84,7 @@ export const FilterByCategory: React.FC<{
       <Button
         onClick={() => {
           navigate(app_config.explore_page);
-          setData(list);
+          setFilterRecommendedQuiz(recommendedQuizzes);
         }}
         variant={activeTab() === "All" ? "base" : "secondary"}
       >
@@ -61,18 +93,18 @@ export const FilterByCategory: React.FC<{
       {isLoading ? (
         <ButtonSkeleton size={8} />
       ) : (
-        category?.map((cat, i) => (
+        (data?.data || fallBackCategories)?.map((category, i) => (
           <Button
-            onClick={() => filter_by_category(cat.body)}
-            variant={activeTab() === cat.body ? "base" : "secondary"}
+            onClick={() => filter_by_category(category.body)}
+            variant={activeTab() === category.body ? "base" : "secondary"}
             className="flex items-center gap-2"
             key={i}
           >
             <div className="p-2 rounded-full">
-              {assignIconToCategory(cat.body)}
+              {assignIconToCategory(category.body)}
             </div>
 
-            <p>{cat.body}</p>
+            <p>{category.body}</p>
           </Button>
         ))
       )}

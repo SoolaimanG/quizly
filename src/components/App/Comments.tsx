@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { IComment, commentsCompProps } from "../../Types/components.types";
 import EmptyState from "./EmptyState";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addCommentFuncton, getQuizComments } from "../../Functions/APIqueries";
+import { addCommentFuncton } from "../../Functions/APIqueries";
 import { CommentUI } from "./CommentUI";
 import { Input } from "../Input";
 import { Button } from "../Button";
@@ -12,11 +12,13 @@ import { useZStore } from "../../provider";
 import { cn } from "../../lib/utils";
 import { Textarea } from "../TextArea";
 import Error from "../../Pages/Comps/Error";
+import { QuizQueries } from "../../Functions/QuizQueries";
 
 export const Comments: React.FC<commentsCompProps> = ({
   quiz_id,
   type = "input",
 }) => {
+  const quiz = new QuizQueries();
   const queryClient = useQueryClient();
   const [comment, setComment] = useState("");
   const { isLoading, data, error, refetch } = useQuery<
@@ -24,13 +26,13 @@ export const Comments: React.FC<commentsCompProps> = ({
     any,
     { data: IComment[] }
   >({
-    queryKey: [`quiz_comments_${quiz_id}`],
-    queryFn: () => getQuizComments(quiz_id),
+    queryKey: ["quizComments", quiz_id],
+    queryFn: () => quiz.getQuizComment(quiz_id),
     retry: 1,
   });
 
   const { mutate } = useMutation({
-    mutationKey: [`add_comment_${quiz_id}`],
+    mutationKey: [`add_comment`, quiz_id],
     mutationFn: () => addCommentFuncton({ comment, quiz_id }),
     onMutate: async (newComment: IComment) => {
       // Cancel any outgoing refetches
@@ -73,9 +75,14 @@ export const Comments: React.FC<commentsCompProps> = ({
 
   const addComment = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!login_required()) return;
 
-    if (!comment) return;
+    if (!login_required()) {
+      return;
+    }
+
+    if (!comment) {
+      return;
+    }
 
     const newComment: IComment = {
       username: user?.username!,
@@ -111,7 +118,7 @@ export const Comments: React.FC<commentsCompProps> = ({
     input: (
       <form
         onSubmit={addComment}
-        className="w-full flex items-center justify-center gap-2 absolute bottom-2"
+        className="w-full flex items-center justify-center gap-2 absolute bottom-12"
         action=""
       >
         <Input
@@ -149,7 +156,7 @@ export const Comments: React.FC<commentsCompProps> = ({
   return (
     <div
       className={cn(
-        "w-full h-[20rem] md:h-[18.5rem] mb-3 relative",
+        "w-full h-full mb-3 relative",
         type === "input" ? "flex-col-reverse" : "flex-col"
       )}
     >
@@ -162,7 +169,7 @@ export const Comments: React.FC<commentsCompProps> = ({
           />
         ) : (
           data.data.map((comment) => (
-            <CommentUI key={comment.id} {...comment} />
+            <CommentUI type="quiz" key={comment.id} {...comment} />
           ))
         )}
       </div>

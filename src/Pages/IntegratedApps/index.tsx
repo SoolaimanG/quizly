@@ -32,7 +32,7 @@ import {
   BreadcrumbSeparator,
 } from "../../components/BreadCrumb";
 import { GoogleDriveIcon } from "../../assets/GoogleDrive";
-import { Description } from "../ExplorePage/QuickQuiz";
+import { Description } from "../../components/App/Description";
 import { app_config } from "../../Types/components.types";
 import { ExcelIcon } from "../../assets/ExcelIcon";
 import { ConnectApps } from "../../Functions/surveyApis";

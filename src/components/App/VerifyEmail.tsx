@@ -7,7 +7,7 @@ import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
 import { useZStore } from "../../provider";
 import { LottieSuccess } from "./LottieSucces";
-import { Description } from "../../Pages/ExplorePage/QuickQuiz";
+import { Description } from "./Description";
 
 export const VerifyEmail: React.FC<{
   user_email: string;

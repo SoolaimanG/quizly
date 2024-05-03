@@ -11,11 +11,7 @@ import PageLoader from "../../components/Loaders/PageLoader";
 import Error from "../Comps/Error";
 import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
-import {
-  IQuiz,
-  app_config,
-  localStorageKeys,
-} from "../../Types/components.types";
+import { app_config, localStorageKeys } from "../../Types/components.types";
 import { toast } from "../../components/use-toaster";
 import { StartPage } from "./StartPage";
 import { useEffect, useState } from "react";
@@ -23,6 +19,7 @@ import { RenderQuestions } from "./RenderQuestions";
 import { useAuthentication } from "../../Hooks";
 import { QuizResult } from "./QuizResult";
 import { Button } from "../../components/Button";
+import { IQuiz } from "../../Types/quiz.types";
 
 const ERROR_MESSAGE = "This tool is not allowed in this quiz.";
 
@@ -42,19 +39,19 @@ const Quiz = () => {
     queryFn: () => getQuizDetails(id!, anonymous_id!, isAuthenticated),
   });
 
-  console.log(data?.data.id);
-
   useDocumentTitle(data?.data.title ?? "Take Quiz");
   // Open Dictionary
   useKeyboardShortcut(
     ["Control", "d"],
     () => {
-      if (!data?.data.allow_word_search)
+      if (!data?.data.allow_word_search) {
         return toast({
           title: "Error",
           description: ERROR_MESSAGE,
           variant: "destructive",
         });
+      }
+
       setOpenDictionary();
     },
     {

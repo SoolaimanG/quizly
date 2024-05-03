@@ -1,5 +1,4 @@
 import { FC, useEffect, useState, useTransition } from "react";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { Button } from "../../components/Button";
 import { Textarea } from "../../components/TextArea";
 import ImageUploader from "../../components/App/ImageUploader";
@@ -17,6 +16,7 @@ import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
 import { ImageCarosel } from "../../components/App/ImageCarosel";
 import { cn } from "../../lib/utils";
+import { Description } from "../../components/App/Description";
 
 export const PostOnCommunity: FC<{
   id: string;

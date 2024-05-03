@@ -28,7 +28,6 @@ import {
   PopoverTrigger,
 } from "../../components/Popover";
 import { Img } from "react-image";
-import { Description } from "../ExplorePage/QuickQuiz";
 import { useText } from "../../Hooks/text";
 import { cn } from "../../lib/utils";
 import useKeyboardShortcut from "use-keyboard-shortcut";
@@ -62,6 +61,7 @@ import Error from "../Comps/Error";
 import { errorMessageForToast } from "../../Functions";
 import { AxiosError } from "axios";
 import { UserCard } from "../../components/App/UserCard";
+import { Description } from "../../components/App/Description";
 
 export const CommunitySearch: FC<{
   communityName: string;
@@ -259,10 +259,10 @@ export const MyCommunities = () => {
               </div>
             ) : !data?.data.length ? (
               <div className="w-full flex flex-col gap-3">
-                <Description
-                  className="text-center text-xl"
-                  text="You have not created any community"
-                />
+                <h1 className="josefin-sans-font text-center">
+                  You have not created any community
+                </h1>
+
                 <CreateCommunity
                   button={
                     <Button className="w-full" variant="base">
@@ -335,18 +335,18 @@ export const CommunityNavbar: FC<
         side="left"
         className="flex overflow-auto flex-col gap-3 w-full h-full"
       >
-        <SheetHeader className="flex w-full  flex-col">
+        <SheetHeader className="flex w-full flex-col">
           <SheetTitle>{community_data.name}</SheetTitle>
           <SheetClose className=" absolute border p-[3px] border-gray-400 rounded-md hover:border-gray-200 top-1 right-1">
             <X size={15} />
           </SheetClose>
         </SheetHeader>
-        <Card>
+        <Card className="rounded-sm">
           <CardContent className="p-2">
             <CommunityDetails data={community_data} />
           </CardContent>
         </Card>
-        <Card>
+        <Card className="rounded-sm">
           <CardContent className="p-2 h-[70vh]">
             <CommunityCard
               size={6}

@@ -83,7 +83,7 @@ export const ChangeEmail: FC<{}> = () => {
         <OnboardingNav
           func={submitForm}
           tooltip="Go to account-selection"
-          prevNav="ACCOUNT-TYPE"
+          prevNav="CHANGE-NAME"
         />
       </div>
     </div>
