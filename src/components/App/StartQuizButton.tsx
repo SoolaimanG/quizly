@@ -1,82 +1,117 @@
-import { useLocalStorage, useSessionStorage } from "@uidotdev/usehooks";
+// import { useLocalStorage, useSessionStorage } from "@uidotdev/usehooks";
 import React, { useState, useTransition } from "react";
-import { generateUUID } from "../../Functions";
-import { startQuiz } from "../../Functions/APIqueries";
-import { localStorageKeys } from "../../Types/components.types";
+import { errorMessageForToast, getAnonymousID } from "../../Functions";
+// import { localStorageKeys } from "../../Types/components.types";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent } from "../DialogModal";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../DialogModal";
 import { StudentVerification } from "./StudentVerification";
 import { Button } from "../Button";
 import { toast } from "../use-toaster";
 import { Restricted } from "./Restricted";
 import { Input } from "../Input";
-import { useQuizStore } from "../../provider";
 import { Loader2 } from "lucide-react";
 import { startQuizButtonProps } from "../../Types/quiz.types";
 import { cn } from "../../lib/utils";
+import { AxiosError } from "axios";
+import { QuizQueries } from "../../Functions/QuizQueries";
+import { useAuthentication } from "../../Hooks";
+import { useZStore } from "../../provider";
+import { localStorageKeys } from "../../Types/components.types";
+import { useSessionStorage } from "@uidotdev/usehooks";
+import queryString from "query-string";
+import Image from "../../assets/undraw_reading_list_re_bk72.svg";
+import { Img } from "react-image";
+import { RetakeQuiz } from "../../Pages/Quiz/RetakeQuiz";
 
 export const StartQuizButton: React.FC<startQuizButtonProps> = ({
-  id,
-  isAuthenticated,
+  quiz: { id: quiz_id, access_with_key, user_status, allow_retake },
   button_text = "Start Quiz",
-  haveExternalFunction,
   className,
   onQuizStart,
 }) => {
-  //---------->HOOKS<--------
-  const [anonymousID, setAnoymousID] = useLocalStorage<string>("anonymousID");
+  const { isAuthenticated } = useAuthentication();
+  const { user } = useZStore();
+  const quiz = new QuizQueries(isAuthenticated);
   const navigate = useNavigate();
   const [isPending, startTransition] = useTransition();
-  const { setQuestionIDs } = useQuizStore();
+  const [error, setError] = useState<"{'error': 'quiz-completed'}" | null>(
+    null
+  );
+  // This is to access and set the questionsID in sessionStorage
   const [_, setQuestionUUIDs] = useSessionStorage<string[]>(
     localStorageKeys.questionUUIDs,
     []
   );
 
-  //----------->STATES<--------------
   const [access_token, setAccessToken] = useState("");
-  const [states, setStates] = useState<{ status: "404" | "409" | "000" }>({
-    status: "000",
+  const [open, setOpen] = useState({
+    access_token_modal: false,
+    student_account_verification_modal: false,
   });
 
   //-------------->FUNCTIONS<-----------
-  const startForUsers = async () => {
+  const startQuizForUsers = async () => {
     try {
-      if (!id)
-        return toast({
-          title: "Error",
-          description: "Unable to identify quiz. Please try again",
-          variant: "destructive",
-        });
-      //Get ID from data.data object
-      const uuid = generateUUID();
+      if (access_with_key && !access_token) {
+        // Open Modal For User To Input Access Token
+        setOpen({ ...open, access_token_modal: true });
+        return;
+      }
 
-      const res = await startQuiz({
-        quiz_id: id,
-        isAuthenticated,
-        anonymous_id: anonymousID || uuid,
-        access_key: access_token,
+      if (user?.account_type === "T") {
+        setOpen({ ...open, student_account_verification_modal: true });
+        return;
+      }
+
+      const anonymous_id = getAnonymousID(isAuthenticated);
+      const ip_address = "";
+      const res: { data: { uuids: string[] } } = await quiz.startQuiz({
+        quiz_id,
+        access_token,
+        ip_address,
+        anonymous_id,
+        unanswered_questions: user_status === "continue-quiz",
       });
 
-      if (!res.data.uuids?.length) return;
+      // If there is are not questions to start quiz
+      if (!res.data.uuids.length) {
+        return toast({
+          title: "Error",
+          description:
+            "Something went wrong: could not get questions for this quiz. This happens mostly when you have already completed the quiz.",
+          variant: "destructive",
+        });
+      }
 
-      //const questionID = res.data.id
-      setAnoymousID(anonymousID || uuid); //Saving the ID to local storage for further identification
-      const firstQuestion = res?.data?.uuids[0];
-      //Add question to storage
-      haveExternalFunction && setQuestionUUIDs(res.data.uuids);
+      setQuestionUUIDs(res.data.uuids); //Adding questions to sessionStorage.
 
-      !haveExternalFunction
-        ? navigate(
-            `?questionid=${firstQuestion}${
-              access_token ? `&access_key=${access_token}` : ""
-            }#question`
-          )
-        : onQuizStart();
-      haveExternalFunction && setQuestionIDs(res.data.uuids);
-    } catch (error: any) {
-      const status = String(error) as "000";
-      setStates({ ...states, status });
+      // If the quiz first load and the quiz was start from quickQuiz component get the first questionId and navigate to the current url with #question
+      const question_id = res.data.uuids[0];
+
+      const params = queryString.stringify({
+        question_id,
+        access_token,
+      });
+
+      onQuizStart ? onQuizStart() : navigate(`?${params}#question`);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: errorMessageForToast(
+          error as AxiosError<{ message: string }>
+        ),
+        variant: "destructive",
+      });
+      // @ts-ignore
+      setError(error?.response?.data.data as "{'error': 'quiz-completed'}");
     } finally {
       setAccessToken("");
     }
@@ -86,52 +121,99 @@ export const StartQuizButton: React.FC<startQuizButtonProps> = ({
     e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>
   ) => {
     e?.preventDefault();
+
     startTransition(() => {
-      startForUsers();
+      startQuizForUsers();
     });
   };
 
-  const closeModal = () => setStates({ ...states, status: "000" });
+  const studentAccountVerificationModal = (
+    <Dialog
+      open={open.student_account_verification_modal}
+      onOpenChange={(e) =>
+        setOpen({ ...open, student_account_verification_modal: e })
+      }
+    >
+      <DialogContent>
+        <StudentVerification
+          closeFunction={() =>
+            setOpen({ ...open, student_account_verification_modal: false })
+          }
+        />
+      </DialogContent>
+    </Dialog>
+  );
 
-  if (states.status === "409")
-    return (
-      <Dialog open={states.status === "409"} onOpenChange={closeModal}>
-        <DialogContent>
-          <StudentVerification closeFunction={closeModal} />
-        </DialogContent>
-      </Dialog>
-    );
+  const accessTokenModal = (
+    <Dialog
+      open={open.access_token_modal}
+      onOpenChange={(e) => setOpen({ ...open, access_token_modal: e })}
+    >
+      <DialogContent>
+        <Restricted message="Access token is required for this Quiz" />
+        <form onSubmit={start_quiz} className="flex flex-col gap-3" action="">
+          <Input
+            required
+            value={access_token}
+            onChange={(e) => setAccessToken(e.target.value)}
+            className="h-[3rem]"
+            placeholder="Access Token (Example -- Q53jL9K)"
+          />
+          <Button type="submit" className="h-[3rem]" variant={"destructive"}>
+            Join Quiz
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 
-  if (states.status === "404")
-    return (
-      <Dialog open={states.status === "404"} onOpenChange={closeModal}>
-        <DialogContent>
-          <Restricted message="Access token is required for this Quiz" />
-          <form onSubmit={start_quiz} className="flex flex-col gap-3" action="">
-            <Input
-              required
-              value={access_token}
-              onChange={(e) => setAccessToken(e.target.value)}
-              className="h-[3rem]"
-              placeholder="Access Token (Example -- Q53jL9K)"
-            />
-            <Button type="submit" className="h-[3rem]" variant={"destructive"}>
-              Join Quiz
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-    );
+  const quizCompleted = (
+    <Dialog
+      open={error === "{'error': 'quiz-completed'}"}
+      onOpenChange={() => setError(null)}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="text-green-500">Quiz Completed</DialogTitle>
+          <DialogDescription>
+            {
+              "Quiz completed! Want to test your knowledge again? Click 'Start Again"
+            }
+          </DialogDescription>
+        </DialogHeader>
+        <div className="w-full">
+          <Img src={Image} loader={<Loader2 size={18} />} />
+        </div>
+        <DialogFooter className="flex flex-col gap-2">
+          {allow_retake && (
+            <RetakeQuiz>
+              <Button variant="destructive" className="w-full">
+                Retake
+              </Button>
+            </RetakeQuiz>
+          )}
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
-    <Button
-      disabled={isPending}
-      onClick={start_quiz}
-      variant={"base"}
-      className={cn("w-full h-[3rem] flex items-center gap-1", className)}
-    >
-      {isPending && <Loader2 className="animate-spin" size={30} />}
-      {button_text}
-    </Button>
+    <>
+      {quizCompleted}
+      {accessTokenModal}
+      {studentAccountVerificationModal}
+      <Button
+        disabled={isPending || !quiz_id}
+        onClick={start_quiz}
+        variant={"base"}
+        className={cn("w-full h-[3rem] flex items-center gap-1", className)}
+      >
+        {isPending && <Loader2 className="animate-spin" size={19} />}
+        {button_text}
+      </Button>
+    </>
   );
 };

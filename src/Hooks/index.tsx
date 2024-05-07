@@ -42,20 +42,18 @@ export const useAuthentication = () => {
     loading: false,
     error: false,
   });
-  const { user } = useZStore(); //This is a state that have the user properties
-  const { refetch, isSuccess, isError, isLoading } = useQuery<{ data: IUser }>({
+  const { isSuccess, isError, isLoading } = useQuery<{ data: IUser }>({
     queryKey: ["is_authenticated"],
     queryFn: () => checkAuthentication(),
   });
 
   useEffect(() => {
-    refetch(); //Refresh when user changes i.e if logout or login
     setState({
       isAuthenticated: isSuccess,
       loading: isLoading,
       error: isError,
     });
-  }, [user, isSuccess, isLoading]);
+  }, []);
 
   return state;
 };

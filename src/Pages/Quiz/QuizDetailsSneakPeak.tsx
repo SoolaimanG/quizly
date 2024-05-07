@@ -105,7 +105,7 @@ export const QuizDetailsSneakPeak = forwardRef(
                   />
                 </Glassmorphism>
               </HoverCardTrigger>
-              <HoverCardContent className="h-fit" side="right">
+              <HoverCardContent className="h-fit" side="bottom">
                 <h1 className="josefin-sans-font underline">
                   Quiz Description
                 </h1>

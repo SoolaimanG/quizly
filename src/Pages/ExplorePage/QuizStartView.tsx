@@ -10,7 +10,6 @@ import Rating from "../../components/App/Rating";
 import { Tabs } from "../../components/App/Tabs";
 import { Comments } from "../../components/App/Comments";
 import { StartQuizButton } from "../../components/App/StartQuizButton";
-import { useAuthentication } from "../../Hooks";
 import { useState } from "react";
 import { IQuiz, userQuizStatus } from "../../Types/quiz.types";
 import Waiting from "../../assets/WaitingAnimation.json";
@@ -23,7 +22,6 @@ import { format } from "date-fns";
 export const QuizStartView = ({ data }: { data: IQuiz | undefined }) => {
   const { truncateWord, getFirstLetterAndCapitalize } = useText();
   const [textToShow, setTextToShow] = useState(150);
-  const { isAuthenticated } = useAuthentication();
 
   const startQuizButtonText: Record<userQuizStatus, any> = {
     "start-quiz": "Start Quiz",
@@ -41,6 +39,7 @@ export const QuizStartView = ({ data }: { data: IQuiz | undefined }) => {
       </div>
     );
 
+  // This is the fist tab of the start quiz - VIEW
   const accountDetails = (
     <div className="flex flex-col h-full gap-2 relative">
       <h3 className="text-lg josefin-sans-font">About Quiz</h3>
@@ -69,6 +68,8 @@ export const QuizStartView = ({ data }: { data: IQuiz | undefined }) => {
           allow_word_search: data.allow_word_search,
         }}
       />
+
+      {/* Indicate that this quiz qas create by a tutor */}
       {data.host && (
         <div className="flex mt-4 flex-col gap-2">
           <h3 className="">Tutor</h3>
@@ -115,6 +116,8 @@ export const QuizStartView = ({ data }: { data: IQuiz | undefined }) => {
           </div>
         </div>
       )}
+
+      {/* Indicate that this quiz was created by Quizly AI */}
       {data.is_ai_generated && (
         <div className="flex items-center gap-1 mt-3">
           <Glassmorphism className="h-[2.5rem] w-[2.5rem] rounded-full flex items-center justify-center">
@@ -130,10 +133,8 @@ export const QuizStartView = ({ data }: { data: IQuiz | undefined }) => {
       )}
       <StartQuizButton
         button_text={startQuizButtonText[data.user_status || "start-quiz"]}
-        className="absolute bottom-12"
-        onQuizStart={() => {}}
-        id={data?.id}
-        isAuthenticated={isAuthenticated}
+        className="absolute md:bottom-14 bottom-20"
+        quiz={data!}
       />
     </div>
   );

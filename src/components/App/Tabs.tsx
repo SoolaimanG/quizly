@@ -28,7 +28,7 @@ export const Tabs: React.FC<TabsProps> = ({
             )}
             key={i}
           >
-            {capitalize_first_letter(h)}
+            <h1 className="josefin-sans-font">{capitalize_first_letter(h)}</h1>
             {active === h && (
               <motion.div
                 layoutId="underline"

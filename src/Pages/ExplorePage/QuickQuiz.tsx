@@ -1,33 +1,50 @@
-import { app_config } from "../../Types/components.types";
+import { localStorageKeys } from "../../Types/components.types";
 import { Button } from "../../components/Button";
 import { FC, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { QuizStartView } from "./QuizStartView";
 import Error from "../Comps/Error";
-
-import queryString from "query-string";
 import { useAuthentication } from "../../Hooks";
 import { QuizQuestion } from "../Quiz/QuizQuestion";
 import { QuizResult } from "../Quiz/QuizResult";
-import { RetakeQuizButton } from "../../components/App/RetakeQuizButton";
 import { IQuiz } from "../../Types/quiz.types";
 import PageLoader from "../../components/Loaders/PageLoader";
 import { QuizQueries } from "../../Functions/QuizQueries";
+import { useSessionStorage } from "@uidotdev/usehooks";
+import queryString from "query-string";
+import { getAnonymousID } from "../../Functions";
 
-export const QuickQuiz: FC<{}> = () => {
+export const QuickQuiz: FC<{ quiz?: IQuiz }> = ({ quiz: optionalQuizData }) => {
   const { isAuthenticated } = useAuthentication();
   const quiz = new QuizQueries(isAuthenticated);
+  const [quizProps, setQuizProps] = useState<IQuiz | undefined>();
+
   const { isLoading, data, error, refetch } = useQuery<{ data: IQuiz }>({
     queryKey: ["get_quick_quiz"],
-    queryFn: () => quiz.getQuickQuiz(),
+    queryFn: () => quiz.getQuickQuiz(getAnonymousID(isAuthenticated)),
     retry: 1,
     refetchInterval: 30000,
+    enabled: !optionalQuizData,
   });
 
   const location = useLocation();
   const [view, setView] = useState<"question" | "result" | "start">("start");
-  const [question_id, setQuestionID] = useState("");
+  const [questionIDs] = useSessionStorage<string[]>(
+    localStorageKeys.questionUUIDs,
+    []
+  );
+
+  const qs = queryString.parse(location.search) as { question_id: string };
+  const questionIndex = questionIDs.indexOf(qs.question_id);
+
+  useEffect(() => {
+    if (!data?.data && !optionalQuizData) {
+      return;
+    }
+
+    setQuizProps(data?.data || optionalQuizData);
+  }, [data?.data, optionalQuizData]);
 
   useEffect(() => {
     const hash = location.hash.substring(1) as typeof view;
@@ -36,12 +53,10 @@ export const QuickQuiz: FC<{}> = () => {
       hash === "question" || hash === "result" || hash === "start";
 
     (!hash || !notMatching) && setView("start");
+
     hash === "question" && setView("question");
     hash === "result" && setView("result");
     hash === "start" && setView("start");
-
-    hash === "question" &&
-      setQuestionID(queryString.parse(location.search).questionid as string);
   }, [location.search, location.hash]);
 
   if (isLoading)
@@ -58,27 +73,17 @@ export const QuickQuiz: FC<{}> = () => {
 
   //All the views to be render for the quick quiz Starting Page, The Questions Page and Score/Final Page
   const views = {
-    start: <QuizStartView data={data?.data} />,
-    question: <QuizQuestion quiz={data?.data!} question_id={question_id} />,
-    result: (
-      <QuizResult {...data?.data}>
-        <div className="flex absolute bottom-4 w-full gap-3">
-          <RetakeQuizButton
-            to_go={"#start"}
-            quiz_id={data?.data?.id as string}
-          />
-          <Button asChild variant="base" className="w-full h-[3rem]">
-            <Link to={app_config.more_quizzes}>Another Quiz</Link>
-          </Button>
-        </div>
-      </QuizResult>
+    start: <QuizStartView data={quizProps} />,
+    question: (
+      <QuizQuestion quiz={quizProps!} questionID={questionIDs[questionIndex]} />
     ),
+    result: <QuizResult {...quizProps!} />,
   };
 
   return (
     <div className="h-full">
       {/*</div>*/}
-      <div className="w-full flex items-center justify-center">
+      <div className="w-full flex items-center -mt-2 md:-mt-3 justify-center">
         <Button
           variant={"base"}
           size={"lg"}
@@ -87,7 +92,7 @@ export const QuickQuiz: FC<{}> = () => {
           Quick Quiz
         </Button>
       </div>
-      <div className="w-full h-full md:-mt-4 -mt-4">{views[view]}</div>
+      <div className="w-full h-full md:-mt-4 mt-1">{views[view]}</div>
     </div>
   );
 };

@@ -3,19 +3,17 @@ import { Button } from "../Button";
 import Hint from "../Hint";
 
 export type quizNavigationProps = {
-  havePrev?: boolean;
   prevFunction?: () => void;
   nextFunction: () => void;
 };
 
 export const QuizNavigation: React.FC<quizNavigationProps> = ({
-  havePrev = false,
   prevFunction,
   nextFunction,
 }) => {
   return (
     <div className="w-full gap-3 flex items-center justify-end">
-      {havePrev && (
+      {prevFunction && (
         <Hint
           element={
             <Button

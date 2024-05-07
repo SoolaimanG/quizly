@@ -15,7 +15,9 @@ import { useEffect, useState } from "react";
 
 export const useQuizHook = () => {
   const assignIconToCategory = (subject: subjects) => {
-    if (!subject) return null;
+    if (!subject) {
+      return null;
+    }
 
     switch (subject) {
       case "Chemistry":
@@ -54,9 +56,15 @@ export const useCheckPerformance = (
   user_point?: number,
   expected_point?: number
 ):
-  | { bg_color: string; text_color: string; circular_color?: string }
+  | {
+      bg_color: string;
+      text_color: string;
+      circular_color?: { stroke: string; path: string };
+    }
   | undefined => {
-  if (user_point === undefined || expected_point === undefined) return;
+  if (user_point === undefined || expected_point === undefined) {
+    return;
+  }
 
   const averageScore = expected_point / 2;
 
@@ -65,19 +73,28 @@ export const useCheckPerformance = (
       return {
         bg_color: "bg-red-100",
         text_color: "text-red-500",
-        circular_color: "#ef4444",
+        circular_color: {
+          stroke: "#ef4444",
+          path: "#fee2e2",
+        },
       };
     case user_point >= averageScore && user_point < expected_point:
       return {
         bg_color: "bg-yellow-100",
         text_color: "text-yellow-500",
-        circular_color: "#facc15",
+        circular_color: {
+          stroke: "#facc15",
+          path: "#fef9c3",
+        },
       };
     default:
       return {
         bg_color: "bg-green-100",
         text_color: "text-green-500",
-        circular_color: "#22c55e",
+        circular_color: {
+          stroke: "#22c55e",
+          path: "#dcfce7",
+        },
       };
   }
 };
@@ -88,7 +105,9 @@ export const useTimerColor = (initialTime?: number, time?: number) => {
   );
 
   useEffect(() => {
-    if (!initialTime || !time) return setVariant("destructive");
+    if (!initialTime || !time) {
+      return setVariant("destructive");
+    }
 
     const AVERAGE = (initialTime * 60) / 2;
 

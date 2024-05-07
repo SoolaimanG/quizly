@@ -53,9 +53,9 @@ const Explore = () => {
         </div>
 
         {/* APPs -{To take fast quiz and to join or create a community} */}
-        <div className="flex md:flex-row flex-col gap-3 w-full p-3 md:p-0">
-          <Card className="md:h-[35rem] h-[38rem] transition-all delay-75 ease-linear pt-0 pb-6 flex flex-col gap-3 relative rounded-md md:w-[60%] w-full">
-            <CardContent className="h-full">
+        <div className="flex md:flex-row flex-col gap-3 w-full p-1 md:p-0">
+          <Card className="md:h-[35rem] h-[40rem] transition-all delay-75 ease-linear pb-6 flex flex-col gap-3 relative rounded-md md:w-[60%] w-full">
+            <CardContent className="h-full md:p-3 p-2 ">
               <QuickQuiz />
             </CardContent>
           </Card>

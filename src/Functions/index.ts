@@ -528,7 +528,7 @@ export function getAnonymousID(isAuthenticated: boolean) {
     return;
   }
 
-  let anonymousID = sessionStorage.getItem("anonymous_id");
+  let anonymousID = JSON.parse(sessionStorage.getItem("anonymous_id") || "");
 
   // If anonymous_id is not found in sessionStorage, generate a new one and save it
   if (!anonymousID) {

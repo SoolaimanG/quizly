@@ -516,11 +516,9 @@ export interface QuickActionProps {
 }
 
 export type questionUIStateProps = {
-  show_answer?: boolean;
-  is_correct?: boolean;
-  question_type: string;
-  correct_answer: string;
-  editted: boolean;
+  is_correct: boolean;
+  correct_answer: string[];
+  question_explanation: string;
 };
 
 export interface ComboBoxProps {

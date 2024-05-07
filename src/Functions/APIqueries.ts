@@ -1,5 +1,5 @@
-import { questionUIStateProps, subjects } from "./../Types/components.types";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import { subjects } from "./../Types/components.types";
+import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import {
   IStudent,
@@ -97,46 +97,6 @@ export const checkAuthentication = async () => {
   return res.data;
 };
 
-export const startQuiz = async ({
-  quiz_id,
-  isAuthenticated,
-  access_key,
-  anonymous_id,
-}: startQuizFunctionProps) => {
-  const headers = isAuthenticated
-    ? {
-        Authorization: "Bearer " + access_token,
-      }
-    : {};
-
-  const payload: startQuizFunctionProps = {
-    quiz_id,
-    anonymous_id,
-    access_key,
-  };
-
-  try {
-    const response: AxiosResponse = await axios.post(
-      `${api}/api/v1/start-quiz/`,
-      { ...payload },
-      { headers }
-    );
-
-    const rs: { data: { uuids: string[] | null } } = response.data;
-    return rs;
-  } catch (error: any) {
-    const status = error.request.status;
-    if (status !== 409 && status !== 404) {
-      toast({
-        title: "Error",
-        description: errorMessageForToast(error),
-        variant: "destructive",
-      });
-    }
-    throw status;
-  }
-};
-
 export const create_student_or_teacher_account = async ({
   account_type,
   data,
@@ -181,19 +141,6 @@ export const create_student_or_teacher_account = async ({
       reject(error);
     }
   });
-};
-
-export const get_question = async (question_id: string) => {
-  const headers: Record<string, string> = {};
-
-  if (!question_id) return;
-
-  const response: AxiosResponse = await axios.get(
-    `${api}/api/v1/get-single-question/${question_id}/`,
-    { headers }
-  );
-
-  return response?.data;
 };
 
 export const nextQuestion = async ({
@@ -252,41 +199,6 @@ export const nextQuestion = async ({
     });
     throw error;
   }
-};
-
-export const markQuestion = async ({
-  isAuthenticated,
-  anonymous_id,
-  user_answer,
-  question_id,
-  is_completed,
-}: markQuestionProps) => {
-  const access_token = Cookies.get("access_token") || "";
-
-  const headers =
-    isAuthenticated && access_token
-      ? {
-          Authorization: "Bearer " + access_token,
-        }
-      : {};
-
-  const payload: Omit<markQuestionProps, "isAuthenticated"> = {
-    anonymous_id,
-    user_answer,
-    question_id,
-    is_completed,
-  };
-  const response = await axios.post(
-    api + "/api/v1/check-answer/",
-    {
-      ...payload,
-    },
-    { headers }
-  );
-  const rs: {
-    data: questionUIStateProps;
-  } = response.data;
-  return rs;
 };
 
 export const getQuizResult = async ({

@@ -1,24 +1,21 @@
 import React, {
+  FC,
   ForwardedRef,
   forwardRef,
+  useEffect,
   useState,
   useTransition,
 } from "react";
-import {
-  IQuestion,
-  app_config,
-  localStorageKeys,
-  questionUIStateProps,
-  question_type,
-} from "../../Types/components.types";
+import { app_config, localStorageKeys } from "../../Types/components.types";
 import { Button } from "../../components/Button";
 import { QuizNavigation } from "../../components/App/QuizNavigation";
 import { useQuizStore, useZStore } from "../../provider";
-import { useAuthentication, useMethods } from "../../Hooks";
+import { useAuthentication } from "../../Hooks";
 import { Lightbulb, Loader2, Volume2 } from "lucide-react";
 import Hint from "../../components/Hint";
 import {
   errorMessageForToast,
+  getAnonymousID,
   handleScrollInView,
   readAloud,
 } from "../../Functions";
@@ -26,48 +23,35 @@ import { Skeleton } from "../../components/Loaders/Skeleton";
 import { ButtonSkeleton } from "../../components/App/FilterByCategory";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import {
-  markQuestion,
-  get_question,
-  reportQuestion,
-} from "../../Functions/APIqueries";
 import Error from "../Comps/Error";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "../../components/Popover";
-import { AlertCircle } from "lucide-react";
-import { useLocalStorage, useSessionStorage } from "@uidotdev/usehooks";
+import { useSessionStorage } from "@uidotdev/usehooks";
 import { toast } from "../../components/use-toaster";
 import { useLocation, useNavigate } from "react-router-dom";
 import queryString from "query-string";
 import { AxiosError } from "axios";
-import { Timer } from "../../components/App/Timer";
 import {
-  GermanUI,
   MultipleChoiceUI,
   BooleanUI,
   ObjectiveUI,
+  OpenEndedUI,
 } from "../Comps/Quiz/QuestionTypesUI";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "../../components/AlertModal";
-import { Textarea } from "../../components/TextArea";
 import { Img } from "react-image";
 import { Description } from "../../components/App/Description";
-import { quizQuestionCompProps } from "../../Types/quiz.types";
-import { IQuiz } from "../../Types/quiz.types";
+import {
+  quizQuestionCompProps,
+  userResponseProps,
+} from "../../Types/quiz.types";
+import { IQuiz, IQuestion, question_type } from "../../Types/quiz.types";
+import { QuizQueries } from "../../Functions/QuizQueries";
+import { QuestionExplanationPopOver } from "./QuestionExplanation";
+import { ReportQuestion } from "./ReportQuestion";
 
-const QuestionLoader = () => {
+const QuestionLoader: FC<{}> = () => {
   return (
     <div className="flex mt-5 w-full flex-col gap-3">
       <Skeleton className="w-full h-[6.5rem]" />
@@ -81,64 +65,65 @@ const QuestionLoader = () => {
 export const QuizQuestion = forwardRef(
   (
     {
-      question_id,
       quiz,
       haveNavigation = true,
-      displayTimer = true,
       index,
+      questionID: qID,
     }: quizQuestionCompProps,
     ref: ForwardedRef<HTMLDivElement>
   ) => {
     const { isAuthenticated } = useAuthentication();
+    const quizApi = new QuizQueries(isAuthenticated);
     const { isLoading, data, error, refetch } = useQuery<{ data: IQuestion }>({
-      queryKey: ["question_id", question_id],
-      queryFn: () => get_question(question_id),
+      queryKey: ["question_id", qID],
+      queryFn: () => quizApi.getQuestion(qID, getAnonymousID(isAuthenticated)),
       retry: 2,
     });
 
-    //--------->States<--------
-    const [state, setState] = useState<questionUIStateProps>({
-      is_correct: false,
-      question_type: "",
-      show_answer: false,
-      correct_answer: "",
-      editted: false,
-    });
     const [animate_to, setAnimate_to] = useState<"left" | "right">("right");
-    const [issue, setIssue] = useState("");
 
     //--------->HOOKS<----------
-    const [anonymous_id] = useLocalStorage<string>(
-      localStorageKeys.anonymous_id
-    );
     const [questionIDs] = useSessionStorage<string[]>(
       localStorageKeys.questionUUIDs,
       []
     );
+
     const [isPending, startTransition] = useTransition();
-    const [isReporting, startReport] = useTransition();
     const { setLoginAttempt } = useZStore();
-    const { refs, currentQuizData, setQuestionsAnswered } = useQuizStore();
+    const { refs, currentQuizData } = useQuizStore();
     const navigate = useNavigate();
     const location = useLocation();
-    const { login_required } = useMethods();
+    const [questionResponse, setQuestionResponse] = useState<userResponseProps>(
+      {
+        is_correct: false,
+        question_explanation: "",
+        correct_answer: [],
+        open_ended_response: undefined,
+        show_answer: false,
+        user_answer: [],
+      }
+    );
 
-    const access_token = queryString.parse(location.search).access_key as
-      | string
-      | undefined;
-    const questionID = queryString.parse(location.search).questionid;
+    const qs = queryString.parse(location.search) as {
+      access_token: string;
+      question_id: string;
+    };
 
     //--------->Functions<------------
-    const confirmUserAnswer = async (user_answer: string | string[]) => {
+    const confirmUserAnswer = async (user_answer: (string | boolean)[]) => {
       try {
-        const res = await markQuestion({
-          isAuthenticated,
-          anonymous_id,
+        const res: {
+          data: userResponseProps;
+        } = await quizApi.checkUserAnswer({
+          questionID: qs.question_id,
           user_answer,
-          question_id: data?.data.id || "",
+          access_token: qs.access_token,
+          anonymous_id: getAnonymousID(isAuthenticated),
         });
-        setState(res.data);
-        !res.data.editted && setQuestionsAnswered("increment");
+
+        setQuestionResponse({ ...res.data, show_answer: true });
+
+        // !res.data.editted && setQuestionsAnswered("increment");
         if (index) {
           index + 1 < Number(currentQuizData?.total_questions) &&
             handleScrollInView(refs[index + 1]);
@@ -156,38 +141,51 @@ export const QuizQuestion = forwardRef(
       }
     };
 
-    const submitAnswer = (user_answer: string | string[]) => {
+    const submitAnswer = (user_answer: (string | boolean)[]) => {
       startTransition(() => {
         confirmUserAnswer(user_answer);
       });
     };
 
-    //---------->Navigation Function<---------
+    //This function helps to navigate from question to question without having to use the navigate funtion
     const navigatorHelper = (question_id: string) => {
-      navigate(
-        `?questionid=${question_id}${
-          access_token ? `&access_key=${access_token}` : ""
-        }#question`
-      );
+      const params = queryString.stringify({
+        question_id,
+        access_token: qs.access_token,
+      });
+      navigate(`?${params}#question`);
     };
 
+    // This two function helps with navigating the questions.
     const getNextQuestion = async () => {
-      //First get the index of the current question to help with navigation
-      const currentIndex = questionIDs.indexOf(String(questionID));
+      const currentIndex = questionIDs.indexOf(qs.question_id);
       const lengthOfQuestions = questionIDs.length;
 
       if (currentIndex + 1 === lengthOfQuestions) {
-        //
-        navigate("#result");
+        try {
+          await quizApi.submitQuiz(
+            quiz.id,
+            qs.access_token,
+            getAnonymousID(isAuthenticated)
+          );
+          navigate("#result");
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: errorMessageForToast(
+              error as AxiosError<{ message: string }>
+            ),
+            variant: "destructive",
+          });
+        }
         return;
       }
 
       setAnimate_to("right");
       navigatorHelper(questionIDs[currentIndex + 1] || questionIDs[0]);
     };
-
     const getPrevQuestion = () => {
-      const currentIndex = questionIDs.indexOf(String(questionID));
+      const currentIndex = questionIDs.indexOf(qs.question_id);
 
       if (currentIndex === -1 || currentIndex === 0) {
         navigate("#start");
@@ -198,42 +196,11 @@ export const QuizQuestion = forwardRef(
       navigatorHelper(questionIDs[currentIndex - 1]);
     };
 
-    const reportQuestionFunction = async () => {
-      if (!issue) {
-        return toast({
-          title: "Error",
-          description: "Please write about the issue you encounter.",
-          variant: "destructive",
-        });
-      }
+    useEffect(() => {
+      const response = data?.data.user_previous_response as userResponseProps;
 
-      login_required();
-
-      if (!login_required()) {
-        return;
-      }
-
-      try {
-        const response: { data: {}; message: string } = await reportQuestion({
-          question_id,
-          quiz_id: quiz.id,
-          issue,
-        });
-        toast({
-          title: "Reported",
-          description: response.message,
-        });
-        setIssue("");
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: errorMessageForToast(
-            error as AxiosError<{ message: string }>
-          ),
-          variant: "destructive",
-        });
-      }
-    };
+      setQuestionResponse({ ...response });
+    }, [data?.data, qID]);
 
     if (isLoading) return <QuestionLoader />;
 
@@ -248,35 +215,37 @@ export const QuizQuestion = forwardRef(
         />
       );
 
-    const questionType = {
-      german: (
-        <GermanUI
-          disableAnswer={currentQuizData?.is_completed!}
+    const questionType: Record<question_type, any> = {
+      open_ended: (
+        <OpenEndedUI
+          state={questionResponse}
+          disableAnswer={currentQuizData?.user_status === "is-completed"}
           markQuestion={submitAnswer}
         />
       ),
       objective: (
         <ObjectiveUI
-          disableAnswer={currentQuizData?.is_completed!}
+          disableAnswer={currentQuizData?.user_status === "is-completed"}
           quiz={quiz as IQuiz}
           data={data?.data as IQuestion}
           markQuestion={submitAnswer}
-          state={state}
+          state={questionResponse}
         />
       ),
       multiple_choices: (
         <MultipleChoiceUI
-          disableAnswer={currentQuizData?.is_completed!}
+          state={questionResponse}
+          disableAnswer={currentQuizData?.user_status === "is-completed"}
           data={data?.data!}
           markQuestion={submitAnswer}
         />
       ),
       true_or_false: (
         <BooleanUI
-          disableAnswer={currentQuizData?.is_completed!}
+          disableAnswer={currentQuizData?.user_status === "is-completed"}
           quiz={quiz as IQuiz}
           markQuestion={submitAnswer}
-          state={state}
+          state={questionResponse}
         />
       ),
     };
@@ -295,13 +264,13 @@ export const QuizQuestion = forwardRef(
               <pre className="underline">
                 Question {data?.data?.question_number}
               </pre>
-              {displayTimer && (
+              {/* {Boolean(quiz.time_limit) && (
                 <Timer
                   quiz_id={quiz?.id as string}
                   onTimeFinish={() => navigate("#result")}
                   initialTime={quiz?.time_limit || 0}
                 />
-              )}
+              )} */}
             </div>
             {quiz?.allow_robot_read && (
               <Hint
@@ -312,9 +281,9 @@ export const QuizQuestion = forwardRef(
                     }
                     size={"icon"}
                     variant={"secondary"}
-                    className="p-1 rounded-full bg-transparent"
+                    className="w-10 h-10 rounded-full bg-transparent"
                   >
-                    <Volume2 />
+                    <Volume2 className="text-green-500" />
                   </Button>
                 }
                 content="Read question"
@@ -322,7 +291,14 @@ export const QuizQuestion = forwardRef(
             )}
           </div>
           <div className="w-full flex text-green-600 dark:text-green-500 flex-col gap-2 rounded-sm  h-fit p-3">
-            <p className="text-xl text-center">{data?.data?.question_body}</p>
+            <motion.h1
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              key={animate_to}
+              className="text-2xl text-center josefin-sans-font"
+            >
+              {data?.data?.question_body}
+            </motion.h1>
             {data?.data?.question_image && (
               <Img
                 loader={<Loader2 size={40} className="animate-spin" />}
@@ -339,62 +315,10 @@ export const QuizQuestion = forwardRef(
             transition={{ type: "just", delay: 0.15 }}
             className="w-full mt-5"
           >
-            {questionType[data?.data?.question_type as question_type]}
+            {questionType[data?.data?.question_type || "objective"]}
           </motion.div>
           <div className="flex items-end w-full justify-between">
-            <AlertDialog>
-              <AlertDialogTrigger>
-                <Button
-                  className="flex items-center gap-1"
-                  variant={"ghost"}
-                  size="sm"
-                >
-                  <AlertCircle size={15} />
-                  Report
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Do You Want To Report This Question?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    When this question is reported we make sure your report
-                    reach the tutor that set this this question to see if
-                    anything is wrong with it and they will make correction
-                    ASAP.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <Textarea
-                  rows={10}
-                  value={issue}
-                  onChange={(e) => setIssue(e.target.value)}
-                  placeholder="Write about what you notice with the question"
-                  className="resize-none"
-                />
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction asChild>
-                    <Button
-                      size="sm"
-                      className="flex items-center gap-1"
-                      onClick={() =>
-                        startReport(() => {
-                          reportQuestionFunction();
-                        })
-                      }
-                    >
-                      {isReporting ? (
-                        <Loader2 className="animate-spin" size={15} />
-                      ) : (
-                        <AlertCircle size={15} />
-                      )}
-                      Report
-                    </Button>
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <ReportQuestion question_id={qID} />
             {data?.data?.hint && (
               <div className="w-full flex items-end justify-end">
                 <Popover>
@@ -421,32 +345,12 @@ export const QuizQuestion = forwardRef(
               </div>
             )}
           </div>
-          {state.show_answer && (
-            <Popover>
-              <PopoverTrigger className="underline">
-                See Explanation
-              </PopoverTrigger>
-              <PopoverContent className="flex flex-col gap-2">
-                <h1 className="font-semibold">Basic Explanation</h1>
-                <i className="text-lg text-center w-full">
-                  {'"" ' + state.correct_answer + ' ""'}
-                </i>
-                {state.is_correct ? (
-                  <Description
-                    className="text-green-500"
-                    text="You answer is correct"
-                  />
-                ) : (
-                  <Description
-                    className="text-red-500"
-                    text="You choose the wrong answer"
-                  />
-                )}
-              </PopoverContent>
-            </Popover>
-          )}
+          {quiz.result_display_type === "on_complete" &&
+            questionResponse.show_answer && (
+              <QuestionExplanationPopOver {...questionResponse} />
+            )}
           {haveNavigation && (
-            <div className="absolute bottom-3 w-full p-1 gap-3 flex items-center justify-between right-3">
+            <div className="absolute bottom-3 w-[95%] gap-3 flex items-center justify-between right-3">
               {!isAuthenticated && (
                 <Button
                   onClick={() =>
@@ -455,7 +359,7 @@ export const QuizQuestion = forwardRef(
                       fallback: app_config.explore_page,
                     })
                   }
-                  variant={"link"}
+                  variant={"ghost"}
                 >
                   Create Account
                 </Button>
@@ -463,7 +367,6 @@ export const QuizQuestion = forwardRef(
 
               <QuizNavigation
                 prevFunction={getPrevQuestion}
-                havePrev
                 nextFunction={() => {
                   startTransition(() => {
                     getNextQuestion();

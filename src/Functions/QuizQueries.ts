@@ -34,7 +34,7 @@ export class QuizQueries {
     ).data;
   }
 
-  async getQuickQuiz() {
+  async getQuickQuiz(anonymous_id?: string) {
     const headers =
       this.isAuthenticated && this.access_token
         ? {
@@ -42,7 +42,11 @@ export class QuizQueries {
           }
         : {};
 
-    return (await api.get(quiz_api + `quick-quiz/`, { headers })).data;
+    return (
+      await api.get(quiz_api + `quick-quiz/?anonymous_id=${anonymous_id}`, {
+        headers,
+      })
+    ).data;
   }
 
   async getQuizComment(quizId: string, pages = 10) {
@@ -59,10 +63,61 @@ export class QuizQueries {
     access_token,
     ip_address,
     anonymous_id,
+    unanswered_questions,
   }: {
     quiz_id: string;
     access_token?: string;
     ip_address?: string;
+    anonymous_id?: string;
+    unanswered_questions?: boolean;
+  }) {
+    const headers =
+      this.isAuthenticated && this.access_token
+        ? {
+            Authorization: "Bearer " + this.access_token,
+          }
+        : {};
+
+    const res = await api.post(
+      this.quiz_api + "start-quiz/" + quiz_id + "/",
+      { access_token, ip_address, anonymous_id, unanswered_questions },
+      { headers }
+    );
+
+    return res.data;
+  }
+
+  async getQuestion(question_id: string, anonymous_id?: string) {
+    const headers =
+      this.isAuthenticated && this.access_token
+        ? {
+            Authorization: "Bearer " + this.access_token,
+          }
+        : {};
+
+    const params = queryString.stringify({
+      anonymous_id,
+    });
+
+    const res = await api.get(
+      this.quiz_api + `question/${question_id}/?${params}`,
+      {
+        headers,
+      }
+    );
+
+    return res.data;
+  }
+
+  async checkUserAnswer({
+    questionID,
+    user_answer,
+    access_token,
+    anonymous_id,
+  }: {
+    questionID: string;
+    user_answer: (string | boolean)[];
+    access_token?: string;
     anonymous_id?: string;
   }) {
     const headers =
@@ -72,10 +127,73 @@ export class QuizQueries {
           }
         : {};
 
-    return await api.post(
-      this.quiz_api + "start-quiz/" + quiz_id,
-      { access_token, ip_address, anonymous_id },
+    const params = {
+      access_token,
+      user_answer,
+      anonymous_id,
+    };
+
+    const response = await api.post(
+      this.quiz_api + `mark-question/${questionID}/`,
+      { ...params },
       { headers }
     );
+
+    return response.data;
+  }
+
+  async reportQuestion(
+    question_id: string,
+    report: string,
+    access_token?: string
+  ) {
+    const response = await api.post(
+      this.quiz_api + `report-question/${question_id}/`,
+      { access_token, report },
+      { headers: { Authorization: "Bearer " + this.access_token } }
+    );
+    return response.data;
+  }
+
+  async submitQuiz(
+    quiz_id: string,
+    access_token?: string,
+    anonymous_id?: string
+  ) {
+    const headers =
+      this.isAuthenticated && this.access_token
+        ? {
+            Authorization: "Bearer " + this.access_token,
+          }
+        : {};
+
+    const response = await api.post(
+      this.quiz_api + `quiz-result/${quiz_id}/`,
+      { access_token, anonymous_id },
+      { headers }
+    );
+    return response.data;
+  }
+
+  async getQuizResult(
+    quiz_id: string,
+    access_token?: string,
+    anonymous_id?: string
+  ) {
+    const headers =
+      this.isAuthenticated && this.access_token
+        ? {
+            Authorization: "Bearer " + this.access_token,
+          }
+        : {};
+
+    const params = queryString.stringify({ access_token, anonymous_id });
+
+    const response = await api.get(
+      this.quiz_api + `quiz-result/${quiz_id}/?${params}`,
+      { headers }
+    );
+
+    return response.data;
   }
 }
